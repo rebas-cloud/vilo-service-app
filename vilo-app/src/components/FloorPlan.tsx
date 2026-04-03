@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { Table, TableShape, Reservation, Guest, GuestNote, GuestTag, ReservationStatus, OccasionLabel } from '../types';
-import { Edit3, Plus, Trash2, Clock, CalendarCheck, Ban, ListOrdered, ChevronUp, ChevronDown, Users, Armchair, PanelLeftOpen, PanelLeftClose, User, Phone, Mail, MessageSquare, X, MapPin, Globe, PhoneCall, Footprints, UserCheck, UserPlus, ArrowRightLeft, Lightbulb, History, Tag, ChevronRight, AlignLeft } from 'lucide-react';
+import { Edit3, Plus, Trash2, Clock, CalendarCheck, Ban, ListOrdered, ChevronUp, ChevronDown, Users, Armchair, PanelLeftOpen, PanelLeftClose, User, Phone, Mail, MessageSquare, X, MapPin, Globe, PhoneCall, Footprints, UserCheck, UserPlus, ArrowRightLeft, Lightbulb, History, Tag, ChevronRight, AlignLeft, Star } from 'lucide-react';
 import { IconCircleCheckFilled, IconCoinFilled, IconAlertTriangleFilled, IconLeaf, IconPlant2, IconBabyCarriage, IconWheelchair, IconCake, IconBriefcaseFilled, IconNews, IconStarFilled, IconUserPlus, IconConfetti, IconHeartFilled, IconGiftFilled, IconHeartHandshake, IconSparkles, IconSchool, IconMasksTheater } from '@tabler/icons-react';
 import { saveStorage, loadStorage, loadReservations, loadWaitlist, loadGuests, addGuest, toggleGuestTag, addGuestNote, removeGuestNote } from '../utils/storage';
 import { ReservationPanel } from './Reservations';

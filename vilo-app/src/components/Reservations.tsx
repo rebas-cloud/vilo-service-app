@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Reservation, ReservationStatus, Guest, SeatLabel, OccasionLabel } from '../types';
 import { loadReservations, addReservation, updateReservation, deleteReservation, findGuestByPhone, addGuest, loadGuests } from '../utils/storage';
-import { X, Plus, Users, Phone, Globe, UserPlus, Clock, Calendar, Trash2, Edit3, ChevronLeft, ChevronRight, User, Tag, Armchair, Search, MoreVertical, ChevronUp, ChevronDown, AlignJustify, BarChart3, MessageSquare } from 'lucide-react';
+import { X, Plus, Users, Phone, Globe, UserPlus, Clock, Calendar, Trash2, Edit3, ChevronLeft, ChevronRight, User, Tag, Armchair, Search, MoreVertical, ChevronUp, ChevronDown, AlignJustify, BarChart3, MessageSquare, Star } from 'lucide-react';
 import { IconCircleCheckFilled, IconCoinFilled, IconAlertTriangleFilled, IconLeaf, IconPlant2, IconBabyCarriage, IconWheelchair, IconCake, IconBriefcaseFilled, IconNews, IconStarFilled, IconUserPlus, IconConfetti, IconHeartFilled, IconGiftFilled, IconHeartHandshake, IconSparkles, IconSchool, IconMasksTheater } from '@tabler/icons-react';
 import { useApp } from '../context/AppContext';
 import { GuestProfile, GuestList } from './GuestProfile';
