@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { Table, TableShape, Reservation, Guest, GuestNote, GuestTag, ReservationStatus, OccasionLabel } from '../types';
 import { Edit3, Plus, Trash2, Clock, CalendarCheck, Ban, ListOrdered, ChevronUp, ChevronDown, Users, Armchair, PanelLeftOpen, PanelLeftClose, User, Phone, Mail, MessageSquare, X, MapPin, Globe, PhoneCall, Footprints, UserCheck, UserPlus, ArrowRightLeft, Lightbulb, History, Tag, ChevronRight, AlignLeft, Star } from 'lucide-react';
-import { IconCircleCheckFilled, IconCoinFilled, IconAlertTriangleFilled, IconLeaf, IconPlant2, IconBabyCarriage, IconWheelchair, IconCake, IconBriefcaseFilled, IconNews, IconStarFilled, IconUserPlus, IconConfetti, IconHeartFilled, IconGiftFilled, IconHeartHandshake, IconSparkles, IconSchool, IconMasksTheater } from '@tabler/icons-react';
+import { IconCircleCheckFilled, IconCoinFilled, IconAlertTriangleFilled, IconLeaf, IconPlant2, IconBabyCarriage, IconWheelchair, IconCake, IconBriefcaseFilled, IconNews, IconStarFilled, IconUserPlus, IconConfetti, IconHeartFilled, IconGiftFilled, IconHeartHandshake, IconSparkles, IconSchool, IconMasksTheater, IconPhoneFilled, IconGlobeFilled, IconWalk } from '@tabler/icons-react';
 import { saveStorage, loadStorage, loadReservations, loadWaitlist, loadGuests, addGuest, toggleGuestTag, addGuestNote, removeGuestNote } from '../utils/storage';
 import { ReservationPanel } from './Reservations';
 import { TableManagement } from './TableManagement';
@@ -700,10 +700,10 @@ export function FloorPlan({ onZoneChange, onShowReservations }: FloorPlanProps) 
     walk_in: { icon: Footprints, label: 'Walk-In' },
   };
 
-  const SOURCE_ICONS: Record<string, typeof Phone> = {
-    phone: Phone,
-    online: Globe,
-    walk_in: UserPlus,
+  const SOURCE_ICONS: Record<string, typeof IconPhoneFilled> = {
+    phone: IconPhoneFilled,
+    online: IconGlobeFilled,
+    walk_in: IconWalk,
   };
 
   const SOURCE_COLORS: Record<string, string> = {
@@ -796,7 +796,7 @@ export function FloorPlan({ onZoneChange, onShowReservations }: FloorPlanProps) 
         >
           {/* Left color bar with icon + party size */}
           <div className="shrink-0 ml-[3px] rounded-[3px] flex flex-col items-center justify-center gap-[2px]" style={{ background: sourceColor, width: '28px', height: '45px' }}>
-            <SourceIcon className="w-3.5 h-3.5 text-white" />
+            <SourceIcon size={14} color="white" />
             <span className="text-white font-bold text-[11px] leading-none mt-1">{r.partySize}</span>
           </div>
           {/* Content area */}

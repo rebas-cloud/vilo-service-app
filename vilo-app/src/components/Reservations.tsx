@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Reservation, ReservationStatus, Guest, SeatLabel, OccasionLabel } from '../types';
 import { loadReservations, addReservation, updateReservation, deleteReservation, findGuestByPhone, addGuest, loadGuests } from '../utils/storage';
 import { X, Plus, Users, Phone, Globe, UserPlus, Clock, Calendar, Trash2, Edit3, ChevronLeft, ChevronRight, User, Tag, Armchair, Search, MoreVertical, ChevronUp, ChevronDown, AlignJustify, BarChart3, MessageSquare, Star } from 'lucide-react';
-import { IconCircleCheckFilled, IconCoinFilled, IconAlertTriangleFilled, IconLeaf, IconPlant2, IconBabyCarriage, IconWheelchair, IconCake, IconBriefcaseFilled, IconNews, IconStarFilled, IconUserPlus, IconConfetti, IconHeartFilled, IconGiftFilled, IconHeartHandshake, IconSparkles, IconSchool, IconMasksTheater } from '@tabler/icons-react';
+import { IconCircleCheckFilled, IconCoinFilled, IconAlertTriangleFilled, IconLeaf, IconPlant2, IconBabyCarriage, IconWheelchair, IconCake, IconBriefcaseFilled, IconNews, IconStarFilled, IconUserPlus, IconConfetti, IconHeartFilled, IconGiftFilled, IconHeartHandshake, IconSparkles, IconSchool, IconMasksTheater, IconPhoneFilled, IconGlobeFilled, IconWalk } from '@tabler/icons-react';
 import { useApp } from '../context/AppContext';
 import { GuestProfile, GuestList } from './GuestProfile';
 
@@ -58,9 +58,9 @@ function getStatusColor(status: ReservationStatus): string {
 }
 
 const SOURCE_ICONS = {
-  phone: Phone,
-  online: Globe,
-  walk_in: UserPlus,
+  phone: IconPhoneFilled,
+  online: IconGlobeFilled,
+  walk_in: IconWalk,
 };
 
 const SOURCE_COLORS: Record<string, string> = {
@@ -876,12 +876,12 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
                       >
                         {/* Left color bar with icon + party size */}
                         <div className="shrink-0 ml-[3px] rounded-[3px] flex flex-col items-center justify-center gap-[2px]"                         style={{ background: sourceColor, width: '28px', height: '45px' }}>
-                                                  <SourceIcon className="w-3.5 h-3.5 text-white" />
-                                                  <span className="text-white font-bold text-[11px] leading-none mt-1">{r.partySize}</span>
-                                                </div>
-                                                {/* Content area */}
-                                                <div className="flex-1 min-w-0 ml-[10px]">
-                                                  {/* Line 1: time + duration */}
+                                                                                                  <SourceIcon size={14} color="white" />
+                                                                                                  <span className="text-white font-bold text-[11px] leading-none mt-1">{r.partySize}</span>
+                                                                                                </div>
+                                                                                                {/* Content area */}
+                                                                                                <div className="flex-1 min-w-0 ml-[10px]">
+                                                                                                  {/* Line 1: time + duration */}
                           <div className="flex items-center gap-[6px]">
                             <span className="text-white font-normal text-[12px]">{r.time} Uhr</span>
                             <span className="text-[#8888aa] font-normal text-[10px]">{formatDuration(r.duration)}</span>
@@ -1069,12 +1069,12 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
                       >
                         {/* Left color bar with icon + party size */}
                         <div className="shrink-0 ml-[3px] rounded-[3px] flex flex-col items-center justify-center gap-[2px]"                         style={{ background: sourceColor, width: '28px', height: '45px' }}>
-                                                  <SourceIcon className="w-3.5 h-3.5 text-white" />
-                                                  <span className="text-white font-bold text-[11px] leading-none mt-1">{r.partySize}</span>
-                                                </div>
-                                                {/* Content area */}
-                                                <div className="flex-1 min-w-0 ml-[10px]">
-                                                  {/* Line 1: time + seated duration */}
+                                                                                                  <SourceIcon size={14} color="white" />
+                                                                                                  <span className="text-white font-bold text-[11px] leading-none mt-1">{r.partySize}</span>
+                                                                                                </div>
+                                                                                                {/* Content area */}
+                                                                                                <div className="flex-1 min-w-0 ml-[10px]">
+                                                                                                  {/* Line 1: time + seated duration */}
                           <div className="flex items-center gap-[6px]">
                             <span className="text-white font-normal text-[12px]">{r.time} Uhr</span>
                             <span className="text-[10px] font-medium" style={{ color: seatedDuration.color }}>{seatedDuration.text}</span>
