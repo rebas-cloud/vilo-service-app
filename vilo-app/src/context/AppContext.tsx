@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useCallback } from 'react';
-import { Table, OrderItem, TableSession, Intent, VoiceState, CommandHistoryItem, UndoableAction, Staff, MenuItem, Zone, Restaurant, GuestSource, ShiftHistoryRecord, TableServiceStatus } from '../types';
+import { Table, OrderItem, TableSession, Intent, VoiceState, CommandHistoryItem, UndoableAction, Staff, MenuItem, Zone, Restaurant, GuestSource, ShiftHistoryRecord, TableServiceStatus, SeatAssignment } from '../types';
 import { feedbackOrderAdded, feedbackOrderSent, feedbackError } from '../utils/feedback';
 
 export interface TipRecord {
@@ -77,6 +77,8 @@ export type AppAction =
   | { type: 'UNBLOCK_TABLE'; tableId: string }
   | { type: 'SET_GUEST_COUNT'; tableId: string; guestCount: number }
   | { type: 'SET_GUEST_NAME'; tableId: string; guestName: string }
+  | { type: 'ASSIGN_SEAT_GUEST'; tableId: string; seatNumber: number; guestId?: string; guestName?: string }
+  | { type: 'CLEAR_SEAT_GUEST'; tableId: string; seatNumber: number }
   | { type: 'CLEAR_SHIFT' }
   | { type: 'SYNC_STATE'; sessions: Record<string, TableSession>; closedTables: ClosedTableRecord[]; tipHistory: TipRecord[]; closedTableRevenue: number; shiftStart: number; shiftHistory: ShiftHistoryRecord[] }
   | { type: 'SYNC_CONFIG'; zones: Zone[]; tables: Table[]; menu: MenuItem[]; staff: Staff[] };
@@ -140,6 +142,29 @@ function getShiftNameFromHour(hour: number): string {
   return 'Dinner';
 }
 
+function pruneSeatAssignments(assignments: SeatAssignment[] | undefined, guestCount: number | undefined): SeatAssignment[] | undefined {
+  if (!assignments || assignments.length === 0) return undefined;
+  const limit = Math.max(0, guestCount || 0);
+  const nextAssignments = assignments.filter(assignment => assignment.seatNumber <= limit);
+  return nextAssignments.length > 0 ? nextAssignments : undefined;
+}
+
+function collapseSeatAssignments(assignments: SeatAssignment[] | undefined, removedSeatNumber: number, nextGuestCount: number): SeatAssignment[] | undefined {
+  if (!assignments || assignments.length === 0) return undefined;
+
+  const nextAssignments = assignments
+    .filter(assignment => assignment.seatNumber !== removedSeatNumber)
+    .map(assignment => (
+      assignment.seatNumber > removedSeatNumber
+        ? { ...assignment, seatNumber: assignment.seatNumber - 1 }
+        : assignment
+    ))
+    .filter(assignment => assignment.seatNumber <= nextGuestCount)
+    .sort((a, b) => a.seatNumber - b.seatNumber);
+
+  return nextAssignments.length > 0 ? nextAssignments : undefined;
+}
+
 function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case 'LOGIN': {
@@ -164,6 +189,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
           orders: [],
           notes: [],
           startTime: Date.now(),
+          seatAssignments: [],
         };
         newTables = state.tables.map(t =>
           t.id === action.tableId ? { ...t, status: 'occupied' as const, sessionId } : t
@@ -542,7 +568,11 @@ function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         sessions: {
           ...state.sessions,
-          [action.tableId]: { ...gcSess, guestCount: action.guestCount },
+          [action.tableId]: {
+            ...gcSess,
+            guestCount: action.guestCount,
+            seatAssignments: pruneSeatAssignments(gcSess.seatAssignments, action.guestCount),
+          },
         },
       };
     }
@@ -555,6 +585,67 @@ function appReducer(state: AppState, action: AppAction): AppState {
         sessions: {
           ...state.sessions,
           [action.tableId]: { ...namedSess, guestName: action.guestName.trim() || undefined },
+        },
+      };
+    }
+
+    case 'ASSIGN_SEAT_GUEST': {
+      const session = state.sessions[action.tableId];
+      if (!session) return state;
+
+      const maxActiveSeats = Math.max(0, session.guestCount || 0);
+      if (action.seatNumber < 1 || action.seatNumber > maxActiveSeats) return state;
+
+      const currentAssignments = session.seatAssignments || [];
+      const nextAssignments = [
+        ...currentAssignments.filter(assignment => assignment.seatNumber !== action.seatNumber),
+        {
+          seatNumber: action.seatNumber,
+          guestId: action.guestId,
+          guestName: action.guestName,
+        },
+      ].sort((a, b) => a.seatNumber - b.seatNumber);
+
+      return {
+        ...state,
+        sessions: {
+          ...state.sessions,
+          [action.tableId]: {
+            ...session,
+            seatAssignments: nextAssignments,
+          },
+        },
+      };
+    }
+
+    case 'CLEAR_SEAT_GUEST': {
+      const session = state.sessions[action.tableId];
+      if (!session) return state;
+      const currentGuestCount = Math.max(0, session.guestCount || 0);
+      if (action.seatNumber < 1 || action.seatNumber > currentGuestCount) return state;
+
+      const nextGuestCount = Math.max(0, currentGuestCount - 1);
+      const nextAssignments = collapseSeatAssignments(session.seatAssignments, action.seatNumber, nextGuestCount);
+      const nextOrders = session.orders.map(order => {
+        if (order.seatId === action.seatNumber) {
+          return { ...order, seatId: undefined };
+        }
+        if (order.seatId && order.seatId > action.seatNumber) {
+          return { ...order, seatId: order.seatId - 1 };
+        }
+        return order;
+      });
+
+      return {
+        ...state,
+        sessions: {
+          ...state.sessions,
+          [action.tableId]: {
+            ...session,
+            guestCount: nextGuestCount,
+            seatAssignments: nextAssignments,
+            orders: nextOrders,
+          },
         },
       };
     }

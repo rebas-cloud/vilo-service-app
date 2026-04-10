@@ -185,6 +185,13 @@ export interface TableSession {
   guestCount?: number;
   guestSource?: GuestSource;
   serviceStatus?: TableServiceStatus;
+  seatAssignments?: SeatAssignment[];
+}
+
+export interface SeatAssignment {
+  seatNumber: number;
+  guestId?: string;
+  guestName?: string;
 }
 
 export interface ShiftHistoryRecord {

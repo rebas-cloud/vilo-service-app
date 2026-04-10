@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { Table, TableShape, Reservation, Guest, GuestNote, ReservationStatus, OccasionLabel, WaitlistEntry } from '../types';
 
-import { IconAdjustmentsHorizontal, IconAlertTriangleFilled, IconAlignLeft, IconArmchair, IconBabyCarriage, IconBan, IconBell, IconBriefcaseFilled, IconCake, IconCheck, IconChevronDown, IconChevronRight, IconChevronUp, IconCircleCheckFilled, IconCircleX, IconCreditCard, IconClock, IconCoinFilled, IconConfetti, IconEdit, IconGiftFilled, IconGlobeFilled, IconHeartFilled, IconHeartHandshake, IconLayoutSidebarLeftCollapse, IconLayoutSidebarLeftExpand, IconLeaf, IconMail, IconMasksTheater, IconMessage, IconNews, IconPhone, IconPhoneFilled, IconPlant2, IconPlus, IconSchool, IconSparkles, IconStar, IconStarFilled, IconTrash, IconUser, IconUserCheck, IconUserPlus, IconUsers, IconWalk, IconWheelchair, IconX } from '@tabler/icons-react';
+import { IconAdjustmentsHorizontal, IconAlertTriangleFilled, IconAlignLeft, IconArmchair, IconBabyCarriage, IconBell, IconBriefcaseFilled, IconCake, IconCheck, IconChevronDown, IconChevronRight, IconChevronUp, IconCircleCheckFilled, IconCircleX, IconCreditCard, IconClock, IconCoinFilled, IconConfetti, IconEdit, IconGiftFilled, IconGlobeFilled, IconHeartFilled, IconHeartHandshake, IconLayoutSidebarLeftCollapse, IconLayoutSidebarLeftExpand, IconLeaf, IconMail, IconMasksTheater, IconMessage, IconNews, IconPhone, IconPhoneFilled, IconPlant2, IconPlus, IconSchool, IconSparkles, IconStar, IconStarFilled, IconTrash, IconUser, IconUserCheck, IconUserPlus, IconUsers, IconWalk, IconWheelchair, IconX } from '@tabler/icons-react';
 import { saveStorage, loadStorage, loadReservations, loadWaitlist, loadGuests, addGuest, addGuestNote, removeGuestNote, updateWaitlistEntry } from '../utils/storage';
 import { ReservationPanel } from './Reservations';
 import { TableManagement } from './TableManagement';
@@ -23,30 +23,51 @@ type SidebarPlacedItem = Reservation & {
   __sessionTableId?: string;
 };
 
+type SeatInspectorState = {
+  tableId: string;
+  seatNumber: number;
+};
+
+type SeatQuickActionState = {
+  tableId: string;
+  seatNumber: number;
+  x: number;
+  y: number;
+};
+
+type BadgePlacement = 'bottom' | 'left' | 'right' | 'top';
+
 // OpenTable-style: size varies by seat count
 function getTableSize(table: { shape?: string; seats?: number }): { w: number; h: number } {
   const shape = table.shape || 'rect';
   const seats = table.seats || 4;
-  if (shape === 'barstool') return { w: 40, h: 40 };
+  if (shape === 'barstool') return { w: 34, h: 34 };
   if (shape === 'round') {
-    if (seats >= 8) return { w: 95, h: 95 };
-    if (seats >= 6) return { w: 80, h: 80 };
-    return { w: 65, h: 65 };
+    if (seats >= 10) return { w: 82, h: 82 };
+    if (seats >= 8) return { w: 76, h: 76 };
+    if (seats >= 6) return { w: 68, h: 68 };
+    return { w: 58, h: 58 };
   }
-  if (shape === 'diamond') return { w: 70, h: 70 };
+  if (shape === 'diamond') {
+    if (seats >= 8) return { w: 70, h: 70 };
+    return { w: 62, h: 62 };
+  }
   // rect, rect_v, square - scale by seats
   if (shape === 'square') {
-    if (seats >= 8) return { w: 72, h: 72 };
-    return { w: 56, h: 56 };
+    if (seats >= 8) return { w: 62, h: 62 };
+    if (seats >= 6) return { w: 58, h: 58 };
+    return { w: 50, h: 50 };
   }
   if (shape === 'rect_v') {
-    if (seats >= 6) return { w: 60, h: 90 };
-    return { w: 56, h: 80 };
+    if (seats >= 8) return { w: 52, h: 76 };
+    if (seats >= 6) return { w: 50, h: 72 };
+    return { w: 46, h: 68 };
   }
   // rect
-  if (seats >= 10) return { w: 100, h: 70 };
-  if (seats >= 6) return { w: 90, h: 62 };
-  return { w: 75, h: 54 };
+  if (seats >= 10) return { w: 82, h: 56 };
+  if (seats >= 8) return { w: 74, h: 52 };
+  if (seats >= 6) return { w: 68, h: 48 };
+  return { w: 60, h: 44 };
 }
 
 const SHAPE_SIZES: Record<string, { w: number; h: number }> = {
@@ -86,6 +107,13 @@ const SERVICE_STATUS_SHORT: Record<string, string> = {
   abgeraeumt: 'Abgeraeumt',
   beendet: 'Beendet',
 };
+
+const TABLE_STATUS_META = {
+  free: { color: '#475569', glow: 'rgba(71,85,105,0.35)' },
+  occupied: { color: '#8b5cf6', glow: 'rgba(139,92,246,0.4)' },
+  billing: { color: '#f59e0b', glow: 'rgba(245,158,11,0.45)' },
+  blocked: { color: '#ef4444', glow: 'rgba(239,68,68,0.45)' },
+} as const;
 
 type PersistedFloorPlanInspector =
   | { type: 'reservation'; id: string }
@@ -163,8 +191,8 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
   const [sidebarResCollapsed, setSidebarResCollapsed] = useState(false);
   const [sidebarWaitlistCollapsed, setSidebarWaitlistCollapsed] = useState(false);
   const [sidebarSeatedCollapsed, setSidebarSeatedCollapsed] = useState(false);
-  const [sidebarFinishedCollapsed, setSidebarFinishedCollapsed] = useState(false);
-  const [sidebarRemovedCollapsed, setSidebarRemovedCollapsed] = useState(false);
+  const [sidebarFinishedCollapsed, setSidebarFinishedCollapsed] = useState(true);
+  const [sidebarRemovedCollapsed, setSidebarRemovedCollapsed] = useState(true);
   const [selectedReservationId, setSelectedReservationId] = useState<string | null>(null);
   const [justAddedReservationId, setJustAddedReservationId] = useState<string | null>(null);
   const [pressedReservationId, setPressedReservationId] = useState<string | null>(null);
@@ -184,7 +212,13 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
   const [showPartySizeOverlay, setShowPartySizeOverlay] = useState(false);
   const [showDurationOverlay, setShowDurationOverlay] = useState(false);
   const [resDetailId, setResDetailId] = useState<string | null>(null);
-  const sidebarWidth = 280;
+  const [seatInspector, setSeatInspector] = useState<SeatInspectorState | null>(null);
+  const [seatQuickAction, setSeatQuickAction] = useState<SeatQuickActionState | null>(null);
+  const [seatGuestSearch, setSeatGuestSearch] = useState('');
+  const [seatGuestName, setSeatGuestName] = useState('');
+  const [seatGuestPhone, setSeatGuestPhone] = useState('');
+  const sidebarWidth = 248;
+  const [, setMinuteTick] = useState(0);
 
   const [scale, setScale] = useState(initialViewportRef.current.scale);
   const [translate, setTranslate] = useState(initialViewportRef.current.translate);
@@ -293,6 +327,11 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     );
   }, [activeZone, scale, translate]);
 
+  useEffect(() => {
+    const timer = window.setInterval(() => setMinuteTick(tick => tick + 1), 60000);
+    return () => window.clearInterval(timer);
+  }, []);
+
   // Get today's active reservations for table indicators
   const tableReservationMap = useMemo(() => {
     const today = new Date();
@@ -326,6 +365,39 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     return map;
   }, [reservations]);
 
+  const activeReservationByTableId = useMemo(() => {
+    const today = new Date();
+    const todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+    const activeStatuses: Reservation['status'][] = [
+      'seated',
+      'partially_seated',
+      'appetizer',
+      'entree',
+      'dessert',
+      'cleared',
+      'check_dropped',
+      'paid',
+      'bussing_needed',
+    ];
+
+    const map: Record<string, Reservation> = {};
+    reservations
+      .filter(r => r.date === todayStr && activeStatuses.includes(r.status))
+      .forEach(r => {
+        const tableIds = r.tableIds && r.tableIds.length > 0
+          ? r.tableIds
+          : (r.tableId ? [r.tableId] : []);
+        tableIds.forEach(tableId => {
+          const existing = map[tableId];
+          if (!existing || r.time < existing.time) {
+            map[tableId] = r;
+          }
+        });
+      });
+
+    return map;
+  }, [reservations]);
+
   const zoneTables = state.tables.filter(t => t.zone === activeZone);
 
   useEffect(() => {
@@ -350,6 +422,97 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     const storage = loadStorage();
     saveStorage({ ...storage, tables: updatedTables });
   }, [state, dispatch]);
+
+  const closeSeatInspector = useCallback(() => {
+    setSeatInspector(null);
+    setSeatQuickAction(null);
+    setSeatGuestSearch('');
+    setSeatGuestName('');
+    setSeatGuestPhone('');
+  }, []);
+
+  const formatCompactMinutes = useCallback((minutes: number) => {
+    const sign = minutes < 0 ? '-' : '';
+    const absoluteMinutes = Math.abs(minutes);
+    const hours = Math.floor(absoluteMinutes / 60);
+    const restMinutes = absoluteMinutes % 60;
+
+    if (hours > 0) {
+      return restMinutes === 0
+        ? `${sign}${hours}h`
+        : `${sign}${hours}h ${restMinutes}m`;
+    }
+
+    return `${sign}${restMinutes}m`;
+  }, []);
+
+  const getReservationCountdownLabel = useCallback((reservation: Reservation) => {
+    const [hours, minutes] = reservation.time.split(':').map(Number);
+    const reservationStart = new Date(reservation.date + 'T' + reservation.time + ':00');
+    if (Number.isNaN(hours) || Number.isNaN(minutes) || Number.isNaN(reservationStart.getTime())) {
+      return null;
+    }
+
+    const reservationEnd = reservationStart.getTime() + reservation.duration * 60000;
+    const remainingMinutes = Math.ceil((reservationEnd - Date.now()) / 60000);
+    return formatCompactMinutes(remainingMinutes);
+  }, [formatCompactMinutes]);
+
+  const getElapsedSessionLabel = useCallback((startTime?: number) => {
+    if (!startTime) return null;
+    const elapsedMinutes = Math.max(1, Math.floor((Date.now() - startTime) / 60000));
+    return formatCompactMinutes(elapsedMinutes);
+  }, [formatCompactMinutes]);
+
+  const getTableDisplayMeta = useCallback((table: Table) => {
+    const tableSession = state.sessions[table.id];
+    const statusMeta = TABLE_STATUS_META[table.status];
+    const seats = table.seats || 4;
+    const guestCount = tableSession?.guestCount || (table.status === 'free' ? 0 : seats);
+    const problemCount = tableSession?.orders.filter(order => order.state === 'problem').length || 0;
+    const nextReservationTime = nextReservationMap[table.id];
+    const hasReservation = Boolean(nextReservationTime);
+    const activeReservation = activeReservationByTableId[table.id];
+    const serviceStatusKey = tableSession?.serviceStatus;
+    const serviceStatusLabel = serviceStatusKey ? SERVICE_STATUS_SHORT[serviceStatusKey] || serviceStatusKey : null;
+
+    let nextActionLabel: string | null = null;
+    let nextActionTone: 'billing' | 'problem' | 'service' | 'neutral' = 'neutral';
+    if (table.status === 'occupied' || table.status === 'billing') {
+      if (activeReservation?.duration) {
+        nextActionLabel = getReservationCountdownLabel(activeReservation);
+        nextActionTone = 'neutral';
+      }
+
+      if (!nextActionLabel && tableSession?.startTime) {
+        nextActionLabel = getElapsedSessionLabel(tableSession.startTime);
+        nextActionTone = 'neutral';
+      }
+
+      if (!nextActionLabel && (table.status === 'billing' || serviceStatusKey === 'rechnung_faellig')) {
+        nextActionLabel = 'Rechnung';
+        nextActionTone = 'billing';
+      } else if (!nextActionLabel && problemCount > 0) {
+        nextActionLabel = problemCount === 1 ? 'Problem' : `${problemCount} Probleme`;
+        nextActionTone = 'problem';
+      } else if (!nextActionLabel && serviceStatusLabel) {
+        nextActionLabel = serviceStatusLabel;
+        nextActionTone = 'service';
+      }
+    } else if (table.status === 'free' && hasReservation) {
+      nextActionLabel = nextReservationTime;
+      nextActionTone = 'service';
+    }
+
+    return {
+      statusMeta,
+      guestCount,
+      serviceStatusLabel,
+      nextReservationTime,
+      nextActionLabel,
+      nextActionTone,
+    };
+  }, [activeReservationByTableId, getElapsedSessionLabel, getReservationCountdownLabel, nextReservationMap, state.sessions]);
 
   const persistInspectorState = useCallback((next: PersistedFloorPlanInspector | null) => {
     if (typeof window === 'undefined') return;
@@ -376,11 +539,12 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     setShowAddNote(false);
     setNoteText('');
     setResDetailId(null);
+    closeSeatInspector();
     setShowWaitlist(false);
     setShowReservationCreatePanel(false);
     setTableManagementId(tableId);
     persistInspectorState({ type: 'table', id: tableId });
-  }, [activeZone, persistInspectorState, state.tables]);
+  }, [activeZone, closeSeatInspector, persistInspectorState, state.tables]);
 
   const openReservationInspector = useCallback((reservation: Reservation) => {
     setShowReservationCreatePanel(false);
@@ -429,12 +593,6 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     const total = session.orders.reduce((s, o) => s + o.price * o.quantity, 0);
     const hasReady = session.orders.some(o => o.state === 'ready');
     return { count, total, hasReady, startTime: session.startTime };
-  };
-
-  const formatTime = (timestamp: number): string => {
-    if (!timestamp) return '';
-    const d = new Date(timestamp);
-    return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
   };
 
   const handleTableClick = (table: Table) => {
@@ -725,85 +883,208 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
   const sidebarRemovedParties = sidebarRemoved.length;
   const sidebarRemovedCovers = sidebarRemoved.reduce((s, r) => s + r.partySize, 0);
 
-  // SVG-based table rendering (OpenTable style)
-  // Generates SVG paths for table body + chairs as a unified shape
+  // SVG-based table rendering with separate seat indicator circles.
   const buildTableSvg = (shape: string, w: number, h: number, seats: number, _color: string) => {
     const isBarstool = shape === 'barstool';
     const isRound = shape === 'round' || isBarstool;
     const isDiamond = shape === 'diamond';
-
-    // Chair dimensions (relative to SVG coordinate space)
-    const cW = 12, cH = 5.5, cR = 2.5, cGap = 3, cOff = 2;
-    // Padding around table for chairs
-    const pad = isBarstool || isDiamond ? 0 : cH + cOff + 1;
+    const seatCount = Math.min(Math.max(seats, 1), 10);
+    const seatRadius = seatCount >= 8 ? 5 : 6;
+    const seatGap = seatCount >= 8 ? 3 : 5;
+    const pad = seatRadius * 2 + seatGap;
     const svgW = w + pad * 2;
     const svgH = h + pad * 2;
-    const ox = pad; // table offset x
-    const oy = pad; // table offset y
+    const ox = pad;
+    const oy = pad;
 
-    const paths: string[] = [];
+    const bodyPath: string[] = [];
+    const seatPositions: { x: number; y: number }[] = [];
 
     // Table body path
     if (isRound) {
       const cx = svgW / 2, cy = svgH / 2, r = w / 2;
-      paths.push(`M${cx + r},${cy} A${r},${r} 0 1,1 ${cx - r},${cy} A${r},${r} 0 1,1 ${cx + r},${cy}Z`);
+      bodyPath.push(`M${cx + r},${cy} A${r},${r} 0 1,1 ${cx - r},${cy} A${r},${r} 0 1,1 ${cx + r},${cy}Z`);
     } else if (isDiamond) {
-      const cx = w / 2, cy = h / 2;
-      paths.push(`M${cx},0 L${w},${cy} L${cx},${h} L0,${cy}Z`);
+      const cx = ox + w / 2, cy = oy + h / 2;
+      bodyPath.push(`M${cx},${oy} L${ox + w},${cy} L${cx},${oy + h} L${ox},${cy}Z`);
     } else {
       const br = shape === 'square' ? 5 : 7;
-      paths.push(`M${ox + br},${oy} h${w - br * 2} a${br},${br} 0 0 1 ${br},${br} v${h - br * 2} a${br},${br} 0 0 1 -${br},${br} h-${w - br * 2} a${br},${br} 0 0 1 -${br},-${br} v-${h - br * 2} a${br},${br} 0 0 1 ${br},-${br}Z`);
+      bodyPath.push(`M${ox + br},${oy} h${w - br * 2} a${br},${br} 0 0 1 ${br},${br} v${h - br * 2} a${br},${br} 0 0 1 -${br},${br} h-${w - br * 2} a${br},${br} 0 0 1 -${br},-${br} v-${h - br * 2} a${br},${br} 0 0 1 ${br},-${br}Z`);
     }
 
-    // Chair paths
-    if (!isBarstool && !isDiamond) {
-      const chairSeats = Math.min(seats, 10);
-      if (isRound) {
-        const cx = svgW / 2, cy = svgH / 2, radius = w / 2 + cOff + cH / 2;
-        for (let i = 0; i < chairSeats; i++) {
-          const angle = (i / chairSeats) * Math.PI * 2 - Math.PI / 2;
-          const px = cx + Math.cos(angle) * radius;
-          const py = cy + Math.sin(angle) * radius;
-          paths.push(`M${px},${py}` + ` m${-cW / 2},${-cH / 2}` + ` l${cW},0` + ` l0,${cH}` + ` l${-cW},0 Z`);
-          // Use transform on this path for rotation
-        }
-      } else if (shape === 'rect_v') {
-        // Chairs on left and right
-        const leftCount = Math.ceil(chairSeats / 2);
-        const rightCount = Math.floor(chairSeats / 2);
-        const leftTotal = leftCount * cW + (leftCount - 1) * cGap;
-        const leftStart = oy + (h - leftTotal) / 2;
-        for (let i = 0; i < leftCount; i++) {
-          const cy = leftStart + i * (cW + cGap);
-          paths.push(`M${ox - cOff - cH},${cy} h${cH} q${cR},0 ${cR},${cR} v${cW - cR * 2} q0,${cR} -${cR},${cR} h-${cH} q-${cR},0 -${cR},-${cR} v-${cW - cR * 2} q0,-${cR} ${cR},-${cR}Z`);
-        }
-        const rightTotal = rightCount * cW + (rightCount - 1) * cGap;
-        const rightStart = oy + (h - rightTotal) / 2;
-        for (let i = 0; i < rightCount; i++) {
-          const cy = rightStart + i * (cW + cGap);
-          paths.push(`M${ox + w + cOff},${cy} h${cH} q${cR},0 ${cR},${cR} v${cW - cR * 2} q0,${cR} -${cR},${cR} h-${cH} q-${cR},0 -${cR},-${cR} v-${cW - cR * 2} q0,-${cR} ${cR},-${cR}Z`);
-        }
-      } else {
-        // rect, square: chairs on top and bottom
-        const topCount = Math.ceil(chairSeats / 2);
-        const bottomCount = Math.floor(chairSeats / 2);
-        const topTotal = topCount * cW + (topCount - 1) * cGap;
-        const topStart = ox + (w - topTotal) / 2;
-        for (let i = 0; i < topCount; i++) {
-          const cx = topStart + i * (cW + cGap);
-          paths.push(`M${cx},${oy - cOff - cH} h${cW} q${cR},0 ${cR},${cR} v${cH - cR * 2} q0,${cR} -${cR},${cR} h-${cW} q-${cR},0 -${cR},-${cR} v-${cH - cR * 2} q0,-${cR} ${cR},-${cR}Z`);
-        }
-        const bottomTotal = bottomCount * cW + (bottomCount - 1) * cGap;
-        const bottomStart = ox + (w - bottomTotal) / 2;
-        for (let i = 0; i < bottomCount; i++) {
-          const cx = bottomStart + i * (cW + cGap);
-          paths.push(`M${cx},${oy + h + cOff} h${cW} q${cR},0 ${cR},${cR} v${cH - cR * 2} q0,${cR} -${cR},${cR} h-${cW} q-${cR},0 -${cR},-${cR} v-${cH - cR * 2} q0,-${cR} ${cR},-${cR}Z`);
-        }
+    // Seat circle positions
+    if (isBarstool) {
+      seatPositions.push({ x: svgW / 2, y: oy - seatRadius - 1 });
+    } else if (isRound) {
+      const cx = svgW / 2;
+      const cy = svgH / 2;
+      const radius = w / 2 + seatRadius + (seatCount >= 8 ? 2 : 4);
+      for (let i = 0; i < seatCount; i++) {
+        const angle = (i / seatCount) * Math.PI * 2 - Math.PI / 2;
+        seatPositions.push({
+          x: cx + Math.cos(angle) * radius,
+          y: cy + Math.sin(angle) * radius,
+        });
+      }
+    } else if (shape === 'rect_v') {
+      const leftCount = Math.ceil(seatCount / 2);
+      const rightCount = Math.floor(seatCount / 2);
+      const leftStep = h / Math.max(leftCount, 1);
+      const rightStep = h / Math.max(rightCount, 1);
+
+      for (let i = 0; i < leftCount; i++) {
+        seatPositions.push({
+          x: ox - seatRadius - 2,
+          y: oy + leftStep * (i + 0.5),
+        });
+      }
+
+      for (let i = 0; i < rightCount; i++) {
+        seatPositions.push({
+          x: ox + w + seatRadius + 2,
+          y: oy + rightStep * (i + 0.5),
+        });
+      }
+    } else {
+      const topCount = Math.ceil(seatCount / 2);
+      const bottomCount = Math.floor(seatCount / 2);
+      const topStep = w / Math.max(topCount, 1);
+      const bottomStep = w / Math.max(bottomCount, 1);
+
+      for (let i = 0; i < topCount; i++) {
+        seatPositions.push({
+          x: ox + topStep * (i + 0.5),
+          y: oy - seatRadius - 2,
+        });
+      }
+
+      for (let i = 0; i < bottomCount; i++) {
+        seatPositions.push({
+          x: ox + bottomStep * (i + 0.5),
+          y: oy + h + seatRadius + 2,
+        });
       }
     }
 
-    return { paths, svgW: isDiamond ? w : svgW, svgH: isDiamond ? h : svgH, ox: isDiamond ? 0 : ox, oy: isDiamond ? 0 : oy };
+    return { bodyPath: bodyPath[0], seatPositions, svgW, svgH, ox, oy, seatRadius };
   };
+
+  const estimateBadgeSize = useCallback((label: string) => {
+    const compactLabel = label.length <= 5;
+    return {
+      width: compactLabel ? Math.max(42, label.length * 8 + 16) : Math.max(54, label.length * 7 + 18),
+      height: 24,
+    };
+  }, []);
+
+  const tableLayoutMap = useMemo(() => {
+    return Object.fromEntries(zoneTables.map(table => {
+      const displayMeta = getTableDisplayMeta(table);
+      const effectiveSeats = Math.min(10, Math.max(table.seats || 4, displayMeta.guestCount || 0));
+      const size = getTableSize({ ...table, seats: effectiveSeats });
+      const svg = buildTableSvg(table.shape || 'rect', size.w, size.h, effectiveSeats, '#000');
+      const wrapperLeft = (table.x || 0) - (svg.svgW - size.w) / 2;
+      const wrapperTop = (table.y || 0) - (svg.svgH - size.h) / 2;
+
+      return [table.id, {
+        wrapperLeft,
+        wrapperTop,
+        wrapperRight: wrapperLeft + svg.svgW,
+        wrapperBottom: wrapperTop + svg.svgH,
+        size,
+        svg,
+        displayMeta,
+      }];
+    }));
+  }, [getTableDisplayMeta, zoneTables]);
+
+  const getCandidateIntersectionArea = useCallback((candidate: { left: number; top: number; right: number; bottom: number }, tableId: string) => {
+    return Object.entries(tableLayoutMap).reduce((sum, [otherTableId, layout]) => {
+      if (otherTableId === tableId) return sum;
+      const overlapWidth = Math.max(0, Math.min(candidate.right, layout.wrapperRight) - Math.max(candidate.left, layout.wrapperLeft));
+      const overlapHeight = Math.max(0, Math.min(candidate.bottom, layout.wrapperBottom) - Math.max(candidate.top, layout.wrapperTop));
+      return sum + overlapWidth * overlapHeight;
+    }, 0);
+  }, [tableLayoutMap]);
+
+  const getDirectionalClearance = useCallback((placement: BadgePlacement, tableId: string, candidate: { left: number; top: number; right: number; bottom: number }) => {
+    const relevantLayouts = Object.entries(tableLayoutMap).filter(([otherTableId]) => otherTableId !== tableId);
+    if (placement === 'left') {
+      return relevantLayouts.reduce((best, [, layout]) => {
+        const verticalOverlap = !(candidate.bottom < layout.wrapperTop || candidate.top > layout.wrapperBottom);
+        if (!verticalOverlap || layout.wrapperRight > candidate.left) return best;
+        return Math.min(best, candidate.left - layout.wrapperRight);
+      }, 9999);
+    }
+    if (placement === 'right') {
+      return relevantLayouts.reduce((best, [, layout]) => {
+        const verticalOverlap = !(candidate.bottom < layout.wrapperTop || candidate.top > layout.wrapperBottom);
+        if (!verticalOverlap || layout.wrapperLeft < candidate.right) return best;
+        return Math.min(best, layout.wrapperLeft - candidate.right);
+      }, 9999);
+    }
+    if (placement === 'top') {
+      return relevantLayouts.reduce((best, [, layout]) => {
+        const horizontalOverlap = !(candidate.right < layout.wrapperLeft || candidate.left > layout.wrapperRight);
+        if (!horizontalOverlap || layout.wrapperBottom > candidate.top) return best;
+        return Math.min(best, candidate.top - layout.wrapperBottom);
+      }, 9999);
+    }
+    return relevantLayouts.reduce((best, [, layout]) => {
+      const horizontalOverlap = !(candidate.right < layout.wrapperLeft || candidate.left > layout.wrapperRight);
+      if (!horizontalOverlap || layout.wrapperTop < candidate.bottom) return best;
+      return Math.min(best, layout.wrapperTop - candidate.bottom);
+    }, 9999);
+  }, [tableLayoutMap]);
+
+  const getBadgePlacement = useCallback((tableId: string, label: string, wrapperLeft: number, wrapperTop: number, size: { w: number; h: number }, svg: { ox: number; oy: number }) => {
+    const badgeSize = estimateBadgeSize(label);
+    const centerX = wrapperLeft + svg.ox + size.w / 2;
+    const centerY = wrapperTop + svg.oy + size.h / 2;
+
+    const candidates: Record<BadgePlacement, { left: number; top: number; right: number; bottom: number }> = {
+      bottom: {
+        left: centerX - badgeSize.width / 2,
+        top: wrapperTop + svg.oy + size.h + 6,
+        right: centerX + badgeSize.width / 2,
+        bottom: wrapperTop + svg.oy + size.h + 6 + badgeSize.height,
+      },
+      left: {
+        left: wrapperLeft - badgeSize.width - 8,
+        top: centerY - badgeSize.height / 2,
+        right: wrapperLeft - 8,
+        bottom: centerY + badgeSize.height / 2,
+      },
+      right: {
+        left: wrapperLeft + svg.ox + size.w + 8,
+        top: centerY - badgeSize.height / 2,
+        right: wrapperLeft + svg.ox + size.w + 8 + badgeSize.width,
+        bottom: centerY + badgeSize.height / 2,
+      },
+      top: {
+        left: centerX - badgeSize.width / 2,
+        top: wrapperTop - badgeSize.height - 6,
+        right: centerX + badgeSize.width / 2,
+        bottom: wrapperTop - 6,
+      },
+    };
+
+    if (getCandidateIntersectionArea(candidates.bottom, tableId) === 0) {
+      return { placement: 'bottom' as const, badgeSize };
+    }
+
+    const placements: BadgePlacement[] = ['left', 'right', 'top'];
+    const bestPlacement = placements.reduce((best, placement) => {
+      const collision = getCandidateIntersectionArea(candidates[placement], tableId);
+      const clearance = getDirectionalClearance(placement, tableId, candidates[placement]);
+      if (!best) return { placement, collision, clearance };
+      if (collision < best.collision) return { placement, collision, clearance };
+      if (collision === best.collision && clearance > best.clearance) return { placement, collision, clearance };
+      return best;
+    }, null as null | { placement: BadgePlacement; collision: number; clearance: number });
+
+    return { placement: bestPlacement?.placement || 'top', badgeSize };
+  }, [estimateBadgeSize, getCandidateIntersectionArea, getDirectionalClearance]);
 
   const renderTableShape = (table: Table) => {
     const shape = table.shape || 'rect';
@@ -815,23 +1096,26 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     const reservation = tableReservationMap[table.id];
     const isBlocked = table.status === 'blocked';
     const isActive = isOccupied || isBilling;
-    const bgColor = isBlocked ? '#ef4444' : isOccupied ? '#a855f7' : isBilling ? '#fbbf24' : (hasReservation && table.status === 'free') ? '#22d3ee' : '#3d3d5c';
-    const size = getTableSize(table);
+    const displayMeta = getTableDisplayMeta(table);
+    const bgColor = isBlocked
+      ? TABLE_STATUS_META.blocked.color
+      : isOccupied
+        ? TABLE_STATUS_META.occupied.color
+        : isBilling
+          ? TABLE_STATUS_META.billing.color
+          : (hasReservation && table.status === 'free')
+            ? '#0ea5e9'
+            : '#334155';
+    const effectiveSeats = Math.min(10, Math.max(table.seats || 4, displayMeta.guestCount || 0));
+    const size = getTableSize({ ...table, seats: effectiveSeats });
     const tableX = table.x || 0;
     const tableY = table.y || 0;
     const displayName = table.name.replace(/^[A-Za-z]+\s*/, '') || table.name;
-    const tableSession = state.sessions[table.id];
-    const serviceStatusLabel = tableSession?.serviceStatus ? SERVICE_STATUS_SHORT[tableSession.serviceStatus] : null;
     const isBarstool = shape === 'barstool';
     const isRound = shape === 'round' || isBarstool;
     const isDiamond = shape === 'diamond';
     const isPopupActive = !!(selectedReservationId && reservation && reservation.id === selectedReservationId);
-    const seats = table.seats || 4;
-
-    // Time below table (OpenTable style)
-    const nextResTime = nextReservationMap[table.id];
-    const activeTime = isActive && info.startTime > 0 ? formatTime(info.startTime) : null;
-    const belowTime = isActive ? (activeTime || serviceStatusLabel) : nextResTime;
+    const seats = effectiveSeats;
 
     // Progress bar for occupied tables (like OpenTable)
     let progressPct = 0;
@@ -842,21 +1126,29 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
 
     // Build SVG
     const svg = buildTableSvg(shape, size.w, size.h, seats, bgColor);
-    const { paths, svgW, svgH, ox, oy } = svg;
+    const { bodyPath, seatPositions, svgW, svgH, ox, oy, seatRadius } = svg;
+    const activeSeatCount = isBlocked ? 0 : Math.min(displayMeta.guestCount, seatPositions.length);
+    const tableSession = state.sessions[table.id];
 
     const isHighlighted = highlightedTableId === table.id;
 
     const wrapperStyle: React.CSSProperties = {
       position: 'absolute',
-      left: tableX - (isDiamond ? 0 : (svgW - size.w) / 2),
-      top: tableY - (isDiamond ? 0 : (svgH - size.h) / 2),
+      left: tableX - (svgW - size.w) / 2,
+      top: tableY - (svgH - size.h) / 2,
       width: svgW,
       height: svgH,
       cursor: editMode ? 'grab' : 'pointer',
       zIndex: isSelected || isHighlighted ? 10 : 1,
-      filter: isSelected ? 'drop-shadow(0 0 8px rgba(167,139,250,0.6))' : isHighlighted ? 'drop-shadow(0 0 12px rgba(236,72,153,0.8)) brightness(1.2)' : 'none',
+      filter: isSelected
+        ? `drop-shadow(0 0 12px ${displayMeta.statusMeta.glow})`
+        : isHighlighted
+          ? 'drop-shadow(0 0 12px rgba(236,72,153,0.8)) brightness(1.2)'
+          : 'none',
       transition: dragRef.current?.tableId === table.id ? 'none' : 'filter 0.15s',
     };
+    const wrapperLeft = wrapperStyle.left as number;
+    const wrapperTop = wrapperStyle.top as number;
 
     const handleClick = (e: React.MouseEvent) => {
       e.stopPropagation();
@@ -868,20 +1160,85 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
       <div key={table.id} style={wrapperStyle} onClick={handleClick}
         onMouseDown={(e) => handleMouseDown(e, table.id)}
         onTouchStart={(e) => handleTouchDown(e, table.id)}>
-        {/* SVG table shape with chairs */}
+        {/* SVG table shape */}
         <svg width={svgW} height={svgH} viewBox={`0 0 ${svgW} ${svgH}`} className="absolute inset-0">
-          {/* Chair paths (slightly transparent) */}
-          {paths.slice(1).map((d, i) => (
-            <path key={`c${i}`} d={d} fill={bgColor} opacity={0.55} />
-          ))}
-          {/* Table body */}
-          {isDiamond ? (
-            <path d={paths[0]} fill={bgColor} />
-          ) : (
-            <path d={paths[0]} fill={bgColor} />
-          )}
-          
+          <path d={bodyPath} fill={bgColor} />
         </svg>
+        {seatPositions.map((seat, index) => {
+          const isActiveSeat = index < activeSeatCount;
+          const seatNumber = index + 1;
+          const seatAssignment = tableSession?.seatAssignments?.find(assignment => assignment.seatNumber === seatNumber);
+          const hasProfile = Boolean(seatAssignment?.guestName);
+          return (
+            <button
+              key={`seat-${table.id}-${index}`}
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                if (!isActiveSeat || editMode) return;
+                handleSeatCircleClick(table.id, seatNumber, hasProfile, {
+                  x: seat.x,
+                  y: seat.y,
+                });
+              }}
+              className={'absolute rounded-full transition-all ' + (isActiveSeat && !editMode ? 'cursor-pointer hover:scale-110' : 'pointer-events-none')}
+              style={{
+                left: seat.x - seatRadius,
+                top: seat.y - seatRadius,
+                width: seatRadius * 2,
+                height: seatRadius * 2,
+                background: hasProfile ? '#dbeafe' : isActiveSeat ? '#f8fafc' : 'rgba(15,23,42,0.46)',
+                border: hasProfile
+                  ? '1px solid rgba(96,165,250,0.9)'
+                  : isActiveSeat
+                    ? '1px solid rgba(255,255,255,0.75)'
+                  : '1px solid rgba(148,163,184,0.24)',
+                boxShadow: hasProfile
+                  ? '0 0 10px rgba(96,165,250,0.3)'
+                  : isActiveSeat
+                    ? '0 0 10px rgba(255,255,255,0.3)'
+                    : 'none',
+                padding: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              aria-label={`Sitz ${seatNumber}`}
+            >
+              {hasProfile && (
+                <span className="block text-center text-[8px] font-bold leading-none text-[#1e3a8a]">
+                  {seatAssignment?.guestName?.trim().charAt(0).toUpperCase()}
+                </span>
+              )}
+            </button>
+          );
+        })}
+        {seatQuickAction?.tableId === table.id && (
+          <div
+            className="absolute z-20 flex items-center gap-1 rounded-lg border border-white/[0.08] px-1.5 py-1 shadow-xl"
+            style={{
+              left: seatQuickAction.x + seatRadius + 4,
+              top: seatQuickAction.y - 14,
+              background: 'rgba(15,23,42,0.94)',
+            }}
+            onClick={event => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => clearSeatGuestAssignmentDirect(seatQuickAction.tableId, seatQuickAction.seatNumber)}
+              className="rounded-md px-2 py-1 text-[11px] font-semibold text-[#fecaca] transition-colors hover:bg-white/[0.06]"
+            >
+              Entfernen
+            </button>
+            <button
+              type="button"
+              onClick={() => openSeatInspector(seatQuickAction.tableId, seatQuickAction.seatNumber)}
+              className="rounded-md px-2 py-1 text-[11px] font-semibold text-[#d8c7ff] transition-colors hover:bg-white/[0.06]"
+            >
+              Wechseln
+            </button>
+          </div>
+        )}
         {/* Selection borders */}
         {isSelected && editMode && (
           <div className="absolute pointer-events-none" style={{
@@ -900,49 +1257,100 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
         {/* Overlay: table info (positioned on table body area) */}
         <div className="absolute flex flex-col items-center justify-center pointer-events-none"
           style={{ left: ox, top: oy, width: size.w, height: size.h, transform: isDiamond ? 'rotate(0deg)' : undefined }}>
-          {/* Blocked icon */}
-          {isBlocked && (
-            <IconBan className="w-3.5 h-3.5" style={{ color: '#fff', position: 'absolute', top: isRound ? 6 : 4 }} />
-          )}
-          {/* Progress indicator above number (OpenTable style — white bar = progress) */}
           {!isBlocked && isActive && !isBarstool && (
-            <div className="absolute" style={{ top: isRound ? 12 : 10, left: '15%', right: '15%', height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.2)' }}>
-              <div style={{ width: `${Math.max(8, progressPct)}%`, height: '100%', borderRadius: 2, background: '#fff', transition: 'width 1s ease' }} />
+            <div className="absolute" style={{ top: isRound ? 12 : 10, left: '16%', right: '16%', height: 3, borderRadius: 999, background: 'rgba(255,255,255,0.16)' }}>
+              <div style={{ width: `${Math.max(8, progressPct)}%`, height: '100%', borderRadius: 999, background: '#fff', transition: 'width 1s ease' }} />
             </div>
           )}
-          {/* Table number */}
+          {isBlocked && (
+            <div className="absolute left-1/2 -translate-x-1/2 rounded-full px-2 py-0.5" style={{ top: isRound ? 10 : 8, background: 'rgba(127,29,29,0.28)' }}>
+              <span className="block text-center text-[9px] font-semibold uppercase tracking-[0.16em] text-white/90">
+                Blockiert
+              </span>
+            </div>
+          )}
           <span className="font-bold leading-none select-none" style={{
-            color: '#fff', fontSize: isBarstool ? 11 : isDiamond ? 14 : 18,
-            marginTop: isActive && !isBarstool ? 4 : 0,
-            textShadow: '0 1px 2px rgba(0,0,0,0.3)',
+            color: '#fff',
+            fontSize: isBarstool ? 11 : isDiamond ? 14 : 18,
+            marginTop: isBarstool ? 0 : isRound ? 6 : 4,
+            textShadow: '0 1px 2px rgba(0,0,0,0.28)',
           }}>
             {displayName}
           </span>
         </div>
-        {/* Time callout with dark bg + chevron (OpenTable style) */}
-        {belowTime && !isBarstool && (
-          <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none" style={{ top: oy + size.h - 2 }}>
-            {/* Chevron triangle pointing up */}
-            <div style={{
-              width: 0, height: 0, margin: '0 auto',
-              borderLeft: '5px solid transparent',
-              borderRight: '5px solid transparent',
-              borderBottom: '5px solid rgba(0,0,0,0.7)',
-            }} />
-            {/* Dark pill with time */}
-            <div style={{
-              background: 'rgba(0,0,0,0.7)',
-              borderRadius: 4,
-              padding: '2px 6px',
-              fontSize: 12, fontWeight: 700, color: '#fff',
-              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-              whiteSpace: 'nowrap',
+        {!isBarstool && displayMeta.nextActionLabel && (
+          (() => {
+            const { placement, badgeSize } = getBadgePlacement(table.id, displayMeta.nextActionLabel, wrapperLeft, wrapperTop, size, { ox, oy });
+            const badgeBorder = displayMeta.nextActionTone === 'billing'
+              ? '1px solid rgba(245,158,11,0.55)'
+              : displayMeta.nextActionTone === 'problem'
+                ? '1px solid rgba(239,68,68,0.5)'
+                : displayMeta.nextActionTone === 'service'
+                  ? '1px solid rgba(125,211,252,0.35)'
+                  : '1px solid rgba(255,255,255,0.08)';
+            const badgeTextColor = displayMeta.nextActionTone === 'billing'
+              ? '#fde68a'
+              : displayMeta.nextActionTone === 'problem'
+                ? '#fecaca'
+                : '#f8fafc';
+            const baseStyle: React.CSSProperties = {
+              position: 'absolute',
+              background: 'rgba(15,23,42,0.82)',
+              border: badgeBorder,
+              borderRadius: 8,
+              minWidth: 0,
+              width: badgeSize.width,
+              height: badgeSize.height,
+              padding: placement === 'left' || placement === 'right' ? '4px 8px' : '4px 10px',
               textAlign: 'center',
-              lineHeight: '16px',
-            }}>
-              {belowTime}
-            </div>
-          </div>
+              boxShadow: '0 8px 22px rgba(2,6,23,0.25)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            };
+
+            const left = placement === 'bottom' || placement === 'top'
+              ? ox + size.w / 2 - badgeSize.width / 2
+              : placement === 'left'
+                ? -badgeSize.width - 8
+                : ox + size.w + 8;
+            const top = placement === 'bottom'
+              ? oy + size.h + 6
+              : placement === 'top'
+                ? -badgeSize.height - 6
+                : oy + size.h / 2 - badgeSize.height / 2;
+
+            return (
+              <div className="absolute pointer-events-none" style={{ left, top }}>
+                {(placement === 'bottom' || placement === 'top') && (
+                  <div style={{
+                    width: 0,
+                    height: 0,
+                    margin: placement === 'bottom' ? '0 auto' : '0 auto',
+                    borderLeft: '5px solid transparent',
+                    borderRight: '5px solid transparent',
+                    ...(placement === 'bottom'
+                      ? { borderBottom: '5px solid rgba(15,23,42,0.82)' }
+                      : { borderTop: '5px solid rgba(15,23,42,0.82)' }),
+                    ...(placement === 'bottom' ? {} : { marginBottom: 2 }),
+                  }} />
+                )}
+                <div style={baseStyle}>
+                  <div
+                    style={{
+                      color: badgeTextColor,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      lineHeight: '14px',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {displayMeta.nextActionLabel}
+                  </div>
+                </div>
+              </div>
+            );
+          })()
         )}
       </div>
     );
@@ -1041,11 +1449,118 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     openReservationInspector(r);
   };
 
+  const openSeatInspector = useCallback((tableId: string, seatNumber: number) => {
+    setSelectedReservationId(null);
+    setShowWaitlist(false);
+    setShowReservationCreatePanel(false);
+    setTableManagementId(null);
+    setResDetailId(null);
+    setShowGuestProfileView(false);
+    setSeatQuickAction(null);
+    setSeatInspector({ tableId, seatNumber });
+    setSeatGuestSearch('');
+    setSeatGuestName('');
+    setSeatGuestPhone('');
+  }, []);
+
+  const handleSeatCircleClick = useCallback((tableId: string, seatNumber: number, hasAssignment: boolean, position: { x: number; y: number }) => {
+    if (hasAssignment) {
+      setSeatQuickAction(current => (
+        current?.tableId === tableId && current.seatNumber === seatNumber
+          ? null
+          : { tableId, seatNumber, x: position.x, y: position.y }
+      ));
+      return;
+    }
+
+    openSeatInspector(tableId, seatNumber);
+  }, [openSeatInspector]);
+
+  const assignGuestToSeat = useCallback((guest: Guest) => {
+    if (!seatInspector) return;
+    dispatch({
+      type: 'ASSIGN_SEAT_GUEST',
+      tableId: seatInspector.tableId,
+      seatNumber: seatInspector.seatNumber,
+      guestId: guest.id,
+      guestName: guest.name,
+    });
+    setSeatGuestSearch('');
+    setSeatGuestName('');
+    setSeatGuestPhone('');
+  }, [dispatch, seatInspector]);
+
+  const handleCreateSeatGuest = useCallback(() => {
+    if (!seatInspector) return;
+    const name = seatGuestName.trim() || seatGuestSearch.trim();
+    if (!name) return;
+    const newGuest: Guest = {
+      id: Math.random().toString(36).substring(2, 9) + Date.now().toString(36),
+      name,
+      phone: seatGuestPhone.trim() || undefined,
+      tags: [],
+      notes: [],
+      visits: [],
+      totalVisits: 0,
+      totalSpend: 0,
+      createdAt: Date.now(),
+    };
+    addGuest(newGuest);
+    dispatch({
+      type: 'ASSIGN_SEAT_GUEST',
+      tableId: seatInspector.tableId,
+      seatNumber: seatInspector.seatNumber,
+      guestId: newGuest.id,
+      guestName: newGuest.name,
+    });
+    setSeatGuestSearch('');
+    setSeatGuestName('');
+    setSeatGuestPhone('');
+  }, [dispatch, seatGuestName, seatGuestPhone, seatGuestSearch, seatInspector]);
+
+  const clearSeatGuestAssignment = useCallback(() => {
+    if (!seatInspector) return;
+    dispatch({ type: 'CLEAR_SEAT_GUEST', tableId: seatInspector.tableId, seatNumber: seatInspector.seatNumber });
+  }, [dispatch, seatInspector]);
+
+  const clearSeatGuestAssignmentDirect = useCallback((tableId: string, seatNumber: number) => {
+    dispatch({ type: 'CLEAR_SEAT_GUEST', tableId, seatNumber });
+    setSeatQuickAction(null);
+  }, [dispatch]);
+
   // Get selected reservation object
   const selectedReservation = useMemo(() => {
     if (!selectedReservationId) return null;
     return reservations.find(r => r.id === selectedReservationId) || null;
   }, [selectedReservationId, reservations]);
+
+  const seatInspectorTable = useMemo(() => {
+    if (!seatInspector) return null;
+    return state.tables.find(table => table.id === seatInspector.tableId) || null;
+  }, [seatInspector, state.tables]);
+
+  const seatInspectorSession = useMemo(() => {
+    if (!seatInspector) return null;
+    return state.sessions[seatInspector.tableId] || null;
+  }, [seatInspector, state.sessions]);
+
+  const seatInspectorAssignment = useMemo(() => {
+    if (!seatInspectorSession || !seatInspector) return null;
+    return seatInspectorSession.seatAssignments?.find(assignment => assignment.seatNumber === seatInspector.seatNumber) || null;
+  }, [seatInspector, seatInspectorSession]);
+
+  const seatInspectorGuests = useMemo(() => {
+    const guests = loadGuests();
+    const query = seatGuestSearch.trim().toLowerCase();
+    if (!query) return guests.slice(0, 8);
+    return guests
+      .filter(guest =>
+        guest.name.toLowerCase().includes(query) ||
+        guest.phone?.toLowerCase().includes(query) ||
+        guest.email?.toLowerCase().includes(query)
+      )
+      .slice(0, 8);
+  }, [seatGuestSearch]);
 
   useEffect(() => {
     if (!reservationsInitializedRef.current) {
@@ -1374,6 +1889,8 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     setShowGuestProfileView(false);
     setShowAddNote(false);
     setNoteText('');
+    setSeatQuickAction(null);
+    closeSeatInspector();
     clearPersistedInspector();
   };
 
@@ -1406,6 +1923,115 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     const seated: ReservationStatus[] = ['partially_seated', 'seated', 'appetizer', 'entree', 'dessert', 'cleared', 'check_dropped', 'paid', 'bussing_needed', 'finished'];
     const isPreSeated = preSeated.includes(currentStatus);
     return isPreSeated ? [...preSeated, ...seated] : [...seated, ...preSeated];
+  };
+
+  const renderSeatInspector = () => {
+    if (!seatInspector || !seatInspectorTable || !seatInspectorSession) return null;
+
+    const maxAssignableSeat = Math.max(0, seatInspectorSession.guestCount || 0);
+    const isAssignable = seatInspector.seatNumber <= maxAssignableSeat;
+    const assignedGuest = seatInspectorAssignment?.guestId
+      ? loadGuests().find(guest => guest.id === seatInspectorAssignment.guestId) || null
+      : null;
+
+    return (
+      <div className="flex flex-col h-full overflow-hidden" style={{ width: 300, minWidth: 300, background: '#1f1e33', borderLeft: '1px solid rgba(255,255,255,0.03)' }}>
+        <div className="flex items-center justify-between px-4 py-4 border-b border-white/[0.05]">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.16em] text-[#8f97b3]">Sitzplatz</p>
+            <h2 className="text-[16px] font-bold text-[#eef1fb]">{seatInspectorTable.name} · Sitz {seatInspector.seatNumber}</h2>
+          </div>
+          <button onClick={closeSeatInspector} className="text-[#8f97b3] hover:text-white transition-colors">
+            <IconX className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+          <div className="px-4 py-3" style={{ background: '#2a2944' }}>
+            <p className="text-[12px] font-medium text-[#cbd5e1]">
+              {isAssignable ? 'Aktiver Platz am Tisch' : 'Dieser Platz ist aktuell nicht belegt und kann erst ab mehr Gästen zugewiesen werden.'}
+            </p>
+          </div>
+
+          <div className="px-4 py-3" style={{ background: '#2a2944' }}>
+            <p className="text-[11px] uppercase tracking-[0.16em] text-[#8f97b3]">Zugewiesener Gast</p>
+            <p className="mt-2 text-[15px] font-semibold text-white">{seatInspectorAssignment?.guestName || 'Noch kein Profil zugewiesen'}</p>
+            {assignedGuest?.phone && (
+              <p className="mt-1 text-[12px] text-[#b6acca]">{assignedGuest.phone}</p>
+            )}
+          </div>
+
+          {isAssignable && (
+            <>
+              <div className="px-4 py-3 space-y-3" style={{ background: '#2a2944' }}>
+                <p className="text-[11px] uppercase tracking-[0.16em] text-[#8f97b3]">Gast suchen</p>
+                <input
+                  type="text"
+                  value={seatGuestSearch}
+                  onChange={event => setSeatGuestSearch(event.target.value)}
+                  placeholder="Name, Telefon, E-Mail"
+                  className="w-full px-3 py-2.5 bg-[#161526] text-white text-sm outline-none border border-white/[0.06] focus:border-[#8b5cf6] placeholder:text-[#8f97b3]"
+                />
+                <div className="space-y-2">
+                  {seatInspectorGuests.map(guest => (
+                    <button
+                      key={guest.id}
+                      onClick={() => assignGuestToSeat(guest)}
+                      className="w-full flex items-center justify-between gap-3 px-3 py-2.5 text-left bg-[#1c1b30] hover:bg-[#26243d] transition-colors"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-[13px] font-semibold text-white">{guest.name}</p>
+                        <p className="truncate text-[11px] text-[#8f97b3]">{guest.phone || guest.email || `${guest.totalVisits} Besuche`}</p>
+                      </div>
+                      <IconChevronRight className="w-4 h-4 text-[#8f97b3] shrink-0" />
+                    </button>
+                  ))}
+                  {seatInspectorGuests.length === 0 && (
+                    <p className="text-[12px] text-[#8f97b3]">Keine passenden Gäste gefunden.</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="px-4 py-3 space-y-3" style={{ background: '#2a2944' }}>
+                <p className="text-[11px] uppercase tracking-[0.16em] text-[#8f97b3]">Neuen Gast anlegen</p>
+                <input
+                  type="text"
+                  value={seatGuestName}
+                  onChange={event => setSeatGuestName(event.target.value)}
+                  placeholder="Name"
+                  className="w-full px-3 py-2.5 bg-[#161526] text-white text-sm outline-none border border-white/[0.06] focus:border-[#8b5cf6] placeholder:text-[#8f97b3]"
+                />
+                <input
+                  type="text"
+                  value={seatGuestPhone}
+                  onChange={event => setSeatGuestPhone(event.target.value)}
+                  placeholder="Telefon (optional)"
+                  className="w-full px-3 py-2.5 bg-[#161526] text-white text-sm outline-none border border-white/[0.06] focus:border-[#8b5cf6] placeholder:text-[#8f97b3]"
+                />
+                <button
+                  onClick={handleCreateSeatGuest}
+                  disabled={!(seatGuestName.trim() || seatGuestSearch.trim())}
+                  className="w-full py-3 text-[14px] font-semibold text-white transition-colors disabled:opacity-50"
+                  style={{ background: '#8b5cf6' }}
+                >
+                  Gast anlegen und zuweisen
+                </button>
+              </div>
+
+              {seatInspectorAssignment && (
+                <button
+                  onClick={clearSeatGuestAssignment}
+                  className="w-full py-3 text-[14px] font-semibold transition-colors"
+                  style={{ background: '#2a2944', color: '#f0abfc' }}
+                >
+                  Zuweisung entfernen
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    );
   };
 
   const renderRightPanel = () => {
@@ -1865,7 +2491,18 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     );
 
     return (
-      <div className="flex flex-col h-full shrink-0 overflow-hidden" style={{ width: sidebarWidth, maxWidth: '40vw', background: '#1a1a2e', borderRight: '1px solid rgba(255,255,255,0.03)' }}>
+      <div className="flex flex-col h-full shrink-0 overflow-hidden" style={{ width: sidebarWidth, maxWidth: '36vw', background: '#17182a', borderRight: '1px solid rgba(255,255,255,0.04)' }}>
+        <div className="shrink-0 border-b border-white/[0.04] px-3 py-3" style={{ background: '#1d1e31' }}>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8f97b3]">Serviceuebersicht</p>
+              <p className="mt-1 text-[14px] font-semibold text-white">{currentZone?.name || 'Hauptetage'}</p>
+            </div>
+            <div className="rounded-full px-2.5 py-1 text-[11px] font-semibold text-[#d8c7ff]" style={{ background: 'rgba(139,92,246,0.14)' }}>
+              {zoneTables.length} Tische
+            </div>
+          </div>
+        </div>
         <div className="flex-1 overflow-y-auto overflow-x-hidden">
         {/* Reservations section */}
           <div className="border-b border-white/[0.03]">
@@ -2018,7 +2655,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
               setShowShapePicker(false);
               return;
             }
-            if (selectedReservationId || showWaitlist || showReservationCreatePanel || resDetailId) {
+            if (selectedReservationId || showWaitlist || showReservationCreatePanel || resDetailId || seatInspector) {
               closeGuestPanel();
               setShowWaitlist(false);
               setShowReservationCreatePanel(false);
@@ -2082,6 +2719,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
           </div>
         )}
 
+        {seatInspector && !showReservationCreatePanel && !showWaitlist && !editMode && renderSeatInspector()}
         {selectedReservation && !showGuestProfileView && !showReservationCreatePanel && !showWaitlist && !editMode && renderRightPanel()}
       </div>
 

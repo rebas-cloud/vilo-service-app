@@ -210,7 +210,18 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
     'Offen';
   const activePositionCount = session.orders.filter(order => order.state !== 'served').length;
   const currentServiceStatusInfo = getServiceStatusInfo(session.serviceStatus);
-  const accentAccordionColor = '#8b5cf6';
+  const accentAccordionColor =
+    table.status === 'billing'
+      ? '#f59e0b'
+      : currentServiceStatusInfo?.color || '#8b5cf6';
+  const tableStatusLabel =
+    table.status === 'billing'
+      ? 'Rechnung'
+      : table.status === 'occupied'
+        ? 'Besetzt'
+        : table.status === 'blocked'
+          ? 'Blockiert'
+          : 'Frei';
   const quantityByMenuItem = session.orders.reduce<Record<string, number>>((acc, order) => {
     acc[order.menuItemId] = (acc[order.menuItemId] || 0) + order.quantity;
     return acc;
@@ -305,13 +316,23 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
       <div className="flex-1 min-h-0 flex flex-col lg:flex-row">
         <section className={`min-w-0 flex flex-col border-b lg:border-b-0 lg:border-r border-[#2c2e49] bg-[#1a1b2d] ${showMenu ? 'lg:basis-[28%] lg:max-w-[28%]' : 'flex-1'}`}>
           <div className="border-b border-[#2c2e49] bg-[#1d1f33]">
-            <div
-              className="px-4 py-3"
-              style={{
-                background: accentAccordionColor + '33',
+          <div
+            className="px-4 py-3"
+            style={{
+                background: accentAccordionColor + '26',
                 boxShadow: `inset 4px 0 0 ${accentAccordionColor}`,
               }}
             >
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <span
+                  className="inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white"
+                  style={{ background: table.status === 'billing' ? '#f59e0b' : '#334155' }}
+                >
+                  {tableStatusLabel}
+                </span>
+                <span className="text-[11px] font-medium text-white/70">{table.name}</span>
+              </div>
+
               <button
                 onClick={() => setShowStatusPicker(!showStatusPicker)}
                 className="flex w-full items-center justify-between gap-3"
@@ -324,7 +345,7 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
                       {currentServiceStatusInfo?.label || session.serviceStatus}
                     </span>
                   ) : (
-                    <span className="text-sm font-semibold uppercase tracking-[0.12em] text-white">KEIN STATUS</span>
+                    <span className="text-sm font-semibold uppercase tracking-[0.12em] text-white">Kein Status</span>
                   )}
                 </div>
                 <div className="flex items-center gap-3">
