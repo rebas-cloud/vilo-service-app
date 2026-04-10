@@ -232,6 +232,87 @@
     .text-sample { flex: 1; }
     .text-meta { font-size: 11px; font-family: monospace; color: var(--vilo-text-dim); min-width: 180px; text-align: right; }
 
+    /* ====== SPACING ====== */
+    .spacing-row { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+    .spacing-box { background: var(--vilo-accent); opacity: 0.5; height: 20px; }
+    .spacing-label { font-size: 11px; font-family: monospace; color: var(--vilo-text-muted); min-width: 40px; text-align: right; }
+
+    /* ====== ANIMATIONS ====== */
+    @keyframes ds-fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes ds-slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes ds-panelIn { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes ds-pulseRing { 0% { box-shadow: 0 0 0 0 rgba(139,92,246,0.5); } 70% { box-shadow: 0 0 0 12px rgba(139,92,246,0); } 100% { box-shadow: 0 0 0 0 rgba(139,92,246,0); } }
+    .anim-box { width: 80px; height: 50px; background: var(--vilo-accent); display: flex; align-items: center; justify-content: center; font-size: 11px; color: white; font-weight: 600; }
+    .anim-play { padding: 4px 12px; font-size: 11px; font-weight: 600; background: var(--vilo-bg-interactive); color: var(--vilo-text-soft); border: none; cursor: pointer; font-family: inherit; }
+    .anim-play:hover { background: var(--vilo-bg-interactive-hover); }
+
+    /* ====== BOTTOM NAV ====== */
+    .dock { display: flex; align-items: center; justify-content: space-around; height: 56px; background: var(--vilo-bg-base); border-top: 1px solid var(--vilo-bg-surface); }
+    .dock-item { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 64px; height: 100%; position: relative; font-size: 20px; color: var(--vilo-text-dim); cursor: pointer; transition: color 0.15s; }
+    .dock-item.active { color: var(--vilo-accent); }
+    .dock-item.active::after { content: ''; position: absolute; bottom: 0; left: 12px; right: 12px; height: 2px; background: var(--vilo-accent); border-radius: 1px; }
+
+    /* ====== SUB TABS ====== */
+    .subtabs { display: flex; gap: 0; overflow-x: auto; border-bottom: 1px solid var(--vilo-border-subtle); }
+    .subtab { padding: 8px 14px; font-size: 12px; font-weight: 600; color: var(--vilo-text-muted); white-space: nowrap; cursor: pointer; position: relative; transition: color 0.15s; border: none; background: none; font-family: inherit; }
+    .subtab:hover { color: var(--vilo-text-soft); }
+    .subtab.active { color: var(--vilo-accent-light); }
+    .subtab.active::after { content: ''; position: absolute; bottom: 0; left: 8px; right: 8px; height: 2px; background: var(--vilo-accent-secondary); border-radius: 1px; }
+
+    /* ====== RESERVATION CARD ====== */
+    .res-card { display: flex; min-height: 60px; align-items: stretch; background: #2a2944; }
+    .res-card .rc-strip { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 26px; font-size: 10px; font-weight: 700; color: white; }
+    .res-card .rc-body { display: flex; flex: 1; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 16px; }
+    .res-card .rc-table { display: flex; height: 38px; min-width: 38px; align-items: center; justify-content: center; padding: 0 8px; font-size: 14px; font-weight: 700; color: white; }
+
+    /* ====== AVATAR ====== */
+    .avatar { display: flex; align-items: center; justify-content: center; background: var(--vilo-accent); color: white; font-weight: 700; flex-shrink: 0; }
+
+    /* ====== PAYMENT TOGGLE ====== */
+    .pay-toggle { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+    .pay-opt { min-height: 44px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; cursor: pointer; border: none; font-family: inherit; transition: all 0.15s; }
+    .pay-opt.active { background: var(--vilo-accent-secondary); color: white; }
+    .pay-opt:not(.active) { background: var(--vilo-bg-interactive); color: var(--vilo-text-soft); }
+
+    /* ====== EMPTY STATES ====== */
+    .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 16px; color: var(--vilo-text-dim); }
+    .empty-state .es-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
+    .empty-state .es-title { font-size: 14px; font-weight: 500; color: var(--vilo-text-muted); }
+    .empty-state .es-sub { font-size: 12px; color: var(--vilo-text-dim); margin-top: 4px; }
+
+    /* ====== SPINNER ====== */
+    @keyframes ds-spin { to { transform: rotate(360deg); } }
+    .spinner { border: 2px solid var(--vilo-border-subtle); border-top-color: var(--vilo-accent); border-radius: 50%; animation: ds-spin 0.7s linear infinite; }
+
+    /* ====== PIN PAD ====== */
+    .pin-dots { display: flex; gap: 12px; justify-content: center; margin-bottom: 20px; }
+    .pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--vilo-border-strong); transition: all 0.15s; }
+    .pin-dot.filled { background: var(--vilo-accent); border-color: var(--vilo-accent); }
+    .pin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 256px; }
+    .pin-key { height: 64px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 500; color: white; background: var(--vilo-bg-elevated); border: none; cursor: pointer; border-radius: 12px; font-family: inherit; transition: all 0.15s; }
+    .pin-key:hover { background: var(--vilo-bg-interactive-hover); }
+    .pin-key:active { background: var(--vilo-accent); }
+    .pin-key.del { font-size: 16px; color: var(--vilo-text-soft); background: rgba(53,53,88,0.5); }
+
+    /* ====== MODAL ====== */
+    .modal-demo { position: relative; height: 200px; background: var(--vilo-bg-base); overflow: hidden; border: 1px solid var(--vilo-border-subtle); }
+    .modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.34); }
+    .modal-panel { position: absolute; top: 0; right: 0; width: 45%; height: 100%; background: #1f1e33; border-left: 1px solid var(--vilo-border-soft); padding: 16px; }
+    .modal-sheet { position: absolute; bottom: 0; left: 10%; right: 10%; height: 60%; background: #1f1e33; border-top-left-radius: 16px; border-top-right-radius: 16px; padding: 16px; }
+
+    /* ====== TABLE SHAPES ====== */
+    .table-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .table-demo { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .table-demo svg { width: 80px; height: 80px; }
+    .table-demo span { font-size: 11px; color: var(--vilo-text-muted); }
+
+    /* ====== ICON CATALOG ====== */
+    .icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 4px; }
+    .icon-item { display: flex; flex-direction: column; align-items: center; padding: 10px 4px; gap: 4px; cursor: default; transition: background 0.15s; }
+    .icon-item:hover { background: var(--vilo-bg-card); }
+    .icon-item .ii-icon { font-size: 18px; color: var(--vilo-text-secondary); }
+    .icon-item .ii-name { font-size: 8px; color: var(--vilo-text-dim); text-align: center; font-family: monospace; }
+
     /* Responsive */
     @media (max-width: 768px) {
       .sidebar { display: none; }
@@ -273,6 +354,22 @@
 
     <div class="nav-group">Beispiele</div>
     <a href="#composed">Zusammengesetzt</a>
+
+    <div class="nav-group">Patterns</div>
+    <a href="#spacing">Spacing</a>
+    <a href="#animations">Animationen</a>
+    <a href="#bottom-nav">Bottom Nav</a>
+    <a href="#sub-tabs">Sub-Tabs</a>
+    <a href="#res-card">Reservation Card</a>
+    <a href="#avatar">Guest Avatar</a>
+    <a href="#payment-toggle">Payment Toggle</a>
+    <a href="#empty-states">Empty States</a>
+    <a href="#loading">Loading</a>
+    <a href="#sources">Source Indicators</a>
+    <a href="#pin-pad">PIN Pad</a>
+    <a href="#modals">Modal / Overlay</a>
+    <a href="#table-shapes">Tisch-Formen</a>
+    <a href="#icons">Icon-Katalog</a>
   </nav>
 
   <!-- MAIN -->
@@ -598,6 +695,322 @@
       </div>
     </section>
 
+    <!-- ============ SPACING ============ -->
+    <section id="spacing">
+      <div class="section-header">
+        <h2>Spacing System</h2>
+        <p>4px-basiertes Grid. Alle Abstände sind Vielfache von 4.</p>
+      </div>
+      <div class="preview">
+        <div class="spacing-row"><span class="spacing-label">4px</span><div class="spacing-box" style="width:4px"></div></div>
+        <div class="spacing-row"><span class="spacing-label">8px</span><div class="spacing-box" style="width:8px"></div></div>
+        <div class="spacing-row"><span class="spacing-label">12px</span><div class="spacing-box" style="width:12px"></div></div>
+        <div class="spacing-row"><span class="spacing-label">16px</span><div class="spacing-box" style="width:16px"></div></div>
+        <div class="spacing-row"><span class="spacing-label">20px</span><div class="spacing-box" style="width:20px"></div></div>
+        <div class="spacing-row"><span class="spacing-label">24px</span><div class="spacing-box" style="width:24px"></div></div>
+        <div class="spacing-row"><span class="spacing-label">32px</span><div class="spacing-box" style="width:32px"></div></div>
+        <div class="spacing-row"><span class="spacing-label">40px</span><div class="spacing-box" style="width:40px"></div></div>
+        <div class="spacing-row"><span class="spacing-label">48px</span><div class="spacing-box" style="width:48px"></div></div>
+      </div>
+      <div class="code-block">px-4 = 16px | py-2.5 = 10px | gap-3 = 12px | space-y-2 = 8px</div>
+    </section>
+
+    <!-- ============ ANIMATIONS ============ -->
+    <section id="animations">
+      <div class="section-header">
+        <h2>Animationen</h2>
+        <p>4 Standard-Animationen. Klicke "Play" zum Abspielen.</p>
+      </div>
+      <div class="preview" style="display:flex;flex-wrap:wrap;gap:20px">
+        <div style="text-align:center">
+          <div class="anim-box" id="anim1">fadeIn</div>
+          <button class="anim-play" onclick="playAnim('anim1','ds-fadeIn 0.4s ease-out')">&#9654; Play</button>
+          <div style="font-size:10px;color:var(--vilo-text-dim);margin-top:4px">250ms</div>
+        </div>
+        <div style="text-align:center">
+          <div class="anim-box" id="anim2">slideUp</div>
+          <button class="anim-play" onclick="playAnim('anim2','ds-slideUp 0.4s ease-out')">&#9654; Play</button>
+          <div style="font-size:10px;color:var(--vilo-text-dim);margin-top:4px">Modal</div>
+        </div>
+        <div style="text-align:center">
+          <div class="anim-box" id="anim3">panelIn</div>
+          <button class="anim-play" onclick="playAnim('anim3','ds-panelIn 0.3s ease-out')">&#9654; Play</button>
+          <div style="font-size:10px;color:var(--vilo-text-dim);margin-top:4px">180ms</div>
+        </div>
+        <div style="text-align:center">
+          <div class="anim-box" id="anim4" style="border-radius:50%;width:50px;height:50px">&#9679;</div>
+          <button class="anim-play" onclick="playAnim('anim4','ds-pulseRing 1s ease-out')">&#9654; Play</button>
+          <div style="font-size:10px;color:var(--vilo-text-dim);margin-top:4px">Voice</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ BOTTOM NAV ============ -->
+    <section id="bottom-nav">
+      <div class="section-header">
+        <h2>Bottom Navigation</h2>
+        <p>5-Tab Dock am unteren Bildschirmrand. Klicke um Zustand zu wechseln.</p>
+      </div>
+      <div class="preview preview-dark" style="max-width:400px;padding:0">
+        <div class="dock" id="dock-demo">
+          <div class="dock-item active" onclick="setDock(this)">&#9636;</div>
+          <div class="dock-item" onclick="setDock(this)">&#9834;</div>
+          <div class="dock-item" onclick="setDock(this)">&#9783;</div>
+          <div class="dock-item" onclick="setDock(this)">&#9638;</div>
+          <div class="dock-item" onclick="setDock(this)">&#9776;</div>
+        </div>
+        <div style="display:flex;justify-content:space-around;padding:4px 0;font-size:9px;color:var(--vilo-text-dim)">
+          <span>Statistik</span><span>Voice</span><span>Reserve.</span><span>Raumplan</span><span>Mehr</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SUB TABS ============ -->
+    <section id="sub-tabs">
+      <div class="section-header">
+        <h2>Sub-Tab Bar</h2>
+        <p>Horizontal scrollbare Tabs. Klicke zum Wechseln.</p>
+      </div>
+      <div class="preview preview-dark" style="padding:0;max-width:500px">
+        <div class="subtabs" id="subtab-demo">
+          <button class="subtab active" onclick="setSubtab(this)">Statistiken</button>
+          <button class="subtab" onclick="setSubtab(this)">&Uuml;bersicht</button>
+          <button class="subtab" onclick="setSubtab(this)">Liste</button>
+          <button class="subtab" onclick="setSubtab(this)">Raumplan</button>
+          <button class="subtab" onclick="setSubtab(this)">Timeline</button>
+          <button class="subtab" onclick="setSubtab(this)">Probleme</button>
+          <button class="subtab" onclick="setSubtab(this)">Bearbeiten</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ RESERVATION CARD ============ -->
+    <section id="res-card">
+      <div class="section-header">
+        <h2>Reservation Card</h2>
+        <p>Listen-Eintrag mit Farbstreifen (Quelle), Partygr&ouml;&szlig;e, Name und Tisch.</p>
+      </div>
+      <div class="preview preview-dark" style="max-width:400px;display:flex;flex-direction:column;gap:4px;padding:8px">
+        <div class="res-card"><div class="rc-strip" style="background:#8b5cf6">4</div><div class="rc-body"><div><div style="font-size:10px;font-weight:600;color:#d7d3e8">&#9742; 19:00</div><div style="font-size:13px;font-weight:600;color:white;margin-top:2px">Max Mustermann</div></div><div class="rc-table" style="background:#9333ea">4</div></div></div>
+        <div class="res-card"><div class="rc-strip" style="background:#ec4899">2</div><div class="rc-body"><div><div style="font-size:10px;font-weight:600;color:#d7d3e8">&#127760; 20:00</div><div style="font-size:13px;font-weight:600;color:white;margin-top:2px">Anna Schmidt</div></div><div class="rc-table" style="background:#9333ea">7</div></div></div>
+        <div class="res-card"><div class="rc-strip" style="background:#22c55e">6</div><div class="rc-body"><div><div style="font-size:10px;font-weight:600;color:#d7d3e8">&#128694; 20:30</div><div style="font-size:13px;font-weight:600;color:white;margin-top:2px">Luca Weber</div></div><div class="rc-table" style="background:#2f2d4a;color:var(--vilo-text-dim)">&#9201;</div></div></div>
+      </div>
+      <div class="code-block" style="max-width:400px">Streifen: &#9742; Telefon=#8b5cf6 | &#127760; Online=#ec4899 | &#128694; Walk-in=#22c55e</div>
+    </section>
+
+    <!-- ============ AVATAR ============ -->
+    <section id="avatar">
+      <div class="section-header">
+        <h2>Guest Avatar</h2>
+        <p>Initialen-Avatar in 3 Gr&ouml;&szlig;en.</p>
+      </div>
+      <div class="preview" style="display:flex;align-items:end;gap:16px">
+        <div style="text-align:center"><div class="avatar" style="width:32px;height:32px;font-size:14px">M</div><div style="font-size:10px;color:var(--vilo-text-dim);margin-top:4px">32px</div></div>
+        <div style="text-align:center"><div class="avatar" style="width:40px;height:40px;font-size:18px">A</div><div style="font-size:10px;color:var(--vilo-text-dim);margin-top:4px">40px</div></div>
+        <div style="text-align:center"><div class="avatar" style="width:72px;height:72px;font-size:28px">L</div><div style="font-size:10px;color:var(--vilo-text-dim);margin-top:4px">72px</div></div>
+      </div>
+    </section>
+
+    <!-- ============ PAYMENT TOGGLE ============ -->
+    <section id="payment-toggle">
+      <div class="section-header">
+        <h2>Payment Toggle</h2>
+        <p>3-Status Zahlungs-Toggle. Klicke zum Wechseln.</p>
+      </div>
+      <div class="preview" style="max-width:320px">
+        <div class="pay-toggle" id="pay-demo">
+          <button class="pay-opt active" onclick="setPay(this)">OFFEN</button>
+          <button class="pay-opt" onclick="setPay(this)">ANZAHLUNG</button>
+          <button class="pay-opt" onclick="setPay(this)">BEZAHLT</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ EMPTY STATES ============ -->
+    <section id="empty-states">
+      <div class="section-header">
+        <h2>Empty States</h2>
+        <p>Leerzustands-Muster f&uuml;r Listen ohne Inhalt.</p>
+      </div>
+      <div class="preview" style="display:flex;gap:16px;flex-wrap:wrap">
+        <div class="empty-state" style="flex:1;min-width:180px;background:var(--vilo-bg-base)"><div class="es-icon">&#128197;</div><div class="es-title">Keine Reservierungen</div><div class="es-sub">F&uuml;r heute liegen keine vor</div></div>
+        <div class="empty-state" style="flex:1;min-width:180px;background:var(--vilo-bg-base)"><div class="es-icon">&#128100;</div><div class="es-title">Kein Gast gefunden</div><div class="es-sub">Versuche eine andere Suche</div></div>
+      </div>
+    </section>
+
+    <!-- ============ LOADING ============ -->
+    <section id="loading">
+      <div class="section-header">
+        <h2>Loading States</h2>
+        <p>CSS Spinner in 3 Gr&ouml;&szlig;en.</p>
+      </div>
+      <div class="preview" style="display:flex;align-items:end;gap:24px">
+        <div style="text-align:center"><div class="spinner" style="width:16px;height:16px"></div><div style="font-size:10px;color:var(--vilo-text-dim);margin-top:8px">16px</div></div>
+        <div style="text-align:center"><div class="spinner" style="width:24px;height:24px"></div><div style="font-size:10px;color:var(--vilo-text-dim);margin-top:8px">24px</div></div>
+        <div style="text-align:center"><div class="spinner" style="width:40px;height:40px;border-width:3px"></div><div style="font-size:10px;color:var(--vilo-text-dim);margin-top:8px">40px</div></div>
+      </div>
+    </section>
+
+    <!-- ============ SOURCE INDICATORS ============ -->
+    <section id="sources">
+      <div class="section-header">
+        <h2>Source Indicators</h2>
+        <p>Reservierungsquelle mit Farbkodierung.</p>
+      </div>
+      <div class="preview" style="display:flex;gap:20px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:8px"><div style="width:8px;height:8px;border-radius:50%;background:#8b5cf6"></div><span style="font-size:13px;font-weight:600">Telefon</span><code>#8b5cf6</code></div>
+        <div style="display:flex;align-items:center;gap:8px"><div style="width:8px;height:8px;border-radius:50%;background:#ec4899"></div><span style="font-size:13px;font-weight:600">Online</span><code>#ec4899</code></div>
+        <div style="display:flex;align-items:center;gap:8px"><div style="width:8px;height:8px;border-radius:50%;background:#22c55e"></div><span style="font-size:13px;font-weight:600">Walk-in</span><code>#22c55e</code></div>
+      </div>
+    </section>
+
+    <!-- ============ PIN PAD ============ -->
+    <section id="pin-pad">
+      <div class="section-header">
+        <h2>PIN Pad</h2>
+        <p>Numerische Eingabe f&uuml;r Kellner-Login. Klicke die Tasten.</p>
+      </div>
+      <div class="preview preview-dark" style="max-width:300px;display:flex;flex-direction:column;align-items:center;padding:32px">
+        <div style="font-size:13px;color:var(--vilo-text-secondary);margin-bottom:16px">PIN eingeben</div>
+        <div class="pin-dots" id="pin-dots"><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div></div>
+        <div class="pin-grid" id="pin-grid">
+          <button class="pin-key" onclick="pinPress('1')">1</button><button class="pin-key" onclick="pinPress('2')">2</button><button class="pin-key" onclick="pinPress('3')">3</button>
+          <button class="pin-key" onclick="pinPress('4')">4</button><button class="pin-key" onclick="pinPress('5')">5</button><button class="pin-key" onclick="pinPress('6')">6</button>
+          <button class="pin-key" onclick="pinPress('7')">7</button><button class="pin-key" onclick="pinPress('8')">8</button><button class="pin-key" onclick="pinPress('9')">9</button>
+          <div></div><button class="pin-key" onclick="pinPress('0')">0</button><button class="pin-key del" onclick="pinDel()">&#8592;</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ MODAL ============ -->
+    <section id="modals">
+      <div class="section-header">
+        <h2>Modal / Overlay Patterns</h2>
+        <p>Slide-in Panel (rechts) und Bottom Sheet.</p>
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap">
+        <div>
+          <div class="component-label">Slide-in Panel</div>
+          <div class="modal-demo" style="width:300px">
+            <div class="modal-backdrop"></div>
+            <div class="modal-panel">
+              <div style="font-size:13px;font-weight:700;color:white">Panel</div>
+              <div style="font-size:11px;color:var(--vilo-text-muted);margin-top:4px">Gleitet von rechts rein</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="component-label">Bottom Sheet</div>
+          <div class="modal-demo" style="width:300px">
+            <div class="modal-backdrop"></div>
+            <div class="modal-sheet">
+              <div style="width:32px;height:4px;background:var(--vilo-text-dim);border-radius:2px;margin:0 auto 12px"></div>
+              <div style="font-size:13px;font-weight:700;color:white">Bottom Sheet</div>
+              <div style="font-size:11px;color:var(--vilo-text-muted);margin-top:4px">Gleitet von unten hoch</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TABLE SHAPES ============ -->
+    <section id="table-shapes">
+      <div class="section-header">
+        <h2>Tisch-Formen</h2>
+        <p>6 SVG-Formen f&uuml;r den Raumplan.</p>
+      </div>
+      <div class="preview">
+        <div class="table-grid">
+          <div class="table-demo">
+            <svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="18" fill="#353558" stroke="#555" stroke-width="1"/><rect x="36" y="10" width="8" height="6" rx="2" fill="#4a4870"/><rect x="36" y="64" width="8" height="6" rx="2" fill="#4a4870"/><rect x="10" y="36" width="6" height="8" rx="2" fill="#4a4870"/><rect x="64" y="36" width="6" height="8" rx="2" fill="#4a4870"/></svg>
+            <span>Round</span>
+          </div>
+          <div class="table-demo">
+            <svg viewBox="0 0 80 80"><rect x="22" y="22" width="36" height="36" fill="#353558" stroke="#555" stroke-width="1"/><rect x="32" y="10" width="16" height="6" rx="2" fill="#4a4870"/><rect x="32" y="64" width="16" height="6" rx="2" fill="#4a4870"/><rect x="10" y="32" width="6" height="16" rx="2" fill="#4a4870"/><rect x="64" y="32" width="6" height="16" rx="2" fill="#4a4870"/></svg>
+            <span>Square</span>
+          </div>
+          <div class="table-demo">
+            <svg viewBox="0 0 80 80"><rect x="12" y="26" width="56" height="28" fill="#353558" stroke="#555" stroke-width="1"/><rect x="20" y="14" width="12" height="6" rx="2" fill="#4a4870"/><rect x="48" y="14" width="12" height="6" rx="2" fill="#4a4870"/><rect x="20" y="60" width="12" height="6" rx="2" fill="#4a4870"/><rect x="48" y="60" width="12" height="6" rx="2" fill="#4a4870"/></svg>
+            <span>Rect (H)</span>
+          </div>
+          <div class="table-demo">
+            <svg viewBox="0 0 80 80"><rect x="26" y="12" width="28" height="56" fill="#353558" stroke="#555" stroke-width="1"/><rect x="14" y="20" width="6" height="12" rx="2" fill="#4a4870"/><rect x="14" y="48" width="6" height="12" rx="2" fill="#4a4870"/><rect x="60" y="20" width="6" height="12" rx="2" fill="#4a4870"/><rect x="60" y="48" width="6" height="12" rx="2" fill="#4a4870"/></svg>
+            <span>Rect (V)</span>
+          </div>
+          <div class="table-demo">
+            <svg viewBox="0 0 80 80"><polygon points="40,18 62,40 40,62 18,40" fill="#353558" stroke="#555" stroke-width="1"/><rect x="36" y="6" width="8" height="6" rx="2" fill="#4a4870"/><rect x="36" y="68" width="8" height="6" rx="2" fill="#4a4870"/><rect x="6" y="36" width="6" height="8" rx="2" fill="#4a4870"/><rect x="68" y="36" width="6" height="8" rx="2" fill="#4a4870"/></svg>
+            <span>Diamond</span>
+          </div>
+          <div class="table-demo">
+            <svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="10" fill="#353558" stroke="#555" stroke-width="1"/><rect x="36" y="18" width="8" height="6" rx="2" fill="#4a4870"/></svg>
+            <span>Barstool</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ICON CATALOG ============ -->
+    <section id="icons">
+      <div class="section-header">
+        <h2>Icon-Katalog</h2>
+        <p>Alle Tabler Icons in der App. Gruppiert nach Kategorie.</p>
+      </div>
+
+      <div class="component"><div class="component-label">Navigation</div>
+      <div class="icon-grid">
+        <div class="icon-item"><div class="ii-icon">&#8592;</div><div class="ii-name">ArrowLeft</div></div>
+        <div class="icon-item"><div class="ii-icon">&#8594;</div><div class="ii-name">ArrowRight</div></div>
+        <div class="icon-item"><div class="ii-icon">&#9001;</div><div class="ii-name">ChevronLeft</div></div>
+        <div class="icon-item"><div class="ii-icon">&#9002;</div><div class="ii-name">ChevronRight</div></div>
+        <div class="icon-item"><div class="ii-icon">&#9650;</div><div class="ii-name">ChevronUp</div></div>
+        <div class="icon-item"><div class="ii-icon">&#9660;</div><div class="ii-name">ChevronDown</div></div>
+        <div class="icon-item"><div class="ii-icon">&#9776;</div><div class="ii-name">Menu</div></div>
+        <div class="icon-item"><div class="ii-icon">&#10005;</div><div class="ii-name">X</div></div>
+      </div></div>
+
+      <div class="component"><div class="component-label">Actions</div>
+      <div class="icon-grid">
+        <div class="icon-item"><div class="ii-icon">&#10003;</div><div class="ii-name">Check</div></div>
+        <div class="icon-item"><div class="ii-icon">&#43;</div><div class="ii-name">Plus</div></div>
+        <div class="icon-item"><div class="ii-icon">&#128465;</div><div class="ii-name">Trash</div></div>
+        <div class="icon-item"><div class="ii-icon">&#9998;</div><div class="ii-name">Edit</div></div>
+        <div class="icon-item"><div class="ii-icon">&#128269;</div><div class="ii-name">Search</div></div>
+        <div class="icon-item"><div class="ii-icon">&#128438;</div><div class="ii-name">Download</div></div>
+        <div class="icon-item"><div class="ii-icon">&#128424;</div><div class="ii-name">Copy</div></div>
+        <div class="icon-item"><div class="ii-icon">&#8617;</div><div class="ii-name">ArrowBack</div></div>
+      </div></div>
+
+      <div class="component"><div class="component-label">Objekte</div>
+      <div class="icon-grid">
+        <div class="icon-item"><div class="ii-icon">&#128197;</div><div class="ii-name">Calendar</div></div>
+        <div class="icon-item"><div class="ii-icon">&#9201;</div><div class="ii-name">Clock</div></div>
+        <div class="icon-item"><div class="ii-icon">&#128100;</div><div class="ii-name">User</div></div>
+        <div class="icon-item"><div class="ii-icon">&#128101;</div><div class="ii-name">Users</div></div>
+        <div class="icon-item"><div class="ii-icon">&#9742;</div><div class="ii-name">Phone</div></div>
+        <div class="icon-item"><div class="ii-icon">&#9993;</div><div class="ii-name">Mail</div></div>
+        <div class="icon-item"><div class="ii-icon">&#9733;</div><div class="ii-name">Star</div></div>
+        <div class="icon-item"><div class="ii-icon">&#9906;</div><div class="ii-name">Armchair</div></div>
+        <div class="icon-item"><div class="ii-icon">&#127860;</div><div class="ii-name">Kitchen</div></div>
+        <div class="icon-item"><div class="ii-icon">&#9749;</div><div class="ii-name">Coffee</div></div>
+        <div class="icon-item"><div class="ii-icon">&#127863;</div><div class="ii-name">Glass</div></div>
+        <div class="icon-item"><div class="ii-icon">&#128179;</div><div class="ii-name">CreditCard</div></div>
+        <div class="icon-item"><div class="ii-icon">&#128176;</div><div class="ii-name">Coins</div></div>
+        <div class="icon-item"><div class="ii-icon">&#9881;</div><div class="ii-name">Settings</div></div>
+        <div class="icon-item"><div class="ii-icon">&#127908;</div><div class="ii-name">Microphone</div></div>
+        <div class="icon-item"><div class="ii-icon">&#128200;</div><div class="ii-name">ChartBar</div></div>
+      </div></div>
+
+      <div class="component"><div class="component-label">Status</div>
+      <div class="icon-grid">
+        <div class="icon-item"><div class="ii-icon" style="color:var(--vilo-warning)">&#9888;</div><div class="ii-name">AlertTriangle</div></div>
+        <div class="icon-item"><div class="ii-icon" style="color:var(--vilo-danger)">&#10060;</div><div class="ii-name">CircleX</div></div>
+        <div class="icon-item"><div class="ii-icon" style="color:var(--vilo-success)">&#10004;</div><div class="ii-name">CircleCheck</div></div>
+        <div class="icon-item"><div class="ii-icon">&#128276;</div><div class="ii-name">Bell</div></div>
+        <div class="icon-item"><div class="ii-icon">&#128274;</div><div class="ii-name">Ban</div></div>
+        <div class="icon-item"><div class="ii-icon">&#9889;</div><div class="ii-name">Bolt</div></div>
+      </div></div>
+    </section>
+
     <div style="height:80px"></div>
   </main>
 </div>
@@ -615,6 +1028,58 @@
       a.classList.toggle('active', a.getAttribute('href') === '#' + current);
     });
   });
+
+  // Animation play
+  function playAnim(id, anim) {
+    const el = document.getElementById(id);
+    el.style.animation = 'none';
+    el.offsetHeight; // force reflow
+    el.style.animation = anim;
+  }
+  window.playAnim = playAnim;
+
+  // Dock nav
+  function setDock(el) {
+    document.querySelectorAll('#dock-demo .dock-item').forEach(d => d.classList.remove('active'));
+    el.classList.add('active');
+  }
+  window.setDock = setDock;
+
+  // Sub tabs
+  function setSubtab(el) {
+    document.querySelectorAll('#subtab-demo .subtab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+  window.setSubtab = setSubtab;
+
+  // Payment toggle
+  function setPay(el) {
+    document.querySelectorAll('#pay-demo .pay-opt').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+  }
+  window.setPay = setPay;
+
+  // PIN pad
+  let pinValue = '';
+  function pinPress(d) {
+    if (pinValue.length >= 4) return;
+    pinValue += d;
+    updatePinDots();
+    if (pinValue.length === 4) {
+      setTimeout(() => { pinValue = ''; updatePinDots(); }, 800);
+    }
+  }
+  function pinDel() {
+    pinValue = pinValue.slice(0, -1);
+    updatePinDots();
+  }
+  function updatePinDots() {
+    document.querySelectorAll('#pin-dots .pin-dot').forEach((dot, i) => {
+      dot.classList.toggle('filled', i < pinValue.length);
+    });
+  }
+  window.pinPress = pinPress;
+  window.pinDel = pinDel;
 
   // Click-to-copy on swatches
   document.querySelectorAll('.swatch').forEach(s => {
