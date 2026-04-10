@@ -7,7 +7,7 @@ import { useVoice } from './hooks/useVoice';
 import { parseIntent } from './utils/intentParser';
 import { parseIntentLLM, isLLMAvailable } from './utils/llmParser';
 import { initAudioContext } from './utils/feedback';
-import { loadStorage, saveStorage, generateRestaurantCode, simpleHash, completeSetup, clearStorage, registerViaApi, saveConfigToApi } from './utils/storage';
+import { loadStorage, saveStorage, generateRestaurantCode, hashPassword, completeSetup, clearStorage, registerViaApi, saveConfigToApi } from './utils/storage';
 import { useSync } from './hooks/useSync';
 import { WelcomePage } from './components/WelcomePage';
 import { RegistrationPage } from './components/RegistrationPage';
@@ -608,7 +608,7 @@ function App() {
   const handleRegister = async (name: string, email: string, password: string) => {
     const code = generateRestaurantCode();
     const restaurantName = name + 's Restaurant';
-    const passwordHash = simpleHash(password);
+    const passwordHash = await hashPassword(password);
 
     try {
       // Register via backend API

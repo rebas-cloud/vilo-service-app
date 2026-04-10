@@ -35,18 +35,6 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
     }, 140);
   }, [onClose]);
 
-  const handleToggleTable = (tableId: string) => {
-    const currentIds = [...assignedIds];
-    let newIds: string[];
-    if (currentIds.includes(tableId)) {
-      newIds = currentIds.filter(id => id !== tableId);
-    } else {
-      newIds = [...currentIds, tableId];
-    }
-    const updated = updateReservation(r.id, { tableId: newIds[0] || '', tableIds: newIds });
-    onUpdated(updated);
-  };
-
   const handlePaymentStatus = (status: 'open' | 'partial' | 'paid') => {
     const updated = updateReservation(r.id, { paymentStatus: status });
     onUpdated(updated);
@@ -110,15 +98,6 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
   const paymentStatus = r.paymentStatus || 'open';
   const guestInitial = (r.guestName || '?').trim().charAt(0).toUpperCase() || '?';
 
-  // Format date for display
-  const formatDate = (dateStr: string) => {
-    const [y, m, d] = dateStr.split('-').map(Number);
-    const date = new Date(y, m - 1, d);
-    const days = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
-    const months = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
-    return `${days[date.getDay()]}, ${d}. ${months[m - 1]} ${y}`;
-  };
-
   const formatDuration = (mins: number) => {
     const h = Math.floor(mins / 60);
     const m = mins % 60;
@@ -136,7 +115,6 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
     partial: 'Anzahlung',
     paid: 'Bezahlt',
   };
-  const cardBg = '#2d2c48';
   const surfaceBg = '#26243f';
 
   const panel = (
