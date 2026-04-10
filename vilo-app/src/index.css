@@ -109,6 +109,14 @@
     --vilo-warning: #f59e0b;
     --vilo-danger: #ef4444;
 
+    --vilo-bg-card: #26243f;
+    --vilo-bg-card-alt: #252540;
+    --vilo-bg-interactive: #373454;
+    --vilo-bg-interactive-hover: #403d61;
+    --vilo-bg-btn-secondary: #2b2944;
+    --vilo-bg-btn-danger: #4a1733;
+    --vilo-text-danger: #f5d0fe;
+
     --vilo-tag-vip: #eab308;
     --vilo-tag-loyal: #22d3ee;
     --vilo-tag-vegan: #16a34a;

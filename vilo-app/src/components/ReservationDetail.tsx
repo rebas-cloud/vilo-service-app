@@ -1,11 +1,11 @@
 import { useCallback, useState } from 'react';
-import { IconCheck, IconChevronRight, IconCreditCard, IconEdit, IconMail, IconMessage, IconPhone, IconPlus, IconArmchair, IconTrash, IconX } from '@tabler/icons-react';
+import { IconCheck, IconCreditCard, IconEdit, IconMail, IconMessage, IconPhone, IconPlus, IconArmchair, IconTrash, IconX } from '@tabler/icons-react';
 
 import { createPortal } from 'react-dom';
 import { useApp } from '../context/AppContext';
 import { Reservation, Table } from '../types';
-
 import { updateReservation, deleteReservation, loadReservations } from '../utils/storage';
+import { SurfaceCard, InfoRow, StatGrid, ActionButton, IconActionPair } from './ui';
 
 interface ReservationDetailProps {
   reservation: Reservation;
@@ -57,11 +57,9 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
   };
 
   const handleSeat = () => {
-    // Update reservation status to seated
     const updated = updateReservation(r.id, { status: 'seated' });
     onUpdated(updated);
 
-    // Also seat the table(s) - set table status to occupied and create session
     const tableIds = r.tableIds && r.tableIds.length > 0 ? r.tableIds : (r.tableId ? [r.tableId] : []);
     tableIds.forEach(tid => {
       const table = state.tables.find(t => t.id === tid);
@@ -88,7 +86,6 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
     if (res.tableIds) res.tableIds.forEach(id => occupiedTableIds.add(id));
   });
 
-  // Also check table status
   allTables.forEach(t => {
     if (t.status === 'occupied' || t.status === 'billing') {
       if (!assignedIds.includes(t.id)) occupiedTableIds.add(t.id);
@@ -104,7 +101,6 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
     return h > 0 ? (m > 0 ? `${h}h ${m}min` : `${h}h`) : `${m}min`;
   };
 
-  // Assigned table names
   const assignedTableNames = assignedIds
     .map(id => allTables.find(t => t.id === id))
     .filter(Boolean)
@@ -115,7 +111,6 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
     partial: 'Anzahlung',
     paid: 'Bezahlt',
   };
-  const surfaceBg = '#26243f';
 
   const panel = (
     <div
@@ -129,12 +124,13 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
     >
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.03]">
           <h2 className="text-[16px] font-bold text-white">Reservierung</h2>
-          <button onClick={requestClose} className="ml-3 p-1 text-[#b0b0cc] hover:text-[#e0e0f0] shrink-0"><IconX className="w-5 h-5" /></button>
+          <button onClick={requestClose} className="ml-3 p-1 text-vilo-text-secondary hover:text-vilo-text-primary shrink-0"><IconX className="w-5 h-5" /></button>
         </div>
 
         <div className="px-4 py-4 space-y-3">
-          <div className="flex items-center gap-4 px-4 py-4" style={{ background: surfaceBg }}>
-            <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center bg-[#8b5cf6] text-[28px] font-bold text-white">
+          {/* Guest header */}
+          <SurfaceCard className="flex items-center gap-4 px-4 py-4">
+            <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center bg-vilo-accent text-[28px] font-bold text-white">
               {guestInitial}
             </div>
             <div className="min-w-0 flex-1">
@@ -143,7 +139,7 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
                 {onEdit && (
                   <button
                     onClick={() => { onEdit(); onClose(); }}
-                    className="shrink-0 p-1 text-[#c4b5fd] hover:text-[#e9ddff] transition-colors"
+                    className="shrink-0 p-1 text-vilo-accent-light hover:text-[#e9ddff] transition-colors"
                     aria-label="Reservierung bearbeiten"
                   >
                     <IconEdit className="w-4 h-4" />
@@ -157,61 +153,42 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
                 </div>
               )}
             </div>
-          </div>
+          </SurfaceCard>
 
-          <div className="grid grid-cols-3 gap-2">
-            <div className="px-3 py-2.5 text-center" style={{ background: surfaceBg }}>
-              <div className="text-[12px] font-bold text-white">{r.time}</div>
-            </div>
-            <div className="px-3 py-2.5 text-center" style={{ background: surfaceBg }}>
-              <div className="text-[12px] font-bold text-white">{r.partySize} P.</div>
-            </div>
-            <div className="px-3 py-2.5 text-center" style={{ background: surfaceBg }}>
-              <div className="text-[12px] font-bold text-white">{formatDuration(r.duration || 90)}</div>
-            </div>
-          </div>
+          {/* Time / Party / Duration */}
+          <StatGrid items={[
+            { value: r.time },
+            { value: `${r.partySize} P.` },
+            { value: formatDuration(r.duration || 90) },
+          ]} />
 
-          <div className="px-4 py-4" style={{ background: surfaceBg }}>
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center text-[#b8c4db]">
-                <IconArmchair className="w-5 h-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-[13px] font-bold text-white">
-                  {assignedTableNames.length > 0 ? assignedTableNames.join(', ') : 'Kein Tisch'}
-                </div>
-                <div className="mt-0.5 text-[11px] text-[#9aa4bd]">
-                  {assignedTableNames.length > 0 ? 'Zugewiesen' : 'Nicht zugewiesen'}
-                </div>
-              </div>
-              <IconChevronRight className="h-4 w-4 shrink-0 text-[#a9a4ca]" />
-            </div>
-          </div>
+          {/* Table assignment */}
+          <SurfaceCard className="px-4 py-4">
+            <InfoRow
+              icon={<IconArmchair className="w-5 h-5" />}
+              title={assignedTableNames.length > 0 ? assignedTableNames.join(', ') : 'Kein Tisch'}
+              subtitle={assignedTableNames.length > 0 ? 'Zugewiesen' : 'Nicht zugewiesen'}
+              chevron
+            />
+          </SurfaceCard>
 
-          <div className="px-4 py-4" style={{ background: surfaceBg }}>
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center text-[#b8c4db]">
-                <IconMessage className="w-5 h-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-[13px] font-bold text-white">{r.guestPhone || 'Keine Telefonnummer'}</div>
-                <div className="mt-1 inline-flex bg-[#4b3a83] px-2 py-1 text-[11px] font-medium text-[#d9c4ff]">
-                  {r.guestPhone ? 'SMS-Updates aktiv' : 'SMS-Updates deaktiviert'}
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Phone / SMS */}
+          <SurfaceCard className="px-4 py-4">
+            <InfoRow
+              icon={<IconMessage className="w-5 h-5" />}
+              title={r.guestPhone || 'Keine Telefonnummer'}
+              badge={r.guestPhone ? 'SMS-Updates aktiv' : 'SMS-Updates deaktiviert'}
+            />
+          </SurfaceCard>
 
-          <div className="grid grid-cols-2 gap-2">
-            <button className="flex min-h-[68px] items-center justify-center bg-[#373454] text-[#b8c4db] transition-colors hover:bg-[#403d61]">
-              <IconMail className="h-6 w-6" />
-            </button>
-            <button className="flex min-h-[68px] items-center justify-center bg-[#373454] text-[#b8c4db] transition-colors hover:bg-[#403d61]">
-              <IconCreditCard className="h-6 w-6" />
-            </button>
-          </div>
+          {/* Mail / Credit Card */}
+          <IconActionPair actions={[
+            { icon: <IconMail className="h-6 w-6" />, label: 'E-Mail' },
+            { icon: <IconCreditCard className="h-6 w-6" />, label: 'Kreditkarte' },
+          ]} />
 
-          <div className="overflow-hidden" style={{ background: surfaceBg }}>
+          {/* Payment status */}
+          <SurfaceCard className="overflow-hidden">
             <div className="flex items-center justify-between gap-3 px-4 py-4 border-b border-white/[0.06]">
               <span className="text-[#eef1fb] text-[13px] font-semibold">Zahlungsstatus</span>
               <span className="text-[11px] text-[#b4afd2]">{paymentStatusLabel[paymentStatus]}</span>
@@ -229,57 +206,48 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
                     'min-h-[44px] px-1.5 py-2 text-[10px] font-bold tracking-[0.08em] leading-none whitespace-nowrap transition-colors ' +
                     (paymentStatus === opt.value
                       ? 'text-white bg-[#d946ef]'
-                      : 'text-[#c0c0dd] bg-[#373454] hover:bg-[#403d61]')
+                      : 'text-vilo-text-soft bg-vilo-interactive hover:bg-vilo-interactive-hover')
                   }
                 >
                   {opt.label}
                 </button>
               ))}
             </div>
-          </div>
+          </SurfaceCard>
 
-          <div className="px-4 py-4" style={{ background: surfaceBg }}>
+          {/* Referral */}
+          <SurfaceCard className="px-4 py-4">
             <div className="flex items-center gap-3">
               <div className="min-w-0 flex-1">
                 <div className="text-[#eef1fb] text-[13px] font-semibold">Vermittler*in</div>
-                <div className="mt-0.5 text-[11px] text-[#8f97b3] truncate">
+                <div className="mt-0.5 text-[11px] text-vilo-text-muted truncate">
                   {r.referralSource || 'Noch nicht zugewiesen'}
                 </div>
               </div>
-              {!r.referralSource && <IconPlus className="w-4 h-4 text-[#c4b5fd] shrink-0" />}
+              {!r.referralSource && <IconPlus className="w-4 h-4 text-vilo-accent-light shrink-0" />}
             </div>
-          </div>
+          </SurfaceCard>
         </div>
 
-        {/* BLOCK 3: Aktionen */}
+        {/* Actions */}
         <div className="px-4 py-4 space-y-2">
-          {/* Platzieren */}
           {!isSeated && (
-            <button onClick={handleSeat}
-              className="w-full flex items-center justify-center gap-3 py-3 px-4 text-white font-semibold text-[15px] transition-colors"
-              style={{ background: '#8b5cf6' }}>
-              <IconCheck className="w-5 h-5" />
+            <ActionButton variant="primary" icon={<IconCheck className="w-5 h-5" />} onClick={handleSeat}>
               Platzieren
-            </button>
+            </ActionButton>
           )}
         </div>
 
         {/* Danger Zone */}
         <div className="px-4 py-4 pb-20 space-y-2">
           {r.status !== 'cancelled' && (
-            <button onClick={handleCancel}
-              className="w-full flex items-center justify-center gap-3 py-3 px-4 text-[#f5d0fe] font-semibold text-[15px] transition-colors"
-              style={{ background: '#2b2944' }}>
-              <IconX className="w-5 h-5" />
+            <ActionButton variant="secondary" icon={<IconX className="w-5 h-5" />} onClick={handleCancel}>
               Stornieren
-            </button>
+            </ActionButton>
           )}
-          <button onClick={handleDelete}
-            className="w-full flex items-center justify-center gap-3 py-3 px-4 text-[#f5d0fe] font-semibold text-[15px] transition-colors"
-            style={{ background: '#4a1733' }}>
-            <IconTrash className="w-5 h-5" />
+          <ActionButton variant="danger" icon={<IconTrash className="w-5 h-5" />} onClick={handleDelete}>
             {confirmDelete ? 'Wirklich loeschen?' : 'Loeschen'}
-          </button>
+          </ActionButton>
         </div>
       </div>
   );
