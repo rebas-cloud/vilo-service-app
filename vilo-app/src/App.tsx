@@ -1,5 +1,5 @@
 import { useCallback, useState, useRef, useEffect, lazy, Suspense } from 'react';
-import { IconAlertTriangle, IconChartBar, IconBook, IconCalendar, IconChefHat, IconChevronLeft, IconChevronRight, IconEye, IconLayoutGrid, IconLogout, IconMenu2, IconSettings, IconSparkles } from '@tabler/icons-react';
+import { IconAlertTriangle, IconChartBar, IconCalendar, IconChefHat, IconChevronLeft, IconChevronRight, IconEye, IconLayoutGrid, IconLogout, IconMenu2, IconSettings, IconSparkles } from '@tabler/icons-react';
 
 import './App.css';
 import { AppProvider, useApp } from './context/AppContext';
@@ -445,7 +445,7 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
             onClick={() => { setSubTab('statistiken'); setShowDrawer(false); }}
             className="relative flex flex-col items-center justify-center w-16 h-full transition-colors"
           >
-            <IconBook className={`w-6 h-6 ${isHomeSection && !showDrawer ? 'text-[#8b5cf6]' : 'text-[#6b6b8a]'}`} />
+            <IconChartBar className={`w-6 h-6 ${isHomeSection && !showDrawer ? 'text-[#8b5cf6]' : 'text-[#6b6b8a]'}`} />
             {isHomeSection && !showDrawer && <div className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-[#8b5cf6]" />}
           </button>
           {/* AI Voice */}
