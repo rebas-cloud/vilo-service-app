@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
-import { X, ChevronDown, ChevronUp, UserPlus, Ban, RotateCcw, ArrowRightLeft, CheckCircle2, UtensilsCrossed, CalendarCheck, AlertTriangle, Users, User, Check, Search } from 'lucide-react';
+import { AlertTriangle, ArrowRightLeft, Ban, Check, CheckCircle, ChevronDown, ChevronUp, RotateCcw, Search, User, UserPlus, Users, UtensilsCrossed, X } from 'lucide-react';
+
 import { Table, Reservation, Guest } from '../types';
 import { useApp } from '../context/AppContext';
 import { loadReservations, addReservation, findGuestByPhone, addGuest, loadGuests } from '../utils/storage';
@@ -55,6 +56,7 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
   const [showMoreOptions, setShowMoreOptions] = useState(false);
   const [subView, setSubView] = useState<SubView>('main');
   const [walkinGuestName, setWalkinGuestName] = useState('');
+  const [walkinGuestCount, setWalkinGuestCount] = useState(2);
   const [reservations, setReservations] = useState<Reservation[]>([]);
 
   // Reservation wizard state
@@ -238,6 +240,16 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
   // Current hour for timeline
   const currentHour = new Date().getHours();
 
+  const panelOverlayClass = 'fixed inset-0 z-50 flex justify-end bg-transparent';
+  const panelShellClass = 'pointer-events-auto h-full w-full max-w-[380px] overflow-y-auto border-l border-[#2c2947] bg-[#1f1d33] shadow-2xl';
+  const panelHeaderClass = 'flex items-center justify-between border-b border-[#2c2947] px-5 py-4';
+  const panelSectionClass = 'border-b border-[#2c2947] px-5 py-4';
+
+  const primaryActionClass = 'w-full flex items-center justify-center gap-2 py-4 px-4 rounded-none bg-[#8b5cf6] text-white font-semibold text-base hover:bg-[#7c3aed] transition-colors';
+  const secondaryActionClass = 'w-full flex items-center gap-3 py-4 px-4 rounded-none bg-[#26243f] text-[#d7d3ea] font-medium text-base hover:bg-[#312e52] active:bg-[#353558] transition-colors';
+  const dangerActionClass = 'w-full flex items-center justify-center gap-2 py-4 px-4 rounded-none bg-[#d946ef] text-white font-semibold text-base hover:bg-[#c026d3] transition-colors';
+  const orangeActionClass = 'w-full flex items-center gap-3 py-4 px-4 rounded-none bg-[#ff7a18] text-white font-semibold text-base hover:bg-[#ea6b0f] transition-colors';
+
   // Timeline hours (show from current-2 to current+8)
   const timelineHours = useMemo(() => {
     const start = Math.max(0, currentHour - 2);
@@ -247,9 +259,9 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
     return hours;
   }, [currentHour]);
 
-
   const handleSeatWalkIn = (guestCount: number) => {
     dispatch({ type: 'SET_ACTIVE_TABLE', tableId: table.id });
+    dispatch({ type: 'SET_GUEST_NAME', tableId: table.id, guestName: walkinGuestName });
     dispatch({ type: 'SET_GUEST_SOURCE', tableId: table.id, source: 'walk_in' });
     dispatch({ type: 'SET_GUEST_COUNT', tableId: table.id, guestCount });
     dispatch({ type: 'SET_SERVICE_STATUS', tableId: table.id, serviceStatus: 'platziert' });
@@ -411,21 +423,34 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
   // Walk-In guest count picker sub-view
   if (subView === 'walkin_count') {
     return (
-      <div className="fixed inset-0 z-50 flex flex-col" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={onClose}>
-        <div className="mt-auto rounded-t-2xl overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto" style={{ background: '#1a1a2e' }} onClick={e => e.stopPropagation()}>
-          <div className="flex items-center justify-between px-5 py-3 border-b border-[#333355]">
+      <div className={panelOverlayClass} onClick={onClose}>
+        <div className={panelShellClass} onClick={e => e.stopPropagation()}>
+          <div className={panelHeaderClass}>
             <h2 className="text-lg font-bold text-white">Walk-In · {table.name}</h2>
             <button onClick={() => setSubView('main')} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0]"><X className="w-6 h-6" /></button>
           </div>
 
           <div className="px-5 py-5 space-y-5">
-            {/* Guest count - centered */}
-            <div className="text-center">
+            <div>
+              <p className="text-[#b0b0cc] text-xs font-semibold uppercase tracking-wider mb-2">Gastname (optional)</p>
+              <input
+                type="text"
+                placeholder="Name eingeben..."
+                value={walkinGuestName}
+                onChange={e => setWalkinGuestName(e.target.value)}
+                className="w-full h-14 px-4 text-left text-white text-base outline-none rounded-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#26243f] placeholder:text-[#8e8aa8]"
+              />
+            </div>
+
+            <div>
               <p className="text-[#b0b0cc] text-xs font-semibold uppercase tracking-wider mb-3">Anzahl Gäste wählen</p>
-              <div className="flex gap-2.5 justify-center flex-wrap">
-                {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
-                  <button key={n} onClick={() => handleSeatWalkIn(n)}
-                    className="w-12 h-12 rounded-xl border-2 text-base font-bold transition-colors border-[#3d3d5c] text-[#c0c0dd] hover:border-[#7bb7ef] hover:bg-[#7bb7ef]/10 active:bg-[#7bb7ef] active:text-white">
+                <div className="grid grid-cols-4 gap-3">
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
+                  <button key={n} onClick={() => setWalkinGuestCount(n)}
+                    className={'h-16 text-xl font-bold transition-colors rounded-none ' +
+                      (walkinGuestCount === n
+                        ? 'bg-[#d946ef] text-white'
+                        : 'bg-[#26243f] text-[#d7d3ea] hover:bg-[#312e52]')}>
                     {n}
                   </button>
                 ))}
@@ -434,33 +459,33 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
                 type="number"
                 placeholder="Andere Anzahl..."
                 min={1}
-                className="w-full mt-3 border border-[#3d3d5c] rounded-xl py-2.5 px-4 text-center text-white outline-none focus:border-[#7bb7ef] bg-[#1e1e2e] placeholder:text-[#666688] text-sm"
+                className="w-full mt-3 h-14 px-4 text-left text-white outline-none rounded-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#26243f] placeholder:text-[#8e8aa8] text-base"
+                value={walkinGuestCount > 8 ? walkinGuestCount : ''}
+                onChange={e => {
+                  const val = parseInt(e.target.value);
+                  if (val > 0) setWalkinGuestCount(val);
+                }}
                 onKeyDown={e => {
                   if (e.key === 'Enter') {
                     const val = parseInt((e.target as HTMLInputElement).value);
-                    if (val > 0) handleSeatWalkIn(val);
+                    if (val > 0) setWalkinGuestCount(val);
                   }
                 }}
               />
             </div>
 
             {hasConflict && conflictReservation && (
-              <p className="text-red-400 font-semibold text-sm text-center">
+              <p className="text-red-400 font-semibold text-sm">
                 {table.name} ist um {conflictReservation.time} anderen Gästen zugewiesen
               </p>
             )}
 
-            {/* Name input - centered */}
-            <div className="text-center">
-              <p className="text-[#b0b0cc] text-xs font-semibold uppercase tracking-wider mb-2">Gastname (optional)</p>
-              <input
-                type="text"
-                placeholder="Name eingeben..."
-                value={walkinGuestName}
-                onChange={e => setWalkinGuestName(e.target.value)}
-                className="w-full border border-[#3d3d5c] rounded-xl py-3 px-4 text-center text-white text-base outline-none focus:border-[#7bb7ef] bg-[#1e1e2e] placeholder:text-[#666688]"
-              />
-            </div>
+            <button
+              onClick={() => handleSeatWalkIn(walkinGuestCount)}
+              className="w-full h-14 bg-[#8b5cf6] text-white font-semibold text-base rounded-none hover:bg-[#7c3aed] transition-colors"
+            >
+              Weiter
+            </button>
           </div>
         </div>
       </div>
@@ -470,10 +495,10 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
   // Reservation wizard sub-view (within bottom sheet)
   if (subView === 'reserve_wizard') {
     return (
-      <div className="fixed inset-0 z-50 flex flex-col" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={onClose}>
-        <div className="mt-auto rounded-t-2xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col" style={{ background: '#1a1a2e' }} onClick={e => e.stopPropagation()}>
+      <div className={panelOverlayClass} onClick={onClose}>
+        <div className={panelShellClass + ' flex flex-col'} onClick={e => e.stopPropagation()}>
           {/* Wizard Header - Teal bar */}
-          <div className="flex items-center justify-between px-3 py-2.5 border-b border-[#333355]">
+          <div className="flex items-center justify-between border-b border-[#2c2947] px-3 py-2.5">
             <button onClick={() => {
               if (reserveStep === 'guests') { resetResForm(); setSubView('main'); }
               else { setReserveStep('guests'); }
@@ -674,9 +699,9 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
   // Move to table picker sub-view
   if (subView === 'move_picker') {
     return (
-      <div className="fixed inset-0 z-50 flex flex-col" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={onClose}>
-        <div className="mt-auto rounded-t-2xl overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto" style={{ background: '#1a1a2e' }} onClick={e => e.stopPropagation()}>
-          <div className="flex items-center justify-between px-5 py-4 border-b border-[#333355]">
+      <div className={panelOverlayClass} onClick={onClose}>
+        <div className={panelShellClass} onClick={e => e.stopPropagation()}>
+          <div className={panelHeaderClass}>
             <h2 className="text-xl font-bold text-white">Umsetzen - Tisch waehlen</h2>
             <button onClick={() => setSubView('main')} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0]"><X className="w-6 h-6" /></button>
           </div>
@@ -708,26 +733,50 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
   }
 
   // Main view
+  const statusLabel = isBlocked
+    ? 'Gesperrt'
+    : isFree
+      ? 'Frei'
+      : SERVICE_STATUS_INFO[session?.serviceStatus || 'platziert']?.label || 'Platziert';
+
+  const statusBackground = isBlocked
+    ? '#ef4444'
+    : isFree
+      ? '#8b5cf6'
+      : '#8b5cf6';
+
   return (
-    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={onClose}>
-      <div className="mt-auto rounded-t-2xl overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto" style={{ background: '#1a1a2e' }} onClick={e => e.stopPropagation()}>
+    <div className={panelOverlayClass} onClick={onClose}>
+      <div className={panelShellClass} onClick={e => e.stopPropagation()}>
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4">
+        <div className={panelHeaderClass}>
           <h2 className="text-2xl font-bold text-white">{table.name}</h2>
           <button onClick={onClose} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0]"><X className="w-6 h-6" /></button>
         </div>
 
+        <div className="flex items-center justify-between px-5 py-4 text-white" style={{ background: statusBackground }}>
+          <div className="flex items-center gap-3">
+            <Check className="h-5 w-5" />
+            <span className="text-xl font-semibold">{statusLabel}</span>
+          </div>
+          <button onClick={() => setTimelineExpanded(!timelineExpanded)} className="text-white/85 hover:text-white">
+            {timelineExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+          </button>
+        </div>
+
         {/* Timeline */}
-        {timelineExpanded ? renderExpandedTimeline() : renderCompactTimeline()}
+        <div className={panelSectionClass + ' !px-0 !py-0'}>{timelineExpanded ? renderExpandedTimeline() : renderCompactTimeline()}</div>
 
         {/* Current Guest Info (if occupied) */}
         {isOccupied && session && (
-          <div className="px-5 py-3">
+          <div className={panelSectionClass}>
             <p className="text-xs font-bold text-[#b0b0cc] tracking-wider mb-2">ZUR ZEIT PLATZIERT</p>
-            <button onClick={handleOpenOrders} className="w-full flex items-center justify-between py-3 px-4 rounded-xl border border-[#3d3d5c] hover:bg-[#2a2a42] active:bg-[#353558] transition-colors">
+            <button onClick={handleOpenOrders} className="w-full flex items-center justify-between border border-[#3d3d5c] bg-[#26243f] px-4 py-3 text-left hover:bg-[#2a2a42] active:bg-[#353558] transition-colors">
               <div>
                 <p className="text-base font-bold text-white">
-                  {seatedReservation ? seatedReservation.guestName : (session.guestSource === 'walk_in' ? 'Walk-In' : session.guestSource === 'phone' ? 'Telefon' : 'Online') + ' ' + table.name.replace(/^[A-Za-z]+\s*/, '')}
+                  {seatedReservation?.guestName
+                    || session.guestName?.trim()
+                    || (session.guestSource === 'walk_in' ? 'Walk-In' : session.guestSource === 'phone' ? 'Telefon' : 'Online') + ' ' + table.name.replace(/^[A-Za-z]+\s*/, '')}
                 </p>
                 <p className="text-sm text-[#b0b0cc]">{seatedReservation ? getSeatedDuration(seatedReservation) : getElapsedStr()}</p>
               </div>
@@ -736,81 +785,76 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
           </div>
         )}
 
+        {isFree && conflictReservation && (
+          <div className={panelSectionClass}>
+            <div className="border border-dashed border-[#7a6aab] px-4 py-3">
+              <p className="text-lg font-semibold text-white">{conflictReservation.guestName}</p>
+              <p className="mt-1 text-sm text-[#c7b8ff]">
+                {conflictReservation.time} · {conflictReservation.partySize} Gäste
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Action Buttons */}
-        <div className="px-5 py-2 space-y-2 pb-20">
+        <div className="px-5 py-4 space-y-3">
           {/* === OCCUPIED TABLE ACTIONS === */}
           {isOccupied && session && (
             <>
-              {/* Status: Platziert (purple) */}
-              <button onClick={handleOpenOrders}
-                className="w-full flex items-center gap-3 py-4 px-4 rounded-xl text-white font-semibold text-base"
-                style={{ background: SERVICE_STATUS_INFO[session.serviceStatus || 'platziert']?.color || '#c084fc' }}>
-                <UtensilsCrossed className="w-5 h-5" />
-                {SERVICE_STATUS_INFO[session.serviceStatus || 'platziert']?.label || 'Platziert'}
-              </button>
-
               {/* Abraeumen erforderlich (orange) */}
               <button onClick={() => {
                 dispatch({ type: 'SET_SERVICE_STATUS', tableId: table.id, serviceStatus: 'abraeumen' });
                 onClose();
               }}
-                className="w-full flex items-center gap-3 py-4 px-4 rounded-xl text-white font-semibold text-base"
-                style={{ background: '#f97316' }}>
+                className={orangeActionClass}>
                 <UtensilsCrossed className="w-5 h-5" />
                 Abraeumen erforderlich
               </button>
 
               {/* Abschliessen */}
               <button onClick={handleCloseTable}
-                className="w-full flex items-center gap-3 py-4 px-4 rounded-xl border border-[#3d3d5c] text-[#c0c0dd] font-medium text-base hover:bg-[#2a2a42] active:bg-[#353558]">
-                <CheckCircle2 className="w-5 h-5 text-[#b0b0cc]" />
+                className={secondaryActionClass}>
+                <CheckCircle className="w-5 h-5 text-[#cfc5ff]" />
                 Abschliessen
               </button>
 
               {/* Beenden & Walk-In platzieren */}
               <button onClick={handleFinishAndSeatNew}
-                className="w-full flex items-center gap-3 py-4 px-4 rounded-xl border border-[#3d3d5c] text-[#c0c0dd] font-medium text-base hover:bg-[#2a2a42] active:bg-[#353558]">
-                <CheckCircle2 className="w-5 h-5 text-[#7bb7ef]" />
+                className={secondaryActionClass}>
+                <CheckCircle className="w-5 h-5 text-[#d946ef]" />
                 Beenden & Walk-In platzieren
               </button>
 
               {!showMoreOptions ? (
                 <button onClick={() => setShowMoreOptions(true)}
-                  className="w-full py-2 text-sm font-semibold text-[#7bb7ef] hover:text-[#b1d9ff]">
+                  className="w-full py-2 text-sm font-semibold text-[#d946ef] hover:text-[#f0abfc]">
                   mehr Optionen
                 </button>
               ) : (
                 <>
                   {/* Umsetzen */}
                   <button onClick={() => setSubView('move_picker')}
-                    className="w-full flex items-center gap-3 py-4 px-4 rounded-xl border border-[#3d3d5c] text-[#c0c0dd] font-medium text-base hover:bg-[#2a2a42] active:bg-[#353558]">
-                    <ArrowRightLeft className="w-5 h-5 text-[#b0b0cc]" />
+                    className={secondaryActionClass}>
+                    <ArrowRightLeft className="w-5 h-5 text-[#cfc5ff]" />
                     Umsetzen
                   </button>
 
                   {/* Platzierung rueckgaengig machen */}
                   <button onClick={handleUndoPlacement}
-                    className="w-full flex items-center gap-3 py-4 px-4 rounded-xl border border-[#3d3d5c] text-[#c0c0dd] font-medium text-base hover:bg-[#2a2a42] active:bg-[#353558]">
-                    <RotateCcw className="w-5 h-5 text-[#b0b0cc]" />
+                    className={secondaryActionClass}>
+                    <RotateCcw className="w-5 h-5 text-[#cfc5ff]" />
                     Platzierung rueckgaengig machen
-                  </button>
-
-                  {/* Reservieren */}
-                  <button onClick={() => { resetResForm(); setSubView('reserve_wizard'); }}
-                    className="w-full flex items-center gap-3 py-4 px-4 rounded-xl border border-[#3d3d5c] text-[#c0c0dd] font-medium text-base hover:bg-[#2a2a42] active:bg-[#353558]">
-                    <CalendarCheck className="w-5 h-5 text-[#b0b0cc]" />
-                    Reservieren
                   </button>
 
                   {/* Tisch sperren */}
                   <button onClick={handleBlockTable}
-                    className="w-full flex items-center gap-3 py-4 px-4 rounded-xl border border-[#3d3d5c] text-[#c0c0dd] font-medium text-base hover:bg-[#2a2a42] active:bg-[#353558]">
-                    <Ban className="w-5 h-5 text-[#b0b0cc]" />
+                    className={secondaryActionClass}>
+                    <Ban className="w-5 h-5 text-[#cfc5ff]" />
                     Tisch sperren
                   </button>
 
                   <button onClick={() => setShowMoreOptions(false)}
-                    className="w-full py-2 text-sm font-semibold text-[#7bb7ef] hover:text-[#b1d9ff]">
+                    className="w-full py-2 text-sm font-semibold text-[#d946ef] hover:text-[#f0abfc]">
                     weniger Optionen
                   </button>
                 </>
@@ -831,29 +875,20 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
 
               {/* Walk-In dennoch platzieren (red) */}
               <button onClick={() => setSubView('walkin_count')}
-                className="w-full flex items-center justify-center gap-2 py-4 px-4 rounded-xl text-white font-semibold text-base"
-                style={{ background: '#dc2626' }}>
+                className={dangerActionClass}>
                 Walk-In dennoch platzieren
               </button>
 
               {/* Walk-In teilweise platzieren (teal) */}
               <button onClick={() => setSubView('walkin_count')}
-                className="w-full flex items-center justify-center gap-2 py-4 px-4 rounded-xl text-white font-semibold text-base"
-                style={{ background: '#7c3aed' }}>
+                className={primaryActionClass}>
                 Walk-In teilweise platzieren
-              </button>
-
-              {/* Reservieren */}
-              <button onClick={() => { resetResForm(); setSubView('reserve_wizard'); }}
-                className="w-full flex items-center gap-3 py-4 px-4 rounded-xl border border-[#3d3d5c] text-[#c0c0dd] font-medium text-base hover:bg-[#2a2a42] active:bg-[#353558]">
-                <CalendarCheck className="w-5 h-5 text-[#b0b0cc]" />
-                Reservieren
               </button>
 
               {/* Tisch sperren */}
               <button onClick={handleBlockTable}
-                className="w-full flex items-center gap-3 py-4 px-4 rounded-xl border border-[#3d3d5c] text-[#c0c0dd] font-medium text-base hover:bg-[#2a2a42] active:bg-[#353558]">
-                <Ban className="w-5 h-5 text-[#b0b0cc]" />
+                className={secondaryActionClass}>
+                <Ban className="w-5 h-5 text-[#cfc5ff]" />
                 Tisch sperren
               </button>
             </>
@@ -864,23 +899,15 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
             <>
               {/* Walk-In platzieren */}
               <button onClick={() => setSubView('walkin_count')}
-                className="w-full flex items-center justify-center gap-2 py-4 px-4 rounded-xl text-white font-semibold text-base"
-                style={{ background: '#7c3aed' }}>
+                className={primaryActionClass}>
                 <UserPlus className="w-5 h-5" />
                 Walk-In platzieren
               </button>
 
-              {/* Reservieren */}
-              <button onClick={() => { resetResForm(); setSubView('reserve_wizard'); }}
-                className="w-full flex items-center gap-3 py-4 px-4 rounded-xl border border-[#3d3d5c] text-[#c0c0dd] font-medium text-base hover:bg-[#2a2a42] active:bg-[#353558]">
-                <CalendarCheck className="w-5 h-5 text-[#b0b0cc]" />
-                Reservieren
-              </button>
-
               {/* Tisch sperren */}
               <button onClick={handleBlockTable}
-                className="w-full flex items-center gap-3 py-4 px-4 rounded-xl border border-[#3d3d5c] text-[#c0c0dd] font-medium text-base hover:bg-[#2a2a42] active:bg-[#353558]">
-                <Ban className="w-5 h-5 text-[#b0b0cc]" />
+                className={secondaryActionClass}>
+                <Ban className="w-5 h-5 text-[#cfc5ff]" />
                 Tisch sperren
               </button>
             </>
@@ -895,8 +922,7 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
               </div>
 
               <button onClick={handleUnblockTable}
-                className="w-full flex items-center justify-center gap-2 py-4 px-4 rounded-xl text-white font-semibold text-base"
-                style={{ background: '#7c3aed' }}>
+                className={primaryActionClass}>
                 Sperre aufheben
               </button>
             </>
@@ -906,27 +932,20 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
           {isOccupied && !session && (
             <>
               <button onClick={handleCloseTable}
-                className="w-full flex items-center gap-3 py-4 px-4 rounded-xl border border-[#3d3d5c] text-[#c0c0dd] font-medium text-base hover:bg-[#2a2a42] active:bg-[#353558]">
-                <CheckCircle2 className="w-5 h-5 text-[#b0b0cc]" />
+                className={secondaryActionClass}>
+                <CheckCircle className="w-5 h-5 text-[#cfc5ff]" />
                 Tisch freigeben
               </button>
 
               <button onClick={() => setSubView('walkin_count')}
-                className="w-full flex items-center justify-center gap-2 py-4 px-4 rounded-xl text-white font-semibold text-base"
-                style={{ background: '#7c3aed' }}>
+                className={primaryActionClass}>
                 <UserPlus className="w-5 h-5" />
                 Walk-In platzieren
               </button>
 
-              <button onClick={() => { resetResForm(); setSubView('reserve_wizard'); }}
-                className="w-full flex items-center gap-3 py-4 px-4 rounded-xl border border-[#3d3d5c] text-[#c0c0dd] font-medium text-base hover:bg-[#2a2a42] active:bg-[#353558]">
-                <CalendarCheck className="w-5 h-5 text-[#b0b0cc]" />
-                Reservieren
-              </button>
-
               <button onClick={handleBlockTable}
-                className="w-full flex items-center gap-3 py-4 px-4 rounded-xl border border-[#3d3d5c] text-[#c0c0dd] font-medium text-base hover:bg-[#2a2a42] active:bg-[#353558]">
-                <Ban className="w-5 h-5 text-[#b0b0cc]" />
+                className={secondaryActionClass}>
+                <Ban className="w-5 h-5 text-[#cfc5ff]" />
                 Tisch sperren
               </button>
             </>
@@ -936,21 +955,14 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
           {!isOccupied && !isFree && !isBlocked && (
             <>
               <button onClick={() => setSubView('walkin_count')}
-                className="w-full flex items-center justify-center gap-2 py-4 px-4 rounded-xl text-white font-semibold text-base"
-                style={{ background: '#7c3aed' }}>
+                className={primaryActionClass}>
                 <UserPlus className="w-5 h-5" />
                 Walk-In platzieren
               </button>
 
-              <button onClick={() => { resetResForm(); setSubView('reserve_wizard'); }}
-                className="w-full flex items-center gap-3 py-4 px-4 rounded-xl border border-[#3d3d5c] text-[#c0c0dd] font-medium text-base hover:bg-[#2a2a42] active:bg-[#353558]">
-                <CalendarCheck className="w-5 h-5 text-[#b0b0cc]" />
-                Reservieren
-              </button>
-
               <button onClick={handleBlockTable}
-                className="w-full flex items-center gap-3 py-4 px-4 rounded-xl border border-[#3d3d5c] text-[#c0c0dd] font-medium text-base hover:bg-[#2a2a42] active:bg-[#353558]">
-                <Ban className="w-5 h-5 text-[#b0b0cc]" />
+                className={secondaryActionClass}>
+                <Ban className="w-5 h-5 text-[#cfc5ff]" />
                 Tisch sperren
               </button>
             </>
@@ -959,9 +971,9 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
 
         {/* Next Reservation */}
         {nextReservation && (
-          <div className="px-5 py-3 border-t border-[#333355]" style={{ background: '#1a1a2e' }}>
+          <div className={panelSectionClass}>
             <p className="text-xs font-bold text-[#b0b0cc] tracking-wider mb-2">NAECHSTE GRUPPE</p>
-            <div className="flex items-center justify-between py-2 px-3 rounded-xl border border-[#3d3d5c] bg-[#2a2a42]">
+            <div className="flex items-center justify-between border border-[#3d3d5c] bg-[#26243f] px-4 py-3">
               <div>
                 <p className="text-base font-bold text-white">{nextReservation.guestName}</p>
                 <p className="text-sm text-[#b0b0cc]">{nextReservation.time}</p>
@@ -971,8 +983,7 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
           </div>
         )}
 
-        {/* Safe area padding for bottom nav */}
-        <div className="pb-20" />
+        <div className="h-6" />
       </div>
     </div>
   );

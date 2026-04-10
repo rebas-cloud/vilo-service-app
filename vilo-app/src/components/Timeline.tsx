@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
+
 import { useApp } from '../context/AppContext';
-import { Reservation, Table } from '../types';
+import { Reservation } from '../types';
 import { loadReservations } from '../utils/storage';
-import { ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
 
 interface TimelineProps {
   onSelectTable?: (tableId: string) => void;
@@ -28,7 +29,7 @@ function getBlockWidth(durationMin: number): number {
 const STATUS_COLORS: Record<string, string> = {
   confirmed: '#7bb7ef',
   seated: '#8b5cf6',
-  completed: '#6b7280',
+  finished: '#6b7280',
   cancelled: '#ef4444',
   no_show: '#f59e0b',
 };
@@ -36,7 +37,6 @@ const STATUS_COLORS: Record<string, string> = {
 export function Timeline({ onSelectTable }: TimelineProps) {
   const { state } = useApp();
   const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [activeZone, setActiveZone] = useState<string>(state.zones[0]?.id || '');
   const [collapsedZones, setCollapsedZones] = useState<Set<string>>(new Set());
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -232,7 +232,7 @@ export function Timeline({ onSelectTable }: TimelineProps) {
                               width: Math.max(30, width),
                               height: ROW_HEIGHT - 6,
                               background: color,
-                              opacity: r.status === 'completed' ? 0.5 : 1,
+                              opacity: r.status === 'finished' ? 0.5 : 1,
                               border: isSeated ? '1px solid #e9d5ff' : 'none',
                             }}
                             title={`${r.guestName} - ${r.partySize} Pers. - ${r.time} (${r.duration || 90}min)`}

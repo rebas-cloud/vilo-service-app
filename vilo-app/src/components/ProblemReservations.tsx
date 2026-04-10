@@ -1,10 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
+import { AlertTriangle, CalendarX, ChevronDown, ChevronUp, Clock, UserX, Users, XCircle } from 'lucide-react';
+
 import { Reservation, Table } from '../types';
 import { loadReservations, loadStorage } from '../utils/storage';
-import {
-  AlertTriangle, UserX, CalendarX, Users, Clock,
-  ChevronDown, ChevronUp, XCircle
-} from 'lucide-react';
 
 interface ProblemReservationsProps {
   onSelectTable?: (tableId: string) => void;

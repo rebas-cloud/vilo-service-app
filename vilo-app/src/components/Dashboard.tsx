@@ -1,15 +1,9 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { AlertTriangle, ArrowDownRight, ArrowUpRight, Calendar, ChevronLeft, ChevronRight, CircleDot, Clock, Coffee, ListOrdered, Moon, PenLine, SlidersHorizontal, Sparkles, Sun, Timer, TrendingUp, Trophy, Users, Utensils, UtensilsCrossed, X } from 'lucide-react';
+
 import { useApp } from '../context/AppContext';
 import { ShiftHistoryRecord } from '../types';
 import { loadWaitlist, loadReservations } from '../utils/storage';
-import {
-  Clock, AlertTriangle, Coffee, UtensilsCrossed,
-  TrendingUp, ChevronRight, X,
-  CircleDot, Users,
-  ChevronLeft, SlidersHorizontal, Calendar, Sun, Utensils, Moon,
-  ListOrdered, Timer, Trophy, ArrowUpRight, ArrowDownRight,
-  MessageSquare, Sparkles, UserCheck, PenLine
-} from 'lucide-react';
 
 interface Alert {
   id: string;
@@ -164,10 +158,6 @@ function HourlyBarChart({ data, accentColor }: { data: { hour: string; count: nu
   );
 }
 
-// === RESMIO-STYLE UEBERSICHT TAB ===
-type UebersichtSubTab = 'schichtueberblick' | 'schichtnotiz';
-type UebersichtFilter = 'besondere_gruppen' | 'experiences';
-
 const OCCASION_LABELS: Record<string, string> = {
   date: 'Date',
   geschaeftsessen: 'Geschäftsessen',
@@ -280,61 +270,61 @@ function UebersichtTab({ occupiedTables: _occupiedTables, freeTables: _freeTable
   };
 
   return (
-    <div className="p-4 animate-fadeIn overflow-y-auto h-full">
+    <div className="p-2 md:p-4 animate-fadeIn overflow-y-auto h-full">
       {/* Top stats row - 4 big cards */}
-      <div className="grid grid-cols-4 gap-3 mb-4">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-2 md:gap-3 mb-2.5 md:mb-4">
         {[
           { value: totalGroups, label: 'GRUPPEN' },
           { value: totalGuests, label: 'GÄSTE' },
           { value: seatedCount, label: 'PLATZIERT' },
           { value: walkInCount, label: 'WALK-INS' },
         ].map(stat => (
-          <div key={stat.label} className="rounded-xl border border-white/[0.06] py-5 text-center" style={{ background: '#252540' }}>
-            <p className="text-white text-3xl font-bold">{stat.value}</p>
-            <p className="text-[#8888aa] text-xs font-semibold tracking-wider mt-1">{stat.label}</p>
+          <div key={stat.label} className="rounded-none px-2.5 md:px-3 py-2.5 md:py-3 text-center border border-[#333355]/40" style={{ background: '#26243f' }}>
+            <p className="text-white text-[26px] md:text-[28px] font-bold leading-none">{stat.value}</p>
+            <p className="text-[#9f9aba] text-[10px] md:text-[11px] font-semibold tracking-[0.18em] mt-1.5">{stat.label}</p>
           </div>
         ))}
       </div>
 
       {/* Source breakdown */}
-      <div className="flex items-center gap-5 mb-5 px-1">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mb-3 px-0.5 md:px-1">
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-blue-400" />
-          <span className="text-[#8888aa] text-sm">Telefon {phoneCount}</span>
+          <span className="text-[#9f9aba] text-[13px]">Telefon {phoneCount}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-pink-400" />
-          <span className="text-[#8888aa] text-sm">Online {onlineCount}</span>
+          <span className="text-[#9f9aba] text-[13px]">Online {onlineCount}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-green-400" />
-          <span className="text-[#8888aa] text-sm">Walk-in {walkInCount}</span>
+          <span className="text-[#9f9aba] text-[13px]">Walk-in {walkInCount}</span>
         </div>
       </div>
 
       {/* Bottom 2-column grid */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-2 md:gap-3">
         {/* Left: GROSSE GRUPPEN */}
-        <div className="rounded-xl border border-white/[0.06] overflow-hidden" style={{ background: '#252540' }}>
-          <div className="flex items-center justify-between px-4 pt-4 pb-3">
+        <div className="rounded-none overflow-hidden" style={{ background: '#252540' }}>
+          <div className="flex items-center justify-between px-2.5 md:px-4 pt-2.5 md:pt-3 pb-2">
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-[#8888aa]" />
-              <span className="text-[#8888aa] text-xs font-bold uppercase tracking-wider">Grosse Gruppen</span>
+              <span className="text-[#9f9aba] text-[11px] font-semibold uppercase tracking-[0.18em]">Grosse Gruppen</span>
             </div>
-            <span className="w-6 h-6 rounded-full bg-white/10 text-white text-xs font-bold flex items-center justify-center">{bigGroups.length}</span>
+            <span className="min-w-6 h-6 px-1 bg-[#312e52] text-white text-[11px] font-bold flex items-center justify-center">{bigGroups.length}</span>
           </div>
-          <div className="px-4 pb-4">
+          <div className="px-2.5 md:px-4 pb-2.5 md:pb-3">
             {bigGroups.length === 0 ? (
-              <p className="text-[#64748b] text-sm py-3">Keine großen Gruppen heute</p>
+              <p className="text-[#64748b] text-[13px] py-3">Keine großen Gruppen heute</p>
             ) : (
               <div className="divide-y divide-white/[0.06]">
                 {bigGroups.map(r => (
-                  <div key={r.id} className="flex items-center justify-between py-2.5">
+                  <div key={r.id} className="flex items-center justify-between py-2 gap-3">
                     <div className="flex items-center gap-3">
-                      <span className="text-[#8888aa] text-sm">{r.time}</span>
-                      <span className="text-white text-sm font-semibold">{r.guestName}</span>
+                      <span className="text-[#8888aa] text-[12px] shrink-0">{r.time}</span>
+                      <span className="text-white text-[14px] font-semibold truncate">{r.guestName}</span>
                     </div>
-                    <span className="text-purple-400 text-sm font-bold">{r.partySize} Pers.</span>
+                    <span className="text-[#cf8cff] text-[13px] font-bold shrink-0">{r.partySize} Pers.</span>
                   </div>
                 ))}
               </div>
@@ -343,35 +333,35 @@ function UebersichtTab({ occupiedTables: _occupiedTables, freeTables: _freeTable
         </div>
 
         {/* Right column */}
-        <div className="space-y-3">
+        <div className="space-y-2.5 md:space-y-3">
           {/* BESONDERE ANLÄSSE */}
-          <div className="rounded-xl border border-white/[0.06] overflow-hidden" style={{ background: '#252540' }}>
-            <div className="flex items-center justify-between px-4 pt-4 pb-3">
+          <div className="rounded-none overflow-hidden" style={{ background: '#252540' }}>
+            <div className="flex items-center justify-between px-2.5 md:px-4 pt-2.5 md:pt-3 pb-2">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-[#8888aa]" />
-                <span className="text-[#8888aa] text-xs font-bold uppercase tracking-wider">Besondere Anlässe</span>
+                <span className="text-[#9f9aba] text-[11px] font-semibold uppercase tracking-[0.18em]">Besondere Anlässe</span>
               </div>
-              <span className="w-6 h-6 rounded-full bg-white/10 text-white text-xs font-bold flex items-center justify-center">{specialEvents.length}</span>
+              <span className="min-w-6 h-6 px-1 bg-[#312e52] text-white text-[11px] font-bold flex items-center justify-center">{specialEvents.length}</span>
             </div>
-            <div className="px-4 pb-4">
+            <div className="px-2.5 md:px-4 pb-2.5 md:pb-3">
               {specialEvents.length === 0 ? (
-                <p className="text-[#64748b] text-sm py-2">Keine besonderen Anlässe</p>
+                <p className="text-[#64748b] text-[13px] py-2">Keine besonderen Anlässe</p>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   {specialEvents.map(r => (
                     <div key={r.id}>
                       <div className="flex items-center justify-between mb-1.5">
                         <div className="flex items-center gap-3">
-                          <span className="text-[#8888aa] text-sm">{r.time}</span>
-                          <span className="text-white text-sm font-semibold">{r.guestName}</span>
+                          <span className="text-[#8888aa] text-[12px] shrink-0">{r.time}</span>
+                          <span className="text-white text-[14px] font-semibold truncate">{r.guestName}</span>
                         </div>
-                        <span className="text-purple-400 text-sm font-bold">{r.partySize} Pers.</span>
+                        <span className="text-[#cf8cff] text-[13px] font-bold shrink-0">{r.partySize} Pers.</span>
                       </div>
                       {r.occasionLabels && r.occasionLabels.length > 0 && (
                         <div className="flex flex-wrap gap-1.5">
                           {r.occasionLabels.map(l => (
-                            <span key={l} className="px-2.5 py-0.5 rounded-full text-xs font-medium border"
-                              style={{ color: OCCASION_COLORS[l] || '#94a3b8', borderColor: (OCCASION_COLORS[l] || '#94a3b8') + '50' }}>
+                            <span key={l} className="px-2 py-1 text-[11px] font-medium"
+                              style={{ color: OCCASION_COLORS[l] || '#94a3b8', background: (OCCASION_COLORS[l] || '#94a3b8') + '1a' }}>
                               {OCCASION_LABELS[l] || l}
                             </span>
                           ))}
@@ -385,26 +375,26 @@ function UebersichtTab({ occupiedTables: _occupiedTables, freeTables: _freeTable
           </div>
 
           {/* SITZPLATZWÜNSCHE */}
-          <div className="rounded-xl border border-white/[0.06] overflow-hidden" style={{ background: '#252540' }}>
-            <div className="flex items-center justify-between px-4 pt-4 pb-3">
+          <div className="rounded-none overflow-hidden" style={{ background: '#252540' }}>
+            <div className="flex items-center justify-between px-2.5 md:px-4 pt-2.5 md:pt-3 pb-2">
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-[#8888aa]" />
-                <span className="text-[#8888aa] text-xs font-bold uppercase tracking-wider">Sitzplatzwünsche</span>
+                <span className="text-[#9f9aba] text-[11px] font-semibold uppercase tracking-[0.18em]">Sitzplatzwünsche</span>
               </div>
-              <span className="w-6 h-6 rounded-full bg-white/10 text-white text-xs font-bold flex items-center justify-center">{seatRequests.length}</span>
+              <span className="min-w-6 h-6 px-1 bg-[#312e52] text-white text-[11px] font-bold flex items-center justify-center">{seatRequests.length}</span>
             </div>
-            <div className="px-4 pb-4">
+            <div className="px-2.5 md:px-4 pb-2.5 md:pb-3">
               {seatRequests.length === 0 ? (
-                <p className="text-[#64748b] text-sm py-2">Keine Sitzplatzwünsche</p>
+                <p className="text-[#64748b] text-[13px] py-2">Keine Sitzplatzwünsche</p>
               ) : (
                 <div className="divide-y divide-white/[0.06]">
                   {seatRequests.map(r => (
-                    <div key={r.id} className="flex items-center justify-between py-2.5">
+                    <div key={r.id} className="flex items-center justify-between py-2 gap-3">
                       <div className="flex items-center gap-3">
-                        <span className="text-[#8888aa] text-sm">{r.time}</span>
-                        <span className="text-white text-sm font-semibold">{r.guestName}</span>
+                        <span className="text-[#8888aa] text-[12px] shrink-0">{r.time}</span>
+                        <span className="text-white text-[14px] font-semibold truncate">{r.guestName}</span>
                       </div>
-                      <span className="text-[#94a3b8] text-xs text-right max-w-[45%]">
+                      <span className="text-[#9f9aba] text-[11px] text-right max-w-[48%]">
                         {r.seatLabels?.map(l => SEAT_LABELS[l] || l.replace(/_/g, ' ')).join(', ')}
                       </span>
                     </div>
@@ -418,14 +408,14 @@ function UebersichtTab({ occupiedTables: _occupiedTables, freeTables: _freeTable
 
       {/* Payment status pills */}
       {(paidCount > 0 || partialCount > 0) && (
-        <div className="flex gap-3 mt-4">
+        <div className="flex flex-wrap gap-2 mt-2.5 md:mt-3">
           {paidCount > 0 && (
-            <span className="px-4 py-2 rounded-full text-sm font-semibold border border-amber-500/40 text-amber-400">
+            <span className="px-3 py-1.5 text-[12px] font-semibold bg-[#26243f] text-amber-400">
               {paidCount}× Bezahlt
             </span>
           )}
           {partialCount > 0 && (
-            <span className="px-4 py-2 rounded-full text-sm font-semibold border border-amber-600/40 text-amber-500">
+            <span className="px-3 py-1.5 text-[12px] font-semibold bg-[#26243f] text-amber-500">
               {partialCount}× Anzahlung
             </span>
           )}
@@ -434,26 +424,26 @@ function UebersichtTab({ occupiedTables: _occupiedTables, freeTables: _freeTable
 
       {/* WARTELISTE */}
       {waitlist.length > 0 && (
-        <div className="rounded-xl border border-white/[0.06] overflow-hidden mt-4" style={{ background: '#252540' }}>
-          <div className="flex items-center justify-between px-4 pt-4 pb-3">
+        <div className="rounded-none overflow-hidden mt-3 md:mt-4" style={{ background: '#252540' }}>
+          <div className="flex items-center justify-between px-2.5 md:px-4 pt-2.5 md:pt-3 pb-2">
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-[#8888aa]" />
-              <span className="text-[#8888aa] text-xs font-bold uppercase tracking-wider">Warteliste</span>
+              <span className="text-[#9f9aba] text-[11px] font-semibold uppercase tracking-[0.18em]">Warteliste</span>
             </div>
-            <span className="w-6 h-6 rounded-full bg-white/10 text-white text-xs font-bold flex items-center justify-center">{waitlist.length}</span>
+            <span className="min-w-6 h-6 px-1 bg-[#312e52] text-white text-[11px] font-bold flex items-center justify-center">{waitlist.length}</span>
           </div>
-          <div className="px-4 pb-4">
+          <div className="px-2.5 md:px-4 pb-2.5 md:pb-3">
             <div className="divide-y divide-white/[0.06]">
               {waitlist.map(w => (
-                <div key={w.id} className="flex items-center justify-between py-2.5">
+                <div key={w.id} className="flex items-center justify-between py-2 gap-3">
                   <div className="flex items-center gap-3">
-                    <span className="text-[#8888aa] text-sm">#{w.position}</span>
-                    <div>
-                      <p className="text-white text-sm font-semibold">{w.guestName}</p>
-                      {w.seatPreference && <p className="text-[#64748b] text-xs">{w.seatPreference}</p>}
+                    <span className="text-[#8888aa] text-[12px] shrink-0">#{w.position}</span>
+                    <div className="min-w-0">
+                      <p className="text-white text-[14px] font-semibold truncate">{w.guestName}</p>
+                      {w.seatPreference && <p className="text-[#64748b] text-[11px] truncate">{w.seatPreference}</p>}
                     </div>
                   </div>
-                  <span className="text-purple-400 text-sm font-bold">{w.partySize} Pers.</span>
+                  <span className="text-[#cf8cff] text-[13px] font-bold shrink-0">{w.partySize} Pers.</span>
                 </div>
               ))}
             </div>
@@ -462,43 +452,43 @@ function UebersichtTab({ occupiedTables: _occupiedTables, freeTables: _freeTable
       )}
 
       {/* SCHICHTNOTIZEN */}
-      <div className="rounded-xl border border-white/[0.06] overflow-hidden mt-4" style={{ background: '#252540' }}>
-        <div className="flex items-center justify-between px-4 pt-4 pb-3">
+      <div className="rounded-none overflow-hidden mt-3 md:mt-4" style={{ background: '#252540' }}>
+        <div className="flex items-center justify-between px-2.5 md:px-4 pt-2.5 md:pt-3 pb-2">
           <div className="flex items-center gap-2">
             <PenLine className="w-4 h-4 text-[#8888aa]" />
-            <span className="text-[#8888aa] text-xs font-bold uppercase tracking-wider">Schichtnotizen</span>
+            <span className="text-[#9f9aba] text-[11px] font-semibold uppercase tracking-[0.18em]">Schichtnotizen</span>
           </div>
-          <span className="w-6 h-6 rounded-full bg-white/10 text-white text-xs font-bold flex items-center justify-center">{shiftNotes.length}</span>
+          <span className="min-w-6 h-6 px-1 bg-[#312e52] text-white text-[11px] font-bold flex items-center justify-center">{shiftNotes.length}</span>
         </div>
-        <div className="px-4 pb-4">
+        <div className="px-2.5 md:px-4 pb-2.5 md:pb-3">
           {/* Add note input */}
-          <div className="flex gap-2 mb-3">
+          <div className="flex flex-col sm:flex-row gap-2 mb-3">
             <input
               type="text"
               value={newNote}
               onChange={(e) => setNewNote(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && addShiftNote()}
               placeholder="Notiz für die Schicht..."
-              className="flex-1 bg-[#1a1a2e] border border-white/[0.06] rounded-lg px-3 py-2 text-white text-sm placeholder:text-[#64748b] focus:outline-none focus:border-[#7bb7ef]"
+              className="flex-1 bg-[#1a1a2e] px-3 py-2.5 text-white text-[13px] placeholder:text-[#64748b] focus:outline-none focus:ring-2 focus:ring-[#cf45f3]"
             />
             <button
               onClick={addShiftNote}
-              className="px-3 py-2 bg-[#252540] border border-white/[0.06] text-white rounded-lg text-sm font-medium hover:brightness-110 transition-all"
+              className="h-10 w-10 shrink-0 flex items-center justify-center bg-[#26243f] text-white text-sm font-medium hover:bg-[#312e52] transition-all"
             >
               <PenLine className="w-4 h-4" />
             </button>
           </div>
           {shiftNotes.length === 0 ? (
-            <p className="text-[#64748b] text-sm py-2">Noch keine Schichtnotizen</p>
+            <p className="text-[#64748b] text-[13px] py-2">Noch keine Schichtnotizen</p>
           ) : (
             <div className="divide-y divide-white/[0.06]">
               {shiftNotes.map(note => (
                 <div key={note.id} className="flex items-start justify-between py-2.5 gap-3">
                   <div className="flex-1 min-w-0">
-                    <p className="text-white text-sm">{note.text}</p>
-                    <p className="text-[#64748b] text-xs mt-0.5">{note.author} &middot; {new Date(note.timestamp).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}</p>
+                    <p className="text-white text-[13px]">{note.text}</p>
+                    <p className="text-[#64748b] text-[11px] mt-0.5">{note.author} &middot; {new Date(note.timestamp).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}</p>
                   </div>
-                  <button onClick={() => removeShiftNote(note.id)} className="p-1 rounded-lg hover:bg-white/5 transition-colors shrink-0">
+                  <button onClick={() => removeShiftNote(note.id)} className="p-1 hover:bg-white/5 transition-colors shrink-0">
                     <X className="w-3.5 h-3.5 text-[#64748b]" />
                   </button>
                 </div>
@@ -802,8 +792,6 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
 
   void alerts; void dismissedAlerts;
 
-
-
   void trendInfo; void tablesServed; void avgPerTable; void totalReadyItems; void realTips; void tipCount;
 
   const shiftOptions: { value: ShiftFilter; label: string; icon: React.ReactNode }[] = [
@@ -834,10 +822,10 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
   if (drillDown === 'einnahmen') {
     return (
       <div className="absolute inset-0 z-40 bg-[#1a1a2e] flex flex-col">
-        <header className="bg-[#2a2a42]/80 backdrop-blur border-b border-[#333355] px-4 py-3">
-          <button onClick={() => setDrillDown(null)} className="flex items-center gap-2 text-[#b1d9ff]">
-            <ChevronLeft className="w-5 h-5" />
-                    <span className="text-sm">Zurück</span>
+        <header className="bg-[#1f1d33] border-b border-[#2c2947] px-4 py-2.5">
+          <button onClick={() => setDrillDown(null)} className="flex items-center gap-2 text-[#d8c7ff] hover:text-white transition-colors">
+            <ChevronLeft className="w-4 h-4" />
+                    <span className="text-[13px] font-medium">Zurück</span>
                   </button>
                 </header>
                 <div className="flex-1 overflow-y-auto px-4 py-6">
@@ -848,22 +836,22 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
 
           <div className="border-t border-[#333355]/50 my-6" />
           <h2 className="text-white text-2xl font-bold mb-4">Durchschnitt</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-[#2a2a42]/60 rounded-xl border border-[#333355]/50 p-4">
-              <p className="text-white text-xl font-bold">{avgPerGuest.toFixed(2)} &euro;</p>
-              <p className="text-[#b0b0cc] text-sm">pro Gast</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-3">
+              <p className="text-white text-[28px] font-bold leading-none">{avgPerGuest.toFixed(2)} &euro;</p>
+              <p className="text-[#9f9aba] text-[13px] mt-2">pro Gast</p>
             </div>
-            <div className="bg-[#2a2a42]/60 rounded-xl border border-[#333355]/50 p-4">
-              <p className="text-white text-xl font-bold">{avgPerGroup.toFixed(2)} &euro;</p>
-              <p className="text-[#b0b0cc] text-sm">pro Gruppe</p>
+            <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-3">
+              <p className="text-white text-[28px] font-bold leading-none">{avgPerGroup.toFixed(2)} &euro;</p>
+              <p className="text-[#9f9aba] text-[13px] mt-2">pro Gruppe</p>
             </div>
           </div>
 
           <div className="border-t border-[#333355]/50 my-6" />
           <h2 className="text-white text-2xl font-bold mb-4">Trinkgeld</h2>
-          <div className="bg-[#2a2a42]/60 rounded-xl border border-[#333355]/50 p-4">
-            <p className="text-white text-xl font-bold">{realTips.toFixed(2)} &euro;</p>
-            <p className="text-[#b0b0cc] text-sm">{tipCount} Zahlung{tipCount !== 1 ? 'en' : ''} &middot; {tipCount > 0 ? (realTips / tipCount).toFixed(2) : '0.00'} &euro; pro Zahlung</p>
+          <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-3">
+            <p className="text-white text-[28px] font-bold leading-none">{realTips.toFixed(2)} &euro;</p>
+            <p className="text-[#9f9aba] text-[13px] mt-2">{tipCount} Zahlung{tipCount !== 1 ? 'en' : ''} &middot; {tipCount > 0 ? (realTips / tipCount).toFixed(2) : '0.00'} &euro; pro Zahlung</p>
           </div>
 
           <div className="border-t border-[#333355]/50 my-6" />
@@ -891,14 +879,14 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
   if (drillDown === 'schichtstatistiken') {
     return (
       <div className="absolute inset-0 z-40 bg-[#1a1a2e] flex flex-col">
-        <header className="bg-[#2a2a42]/80 backdrop-blur border-b border-[#333355] px-4 py-3">
-          <button onClick={() => setDrillDown(null)} className="flex items-center gap-2 text-[#b1d9ff]">
-            <ChevronLeft className="w-5 h-5" />
-                    <span className="text-sm">Zurück</span>
+        <header className="bg-[#1f1d33] border-b border-[#2c2947] px-4 py-2.5">
+          <button onClick={() => setDrillDown(null)} className="flex items-center gap-2 text-[#d8c7ff] hover:text-white transition-colors">
+            <ChevronLeft className="w-4 h-4" />
+                    <span className="text-[13px] font-medium">Zurück</span>
                   </button>
                 </header>
                 <div className="flex-1 overflow-y-auto px-4 py-6">
-                  <h1 className="text-white text-3xl font-bold mb-6">Schichtstatistiken</h1>
+                  <h1 className="text-white text-[32px] leading-none font-bold mb-5">Schichtstatistiken</h1>
           {activeFilterCount > 0 && <p className="text-[#b1d9ff] text-xs mb-2">{activeFilterCount} Filter aktiv</p>}
           <p className="text-white text-2xl font-bold">{filteredTotalGuests} <span className="text-[#b0b0cc] text-lg font-normal">          Gäste{statFilters.source !== 'alle' ? ` (${sourceOptions.find(s => s.value === statFilters.source)?.label})` : ''}</span></p>
                     <ComparisonBar current={filteredTotalGuests} comparison={comp.avgGuests} color="#8b5cf6" currentLabel="Aktuell" compLabel="Vergleich" />
@@ -934,17 +922,17 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
           <div className="border-t border-[#333355]/50 my-6" />
           <h2 className="text-white text-xl font-bold mb-4">Tisch-Übersicht</h2>
           <div className="grid grid-cols-3 gap-3">
-            <div className="bg-[#2a2a42]/60 rounded-xl border border-[#333355]/50 p-3 text-center">
-              <p className="text-white text-xl font-bold">{totalTablesServed}</p>
-              <p className="text-[#b0b0cc] text-xs">Tische gesamt</p>
+            <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-3 text-center">
+              <p className="text-white text-[28px] font-bold leading-none">{totalTablesServed}</p>
+              <p className="text-[#9f9aba] text-[12px] mt-2">Tische gesamt</p>
             </div>
-            <div className="bg-[#2a2a42]/60 rounded-xl border border-[#333355]/50 p-3 text-center">
-              <p className="text-emerald-400 text-xl font-bold">{freeTables.length}</p>
-              <p className="text-[#b0b0cc] text-xs">Frei</p>
+            <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-3 text-center">
+              <p className="text-[#cf45f3] text-[28px] font-bold leading-none">{freeTables.length}</p>
+              <p className="text-[#9f9aba] text-[12px] mt-2">Frei</p>
             </div>
-            <div className="bg-[#2a2a42]/60 rounded-xl border border-[#333355]/50 p-3 text-center">
-              <p className="text-amber-400 text-xl font-bold">{occupiedTables.length}</p>
-              <p className="text-[#b0b0cc] text-xs">Besetzt</p>
+            <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-3 text-center">
+              <p className="text-[#d8c7ff] text-[28px] font-bold leading-none">{occupiedTables.length}</p>
+              <p className="text-[#9f9aba] text-[12px] mt-2">Besetzt</p>
             </div>
           </div>
         </div>
@@ -959,10 +947,10 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
     const bigGroups = state.closedTables.filter(t => t.guestCount >= 8).length;
     return (
       <div className="absolute inset-0 z-40 bg-[#1a1a2e] flex flex-col">
-        <header className="bg-[#2a2a42]/80 backdrop-blur border-b border-[#333355] px-4 py-3">
-          <button onClick={() => setDrillDown(null)} className="flex items-center gap-2 text-[#b1d9ff]">
-            <ChevronLeft className="w-5 h-5" />
-                    <span className="text-sm">Zurück</span>
+        <header className="bg-[#1f1d33] border-b border-[#2c2947] px-4 py-2.5">
+          <button onClick={() => setDrillDown(null)} className="flex items-center gap-2 text-[#d8c7ff] hover:text-white transition-colors">
+            <ChevronLeft className="w-4 h-4" />
+                    <span className="text-[13px] font-medium">Zurück</span>
                   </button>
                 </header>
                 <div className="flex-1 overflow-y-auto px-4 py-6">
@@ -974,17 +962,17 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
           <HourlyBarChart data={hourlyData} accentColor="#8b5cf6" />
 
           <div className="border-t border-[#333355]/50 my-6" />
-          <h2 className="text-white text-xl font-bold mb-4">Gäste-Anzahlbericht</h2>
+          <h2 className="text-white text-[22px] font-bold mb-3">Gäste-Anzahlbericht</h2>
           <div className="space-y-3">
             {peakHour && (
-              <div className="bg-[#2a2a42]/60 rounded-xl border border-[#333355]/50 p-4">
-                <p className="text-[#b0b0cc] text-sm">Spitzenzeit</p>
-                <p className="text-white font-bold text-lg">{peakHour.hour} &middot; {peakHour.count} Gäste</p>
+              <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-3">
+                <p className="text-[#9f9aba] text-[12px]">Spitzenzeit</p>
+                <p className="text-white font-bold text-[24px] mt-2 leading-none">{peakHour.hour} &middot; {peakHour.count} Gäste</p>
               </div>
             )}
-            <div className="bg-[#2a2a42]/60 rounded-xl border border-[#333355]/50 p-4">
-              <p className="text-[#b0b0cc] text-sm">Durchschnitt pro Stunde</p>
-              <p className="text-white font-bold text-lg">{hourlyData.length > 0 ? (totalGuests / hourlyData.length).toFixed(1) : '0'} Gäste</p>
+            <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-3">
+              <p className="text-[#9f9aba] text-[12px]">Durchschnitt pro Stunde</p>
+              <p className="text-white font-bold text-[24px] mt-2 leading-none">{hourlyData.length > 0 ? (totalGuests / hourlyData.length).toFixed(1) : '0'} Gäste</p>
             </div>
           </div>
           <div className="border-t border-[#333355]/50 my-6" />
@@ -998,13 +986,13 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
   if (showFilter) {
     return (
       <div className="absolute inset-0 z-40 bg-[#1a1a2e] flex flex-col">
-        <header className="bg-[#2a2a42]/80 backdrop-blur border-b border-[#333355] px-4 py-3 flex items-center justify-between">
-          <button onClick={() => setShowFilter(false)} className="flex items-center gap-2 text-[#b1d9ff]">
-            <ChevronLeft className="w-5 h-5" />
-                      <span className="text-sm">Zurück</span>
+        <header className="bg-[#1f1d33] border-b border-[#2c2947] px-4 py-2.5 flex items-center justify-between">
+          <button onClick={() => setShowFilter(false)} className="flex items-center gap-2 text-[#d8c7ff] hover:text-white transition-colors">
+            <ChevronLeft className="w-4 h-4" />
+                      <span className="text-[13px] font-medium">Zurück</span>
                     </button>
                     <h1 className="text-white font-semibold">Filter</h1>
-                    <button onClick={() => { setStatFilters({ shift: 'alle', timeRange: 'heute', source: 'alle', sort: 'umsatz' }); }} className="text-[#b1d9ff] text-sm">Zurücksetzen</button>
+                    <button onClick={() => { setStatFilters({ shift: 'alle', timeRange: 'heute', source: 'alle', sort: 'umsatz' }); }} className="text-[#d8c7ff] text-[13px] font-medium hover:text-white transition-colors">Zurücksetzen</button>
         </header>
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
           {/* Schicht */}
@@ -1117,37 +1105,37 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
     });
     return (
       <div className="absolute inset-0 z-40 bg-[#1a1a2e] flex flex-col">
-        <header className="bg-[#2a2a42]/80 backdrop-blur border-b border-[#333355] px-4 py-3">
-          <button onClick={() => setDrillDown(null)} className="flex items-center gap-2 text-[#b1d9ff]">
-            <ChevronLeft className="w-5 h-5" />
-                    <span className="text-sm">Zurück</span>
+        <header className="bg-[#1f1d33] border-b border-[#2c2947] px-4 py-2.5">
+          <button onClick={() => setDrillDown(null)} className="flex items-center gap-2 text-[#d8c7ff] hover:text-white transition-colors">
+            <ChevronLeft className="w-4 h-4" />
+                    <span className="text-[13px] font-medium">Zurück</span>
                   </button>
                 </header>
                 <div className="flex-1 overflow-y-auto px-4 py-6">
-                  <h1 className="text-white text-3xl font-bold mb-6">Warteliste</h1>
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            <div className="bg-[#7bb7ef]/20 rounded-xl border border-purple-700/40 p-4">
-              <p className="text-[#b1d9ff] text-xs mb-1">Aktuell wartend</p>
-              <p className="text-white text-2xl font-bold">{wEntries.length}</p>
+                  <h1 className="text-white text-[32px] leading-none font-bold mb-5">Warteliste</h1>
+          <div className="grid grid-cols-2 gap-3 mb-5">
+            <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-3">
+              <p className="text-[#9f9aba] text-[12px] mb-1">Aktuell wartend</p>
+              <p className="text-white text-[24px] font-bold leading-none">{wEntries.length}</p>
             </div>
-            <div className="bg-[#2a2a42]/60 rounded-xl border border-[#333355]/50 p-4">
-              <p className="text-[#b0b0cc] text-xs mb-1">⌀ Wartezeit</p>
-              <p className="text-white text-2xl font-bold">{wEntries.length > 0 ? Math.round(wEntries.reduce((s, e) => s + e.estimatedWaitMinutes, 0) / wEntries.length) : 0} Min</p>
+            <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-3">
+              <p className="text-[#9f9aba] text-[12px] mb-1">⌀ Wartezeit</p>
+              <p className="text-white text-[24px] font-bold leading-none">{wEntries.length > 0 ? Math.round(wEntries.reduce((s, e) => s + e.estimatedWaitMinutes, 0) / wEntries.length) : 0} Min</p>
             </div>
           </div>
           {Object.keys(waitByHour).length > 0 && (
             <>
-              <h2 className="text-white text-xl font-bold mb-3">Wartezeiten nach Uhrzeit</h2>
-              <div className="space-y-2 mb-6">
+              <h2 className="text-white text-[18px] font-bold mb-2">Wartezeiten nach Uhrzeit</h2>
+              <div className="space-y-2 mb-5">
                 {Object.entries(waitByHour).sort(([a], [b]) => Number(a) - Number(b)).map(([hour, data]) => (
                   <div key={hour} className="flex items-center gap-3">
-                    <span className="text-[#b0b0cc] text-sm w-12">{hour}:00</span>
-                    <div className="flex-1 bg-[#2a2a42] rounded-full h-6 overflow-hidden">
-                      <div className="bg-[#7bb7ef]/60 h-full rounded-full flex items-center px-2" style={{ width: `${Math.min((data.count / Math.max(...Object.values(waitByHour).map(d => d.count))) * 100, 100)}%` }}>
+                    <span className="text-[#9f9aba] text-[12px] w-12">{hour}:00</span>
+                    <div className="flex-1 bg-[#26243f] h-6 overflow-hidden">
+                      <div className="bg-gradient-to-r from-[#8d53ff] to-[#cf45f3] h-full flex items-center px-2" style={{ width: `${Math.min((data.count / Math.max(...Object.values(waitByHour).map(d => d.count))) * 100, 100)}%` }}>
                         <span className="text-white text-xs font-medium">{data.count} Gäste</span>
                       </div>
                     </div>
-                    <span className="text-[#b0b0cc] text-xs w-16 text-right">{Math.round(data.totalWait / data.count)} Min</span>
+                    <span className="text-[#9f9aba] text-[11px] w-16 text-right">{Math.round(data.totalWait / data.count)} Min</span>
                   </div>
                 ))}
               </div>
@@ -1155,19 +1143,19 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
           )}
           {wEntries.length > 0 && (
             <>
-              <h2 className="text-white text-xl font-bold mb-3">Aktuelle Warteliste</h2>
+              <h2 className="text-white text-[18px] font-bold mb-2">Aktuelle Warteliste</h2>
               <div className="space-y-2">
                 {wEntries.map(e => {
                   const waitMins = Math.floor((Date.now() - e.addedAt) / 60000);
                   return (
-                    <div key={e.id} className="bg-[#2a2a42]/60 rounded-xl border border-[#333355]/50 p-3 flex items-center justify-between">
+                    <div key={e.id} className="bg-[#26243f] border border-[#333355]/40 px-4 py-3 flex items-center justify-between">
                       <div>
-                        <p className="text-white text-sm font-semibold">{e.guestName}</p>
-                        <p className="text-[#b0b0cc] text-xs">{e.partySize} Pers. {e.seatPreference ? `· ${e.seatPreference}` : ''}</p>
+                        <p className="text-white text-[15px] font-semibold leading-none">{e.guestName}</p>
+                        <p className="text-[#9f9aba] text-[12px] mt-1">{e.partySize} Pers. {e.seatPreference ? `· ${e.seatPreference}` : ''}</p>
                       </div>
                       <div className="text-right">
-                        <p className={`text-sm font-bold ${waitMins > e.estimatedWaitMinutes ? 'text-red-400' : 'text-[#7bb7ef]'}`}>{waitMins} Min</p>
-                        <p className="text-[#8888aa] text-xs">gesch. {e.estimatedWaitMinutes} Min</p>
+                        <p className={`text-[15px] font-bold leading-none ${waitMins > e.estimatedWaitMinutes ? 'text-[#ff6b7d]' : 'text-[#cf45f3]'}`}>{waitMins} Min</p>
+                        <p className="text-[#8d87a8] text-[11px] mt-1">gesch. {e.estimatedWaitMinutes} Min</p>
                       </div>
                     </div>
                   );
@@ -1297,22 +1285,22 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
             <div className="mt-4 mb-6">
               <h2 className="text-white text-xl font-bold mb-3">Durchschnitt</h2>
               <div className="grid grid-cols-2 gap-3">
-                <div className="bg-[#2a2a42]/60 rounded-xl border border-[#333355]/50 p-3">
-                  <p className="text-white text-lg font-bold">{avgPerGuest.toFixed(2)} &euro;</p>
-                  <p className="text-[#b0b0cc] text-xs">pro Gast</p>
+                <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-3">
+                  <p className="text-white text-[24px] font-bold leading-none">{avgPerGuest.toFixed(2)} &euro;</p>
+                  <p className="text-[#9f9aba] text-[12px] mt-2">pro Gast</p>
                 </div>
-                <div className="bg-[#2a2a42]/60 rounded-xl border border-[#333355]/50 p-3">
-                  <p className="text-white text-lg font-bold">{avgPerGroup.toFixed(2)} &euro;</p>
-                  <p className="text-[#b0b0cc] text-xs">pro Gruppe</p>
+                <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-3">
+                  <p className="text-white text-[24px] font-bold leading-none">{avgPerGroup.toFixed(2)} &euro;</p>
+                  <p className="text-[#9f9aba] text-[12px] mt-2">pro Gruppe</p>
                 </div>
               </div>
               {avgTableDuration > 0 && (
-                <div className="bg-[#2a2a42]/60 rounded-xl border border-[#333355]/50 p-3 mt-3">
+                <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-3 mt-3">
                   <div className="flex items-center gap-2">
-                    <Timer className="w-4 h-4 text-[#b0b0cc]" />
-                    <p className="text-white text-lg font-bold">{avgTableDuration} Min</p>
+                    <Timer className="w-4 h-4 text-[#9f9aba]" />
+                    <p className="text-white text-[24px] font-bold leading-none">{avgTableDuration} Min</p>
                   </div>
-                  <p className="text-[#b0b0cc] text-xs">⌀ Tischzeit</p>
+                  <p className="text-[#9f9aba] text-[12px] mt-2">⌀ Tischzeit</p>
                 </div>
               )}
             </div>
@@ -1349,17 +1337,17 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
             <div className="border-t border-[#333355]/30 my-2" />
 
             {/* Trinkgeld */}
-            <div className="mt-4 mb-6">
-              <h2 className="text-white text-xl font-bold mb-3">Trinkgeld</h2>
-              <div className="bg-[#2a2a42]/60 rounded-xl border border-[#333355]/50 p-4">
+            <div className="mt-3 mb-5">
+              <h2 className="text-white text-[18px] font-bold mb-2">Trinkgeld</h2>
+              <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-2.5">
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className="text-white text-xl font-bold">{realTips.toFixed(2)} &euro;</p>
-                    <p className="text-[#b0b0cc] text-xs">{tipCount} Zahlung{tipCount !== 1 ? 'en' : ''} mit Trinkgeld</p>
+                    <p className="text-white text-[20px] font-bold leading-none">{realTips.toFixed(2)} &euro;</p>
+                    <p className="text-[#9f9aba] text-[11px] mt-1.5">{tipCount} Zahlung{tipCount !== 1 ? 'en' : ''} mit Trinkgeld</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-white text-lg font-bold">{tipCount > 0 ? (realTips / tipCount).toFixed(2) : '0.00'} &euro;</p>
-                    <p className="text-[#b0b0cc] text-xs">pro Zahlung</p>
+                    <p className="text-white text-[20px] font-bold leading-none">{tipCount > 0 ? (realTips / tipCount).toFixed(2) : '0.00'} &euro;</p>
+                    <p className="text-[#9f9aba] text-[11px] mt-1.5">pro Zahlung</p>
                   </div>
                 </div>
               </div>
@@ -1367,32 +1355,32 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
 
             {/* OpenTable-Style: Shift Overview Kennzahlen */}
             <div className="border-t border-[#333355]/30 my-2" />
-            <div className="mt-4 mb-6">
-              <h2 className="text-white text-xl font-bold mb-3">Shift Overview</h2>
-              <div className="grid grid-cols-3 gap-2">
-                <div className="bg-[#2a2a42]/60 rounded-xl border border-[#333355]/50 p-3">
-                  <p className="text-white text-lg font-bold">{totalReservationParties}</p>
-                  <p className="text-[#b0b0cc] text-[10px]">Gruppen</p>
+            <div className="mt-3 mb-5">
+              <h2 className="text-white text-[18px] font-bold mb-2">Shift Overview</h2>
+              <div className="grid grid-cols-3 gap-2.5">
+                <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-2.5">
+                  <p className="text-white text-[20px] font-bold leading-none">{totalReservationParties}</p>
+                  <p className="text-[#9f9aba] text-[11px] mt-1.5">Gruppen</p>
                 </div>
-                <div className="bg-[#2a2a42]/60 rounded-xl border border-[#333355]/50 p-3">
-                  <p className="text-white text-lg font-bold">{totalReservationCovers}</p>
-                  <p className="text-[#b0b0cc] text-[10px]">Gäste</p>
+                <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-2.5">
+                  <p className="text-white text-[20px] font-bold leading-none">{totalReservationCovers}</p>
+                  <p className="text-[#9f9aba] text-[11px] mt-1.5">Gäste</p>
                 </div>
-                <div className="bg-[#2a2a42]/60 rounded-xl border border-[#333355]/50 p-3">
-                  <p className="text-white text-lg font-bold">{shortNoticeCovers}</p>
-                  <p className="text-[#b0b0cc] text-[10px]">Kurzfristig (&lt;3h)</p>
+                <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-2.5">
+                  <p className="text-white text-[20px] font-bold leading-none">{shortNoticeCovers}</p>
+                  <p className="text-[#9f9aba] text-[11px] mt-1.5">Kurzfristig (&lt;3h)</p>
                 </div>
-                <div className="bg-[#2a2a42]/60 rounded-xl border border-[#333355]/50 p-3">
-                  <p className="text-white text-lg font-bold">{sourceWalkIn}</p>
-                  <p className="text-[#b0b0cc] text-[10px]">Walk-Ins</p>
+                <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-2.5">
+                  <p className="text-white text-[20px] font-bold leading-none">{sourceWalkIn}</p>
+                  <p className="text-[#9f9aba] text-[11px] mt-1.5">Walk-Ins</p>
                 </div>
-                <div className="bg-[#2a2a42]/60 rounded-xl border border-[#333355]/50 p-3">
-                  <p className="text-white text-lg font-bold">{avgPerGuest > 0 ? avgPerGuest.toFixed(0) + '\u20AC' : '\u2013'}</p>
-                  <p className="text-[#b0b0cc] text-[10px]">\u2300 pro Gast</p>
+                <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-2.5">
+                  <p className="text-white text-[20px] font-bold leading-none">{avgPerGuest > 0 ? avgPerGuest.toFixed(0) + '\u20AC' : '\u2013'}</p>
+                  <p className="text-[#9f9aba] text-[11px] mt-1.5">\u2300 pro Gast</p>
                 </div>
-                <div className="bg-[#2a2a42]/60 rounded-xl border border-[#333355]/50 p-3">
-                  <p className="text-white text-lg font-bold">{totalRevenue > 0 ? totalRevenue.toFixed(0) + '\u20AC' : '\u2013'}</p>
-                  <p className="text-[#b0b0cc] text-[10px]">Gesamt-Umsatz</p>
+                <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-2.5">
+                  <p className="text-white text-[20px] font-bold leading-none">{totalRevenue > 0 ? totalRevenue.toFixed(0) + '\u20AC' : '\u2013'}</p>
+                  <p className="text-[#9f9aba] text-[11px] mt-1.5">Gesamt-Umsatz</p>
                 </div>
               </div>
               {/* Cancelled + No-Shows row */}
@@ -1414,22 +1402,22 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
             {waitlistWaiting > 0 && (
               <>
                 <div className="border-t border-[#333355]/30 my-2" />
-                <button onClick={() => setDrillDown('warteliste')} className="w-full text-left mt-4 mb-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <h2 className="text-white text-xl font-bold">Warteliste</h2>
+                <button onClick={() => setDrillDown('warteliste')} className="w-full text-left mt-3 mb-5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h2 className="text-white text-[18px] font-bold">Warteliste</h2>
                     <ChevronRight className="w-5 h-5 text-[#8888aa]" />
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-[#7bb7ef]/20 rounded-xl border border-purple-700/40 p-3">
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-2.5">
                       <div className="flex items-center gap-2 mb-1">
-                        <ListOrdered className="w-4 h-4 text-[#7bb7ef]" />
-                        <p className="text-[#b1d9ff] text-xs">Wartend</p>
+                        <ListOrdered className="w-4 h-4 text-[#cf45f3]" />
+                        <p className="text-[#d8c7ff] text-[11px]">Wartend</p>
                       </div>
-                      <p className="text-white text-xl font-bold">{waitlistWaiting}</p>
+                      <p className="text-white text-[20px] font-bold leading-none">{waitlistWaiting}</p>
                     </div>
-                    <div className="bg-[#2a2a42]/60 rounded-xl border border-[#333355]/50 p-3">
-                      <p className="text-[#b0b0cc] text-xs mb-1">&empty; Wartezeit</p>
-                      <p className="text-white text-xl font-bold">{waitlistAvgWait} Min</p>
+                    <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-2.5">
+                      <p className="text-[#9f9aba] text-[11px] mb-1">&empty; Wartezeit</p>
+                      <p className="text-white text-[20px] font-bold leading-none">{waitlistAvgWait} Min</p>
                     </div>
                   </div>
                 </button>

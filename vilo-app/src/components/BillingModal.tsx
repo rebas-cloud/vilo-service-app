@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { ArrowLeft, Banknote, Check, ChevronRight, CreditCard, Divide, UserCheck, Users, X } from 'lucide-react';
+
 import { useApp } from '../context/AppContext';
-import { X, CreditCard, Banknote, Users, UserCheck, Check, Divide, ChevronRight, ArrowLeft } from 'lucide-react';
+
 import { addGuestVisit, loadReservations, findGuestByPhone } from '../utils/storage';
 import { GuestVisit } from '../types';
 
@@ -246,7 +248,7 @@ export function BillingModal() {
                     onClick={() => handleSelectTipPercent(pct)}
                     className={`py-3 rounded-xl text-center transition-colors ${
                       isSelected
-                        ? 'bg-[#7bb7ef] text-white ring-2 ring-violet-400'
+                        ? 'bg-[#8b5cf6] text-white ring-2 ring-[#d946ef]'
                         : 'bg-[#353558] text-[#c0c0dd] hover:bg-[#555]'
                     }`}
                   >
@@ -263,7 +265,7 @@ export function BillingModal() {
                 onClick={handleRoundUp}
                 className={`py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   roundUpAmount > 0 && Math.abs(tipAmount - roundUpAmount) < 0.005
-                    ? 'bg-[#7bb7ef] text-white ring-2 ring-violet-400'
+                    ? 'bg-[#8b5cf6] text-white ring-2 ring-[#d946ef]'
                     : 'bg-[#353558] text-[#c0c0dd] hover:bg-[#555]'
                 }`}
               >
@@ -289,11 +291,11 @@ export function BillingModal() {
                 placeholder="Eigener Betrag"
                 value={customTipValue}
                 onChange={e => setCustomTipValue(e.target.value)}
-                className="flex-1 px-3 py-2.5 rounded-xl bg-[#353558] text-white text-sm placeholder:text-[#8888aa] outline-none focus:ring-2 focus:ring-violet-500"
+                className="flex-1 px-3 py-2.5 rounded-xl bg-[#26243f] text-white text-sm placeholder:text-[#8888aa] outline-none focus:ring-2 focus:ring-[#8b5cf6]"
               />
               <button
                 onClick={handleCustomTip}
-                className="px-4 py-2.5 rounded-xl bg-[#7bb7ef] text-white text-sm font-medium hover:bg-[#7bb7ef] transition-colors"
+                className="px-4 py-2.5 rounded-xl bg-[#8b5cf6] text-white text-sm font-medium hover:bg-[#7c3aed] transition-colors"
               >
                 OK
               </button>
@@ -310,7 +312,7 @@ export function BillingModal() {
                     placeholder={grandTotal.toFixed(2)}
                     value={cashReceivedValue}
                     onChange={e => setCashReceivedValue(e.target.value)}
-                    className="flex-1 px-3 py-2.5 rounded-xl bg-[#555] text-white text-sm placeholder:text-[#8888aa] outline-none focus:ring-2 focus:ring-violet-500"
+                    className="flex-1 px-3 py-2.5 rounded-xl bg-[#26243f] text-white text-sm placeholder:text-[#8888aa] outline-none focus:ring-2 focus:ring-[#8b5cf6]"
                   />
                   <span className="flex items-center text-[#b0b0cc] text-sm">EUR</span>
                 </div>
@@ -332,7 +334,7 @@ export function BillingModal() {
                 <span>{base.toFixed(2)} EUR</span>
               </div>
               {tipAmount > 0 && (
-                <div className="flex justify-between text-sm text-[#b1d9ff] mb-1">
+                <div className="flex justify-between text-sm text-[#d8c7ff] mb-1">
                   <span>Trinkgeld</span>
                   <span>+{tipAmount.toFixed(2)} EUR</span>
                 </div>
@@ -348,8 +350,8 @@ export function BillingModal() {
               onClick={handleConfirmTipPayment}
               className={`w-full py-3.5 rounded-xl text-white font-medium transition-colors flex items-center justify-center gap-2 ${
                 tipScreen.method === 'card'
-                  ? 'bg-blue-600 hover:bg-blue-500 active:bg-blue-700'
-                  : 'bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700'
+                  ? 'bg-[#8b5cf6] hover:bg-[#7c3aed] active:bg-[#6d28d9]'
+                  : 'bg-[#d946ef] hover:bg-[#c026d3] active:bg-[#a21caf]'
               }`}
             >
               {tipScreen.method === 'card' ? <CreditCard className="w-5 h-5" /> : <Banknote className="w-5 h-5" />}
@@ -378,12 +380,12 @@ export function BillingModal() {
           <h2 className="text-white text-xl font-bold mb-2">Alle bezahlt</h2>
           <p className="text-[#b0b0cc] text-sm mb-1">Gesamt: {totalPaid.toFixed(2)} EUR</p>
           {totalTips > 0 && (
-            <p className="text-[#b1d9ff] text-sm mb-1">Trinkgeld: {totalTips.toFixed(2)} EUR</p>
+            <p className="text-[#d8c7ff] text-sm mb-1">Trinkgeld: {totalTips.toFixed(2)} EUR</p>
           )}
           <p className="text-[#8888aa] text-xs mb-6">{table.name} wird geschlossen</p>
           <button
             onClick={handleCloseAfterSplit}
-            className="w-full py-3 rounded-xl bg-[#7bb7ef] text-white font-medium hover:bg-[#7bb7ef] transition-colors"
+            className="w-full py-3 rounded-xl bg-[#8b5cf6] text-white font-medium hover:bg-[#7c3aed] transition-colors"
           >
             Fertig
           </button>
@@ -405,12 +407,12 @@ export function BillingModal() {
             {paymentMethod === 'card' ? 'Kartenzahlung' : 'Barzahlung'} {total.toFixed(2)} EUR
           </p>
           {totalTipCollected > 0 && (
-            <p className="text-[#b1d9ff] text-sm mb-1">Trinkgeld: {totalTipCollected.toFixed(2)} EUR</p>
+            <p className="text-[#d8c7ff] text-sm mb-1">Trinkgeld: {totalTipCollected.toFixed(2)} EUR</p>
           )}
           <p className="text-[#8888aa] text-xs mb-6">{table.name} wird geschlossen</p>
           <button
             onClick={handleClose}
-            className="w-full py-3 rounded-xl bg-[#7bb7ef] text-white font-medium hover:bg-[#7bb7ef] transition-colors"
+            className="w-full py-3 rounded-xl bg-[#8b5cf6] text-white font-medium hover:bg-[#7c3aed] transition-colors"
           >
             Fertig
           </button>

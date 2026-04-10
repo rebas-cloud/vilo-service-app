@@ -73,7 +73,7 @@ export interface OrderItem {
   quantity: number;
   price: number;
   modifiers: string[];
-  state: 'ordered' | 'sent_to_kitchen' | 'sent_to_bar' | 'ready' | 'served';
+  state: 'ordered' | 'sent_to_kitchen' | 'sent_to_bar' | 'ready' | 'problem' | 'served';
   routing: 'bar' | 'kitchen';
   course?: 'starter' | 'main' | 'dessert';
   seatId?: number;
@@ -181,6 +181,7 @@ export interface TableSession {
   orders: OrderItem[];
   notes: string[];
   startTime: number;
+  guestName?: string;
   guestCount?: number;
   guestSource?: GuestSource;
   serviceStatus?: TableServiceStatus;

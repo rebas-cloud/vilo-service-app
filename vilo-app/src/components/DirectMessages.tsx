@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { ChevronLeft, SlidersHorizontal, Users, Clock, Bell, MessageSquare } from 'lucide-react';
+import { Bell, ChevronLeft, Clock, MessageSquare, SlidersHorizontal, Users } from 'lucide-react';
+
 import { Reservation, WaitlistEntry } from '../types';
 import { loadReservations, loadWaitlist } from '../utils/storage';
 

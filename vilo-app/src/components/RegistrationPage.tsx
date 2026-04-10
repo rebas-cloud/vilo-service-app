@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 
+import viloLogo from '../assets/VILO.svg';
+
 interface RegistrationPageProps {
   onBack: () => void;
   onRegister: (name: string, email: string, password: string) => void;
@@ -47,12 +49,7 @@ export function RegistrationPage({ onBack, onRegister }: RegistrationPageProps) 
       <div className="flex-1 flex flex-col items-center justify-center px-6 pb-8">
         {/* Logo */}
         <div className="mb-8 text-center">
-          <h1
-            className="text-4xl font-bold text-white mb-1"
-            style={{ fontFamily: 'Otista, sans-serif', letterSpacing: '0.032em' }}
-          >
-            vilo
-          </h1>
+          <img src={viloLogo} alt="Vilo" className="mx-auto mb-2 h-10 w-auto" />
           <p className="text-[#b0b0cc] text-sm">Erstelle dein Owner-Konto</p>
         </div>
 

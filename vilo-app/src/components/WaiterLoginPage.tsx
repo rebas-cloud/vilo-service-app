@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Hash, KeyRound } from 'lucide-react';
+
+import viloLogo from '../assets/VILO.svg';
 import { findRestaurantByCode, loadStorage } from '../utils/storage';
 import { Staff, ViloStorage } from '../types';
 
@@ -117,12 +119,7 @@ export function WaiterLoginPage({ onBack, onLogin }: WaiterLoginPageProps) {
 
       {/* Logo */}
       <div className="mb-8 text-center">
-        <h1
-          className="text-5xl font-bold text-white tracking-tight mb-1"
-          style={{ fontFamily: 'Otista, sans-serif', letterSpacing: '0.032em' }}
-        >
-          vilo
-        </h1>
+        <img src={viloLogo} alt="Vilo" className="mx-auto mb-2 h-12 w-auto" />
         <p className="text-[#b0b0cc] text-sm">
           {phase === 'code' ? 'Restaurant-Code eingeben' : 'PIN eingeben'}
         </p>

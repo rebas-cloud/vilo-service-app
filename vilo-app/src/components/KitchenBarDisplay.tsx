@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
+import { AlertTriangle, Bell, CheckCircle, ChefHat, Clock, Wine } from 'lucide-react';
+
 import { useApp } from '../context/AppContext';
 import { OrderItem } from '../types';
-import { ChefHat, Wine, Clock, CheckCircle, Bell } from 'lucide-react';
 
 type DisplayMode = 'kitchen' | 'bar';
 
@@ -143,6 +144,11 @@ export function KitchenBarDisplay({ onBack: _onBack }: { onBack: () => void }) {
     if (navigator.vibrate) navigator.vibrate(100);
   };
 
+  const handleMarkProblem = (orderId: string) => {
+    dispatch({ type: 'UPDATE_ORDER_STATE', orderId, state: 'problem' });
+    if (navigator.vibrate) navigator.vibrate([80, 50, 80]);
+  };
+
   const handleMarkAllReady = (_tableId: string, orders: OrderItem[]) => {
     orders.forEach(o => {
       dispatch({ type: 'UPDATE_ORDER_STATE', orderId: o.id, state: 'ready' });
@@ -167,13 +173,18 @@ export function KitchenBarDisplay({ onBack: _onBack }: { onBack: () => void }) {
 
   // Count ready orders across all sessions
   const readyOrders: { tableName: string; orders: OrderItem[] }[] = [];
+  const problemOrders: { tableName: string; orders: OrderItem[] }[] = [];
   for (const tableId of Object.keys(state.sessions)) {
     const session = state.sessions[tableId];
     const table = state.tables.find(t => t.id === tableId);
     if (!table) continue;
     const ready = session.orders.filter(o => o.state === 'ready' && o.routing === mode);
+    const problem = session.orders.filter(o => o.state === 'problem' && o.routing === mode);
     if (ready.length > 0) {
       readyOrders.push({ tableName: table.name, orders: ready });
+    }
+    if (problem.length > 0) {
+      problemOrders.push({ tableName: table.name, orders: problem });
     }
   }
 
@@ -227,7 +238,7 @@ export function KitchenBarDisplay({ onBack: _onBack }: { onBack: () => void }) {
 
       {/* Orders */}
       <div className="flex-1 overflow-y-auto p-3 space-y-3" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-        {orderGroups.length === 0 && readyOrders.length === 0 ? (
+        {orderGroups.length === 0 && readyOrders.length === 0 && problemOrders.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-[#8888aa]">
             {mode === 'kitchen' ? (
               <ChefHat className="w-16 h-16 mb-4 opacity-30" />
@@ -305,17 +316,65 @@ export function KitchenBarDisplay({ onBack: _onBack }: { onBack: () => void }) {
                           <span className="text-xs text-[#8888aa] ml-2">Gast {order.seatId}</span>
                         )}
                       </div>
-                      <button
-                        onClick={() => handleMarkReady(order.id)}
-                        className="ml-3 p-2.5 rounded-xl bg-green-500/20 text-green-400 hover:bg-green-500/30 active:bg-green-500/50 transition-colors"
-                      >
-                        <CheckCircle className="w-5 h-5" />
-                      </button>
+                      <div className="ml-3 flex items-center gap-2">
+                        <button
+                          onClick={() => handleMarkProblem(order.id)}
+                          className="p-2.5 rounded-xl bg-[#ec4899]/18 text-[#ec4899] hover:bg-[#ec4899]/28 active:bg-[#ec4899]/40 transition-colors"
+                          title="Problem melden"
+                        >
+                          <AlertTriangle className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => handleMarkReady(order.id)}
+                          className="p-2.5 rounded-xl bg-green-500/20 text-green-400 hover:bg-green-500/30 active:bg-green-500/50 transition-colors"
+                          title="Als fertig markieren"
+                        >
+                          <CheckCircle className="w-5 h-5" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
             ))}
+
+            {problemOrders.length > 0 && (
+              <div className="mt-4">
+                <div className="flex items-center gap-2 mb-2 px-1">
+                  <AlertTriangle className="w-4 h-4 text-[#ec4899]" />
+                  <h3 className="text-[#ec4899] text-sm font-bold">Problem gemeldet</h3>
+                </div>
+                {problemOrders.map((group, idx) => (
+                  <div key={idx} className="rounded-xl bg-[#ec4899]/10 border border-[#ec4899]/30 mb-2 overflow-hidden">
+                    <div className="px-4 py-2 bg-[#ec4899]/10">
+                      <span className="text-[#f3b1d3] font-bold text-sm">{group.tableName}</span>
+                    </div>
+                    <div className="divide-y divide-[#ec4899]/20">
+                      {group.orders.map(order => (
+                        <div key={order.id} className="flex items-center justify-between gap-2 px-4 py-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <AlertTriangle className="w-4 h-4 text-[#ec4899] flex-shrink-0" />
+                            <span className="text-[#ffd1ea] text-sm font-medium truncate">
+                              {order.quantity}x {order.name}
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => dispatch({
+                              type: 'UPDATE_ORDER_STATE',
+                              orderId: order.id,
+                              state: mode === 'bar' ? 'sent_to_bar' : 'sent_to_kitchen',
+                            })}
+                            className="text-[11px] font-semibold text-[#ffd1ea] hover:text-white transition-colors"
+                          >
+                            Quittieren
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Ready Orders (recently completed) */}
             {readyOrders.length > 0 && (
@@ -351,8 +410,8 @@ export function KitchenBarDisplay({ onBack: _onBack }: { onBack: () => void }) {
       <div className="border-t border-[#333355] px-4 py-1.5" style={{ background: '#1a1a2e' }}>
         <div className="flex items-center justify-between text-xs text-[#8888aa]">
           <span>{totalOrders} offen</span>
+          <span>{problemOrders.reduce((s, g) => s + g.orders.length, 0)} problem</span>
           <span>{readyOrders.reduce((s, g) => s + g.orders.length, 0)} fertig</span>
-          <span>{state.restaurant.name}</span>
         </div>
       </div>
     </div>

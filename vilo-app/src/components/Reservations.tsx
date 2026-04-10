@@ -1,14 +1,19 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, type ComponentType } from 'react';
+import { AlertCircle, Armchair, BarChart3, Calendar, Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Edit3, MessageSquare, Plus, Search, Sparkles, Star, Trash2, User, UserPlus, Users, X } from 'lucide-react';
+import { IconAlertTriangleFilled, IconBabyCarriage, IconBriefcaseFilled, IconCake, IconCircleCheckFilled, IconCoinFilled, IconConfetti, IconGiftFilled, IconGlobeFilled, IconHeartFilled, IconHeartHandshake, IconLeaf, IconMasksTheater, IconNews, IconPhoneFilled, IconPlant2, IconSchool, IconStarFilled, IconWalk, IconWheelchair } from '@tabler/icons-react';
+
 import { Reservation, ReservationStatus, Guest, SeatLabel, OccasionLabel } from '../types';
 import { loadReservations, addReservation, updateReservation, deleteReservation, findGuestByPhone, addGuest, loadGuests } from '../utils/storage';
-import { X, Plus, Users, Phone, Globe, UserPlus, Clock, Calendar, Trash2, Edit3, ChevronLeft, ChevronRight, User, Tag, Armchair, Search, MoreVertical, ChevronUp, ChevronDown, AlignJustify, BarChart3, MessageSquare, Star } from 'lucide-react';
-import { IconCircleCheckFilled, IconCoinFilled, IconAlertTriangleFilled, IconLeaf, IconPlant2, IconBabyCarriage, IconWheelchair, IconCake, IconBriefcaseFilled, IconNews, IconStarFilled, IconUserPlus, IconConfetti, IconHeartFilled, IconGiftFilled, IconHeartHandshake, IconSparkles, IconSchool, IconMasksTheater, IconPhoneFilled, IconGlobeFilled, IconWalk } from '@tabler/icons-react';
+
 import { useApp } from '../context/AppContext';
 import { GuestProfile, GuestList } from './GuestProfile';
 
 interface ReservationPanelProps {
   onClose: () => void;
   onSeatReservation?: (tableId: string) => void;
+  onReservationsChange?: (reservations: Reservation[]) => void;
+  initialShowForm?: boolean;
+  embedded?: boolean;
 }
 
 function generateId(): string {
@@ -28,16 +33,6 @@ function formatDateDisplay(dateStr: string): string {
   return days[dt.getDay()] + '. ' + d + '. ' + months[dt.getMonth()];
 }
 
-function getStatusLabel(status: ReservationStatus): string {
-  const labels: Record<ReservationStatus, string> = {
-    confirmed: 'Bestaetigt',
-    seated: 'Platziert',
-    cancelled: 'Storniert',
-    no_show: 'No-Show',
-  };
-  return labels[status];
-}
-
 function formatDuration(minutes: number): string {
   if (minutes >= 60) {
     const h = Math.floor(minutes / 60);
@@ -47,14 +42,10 @@ function formatDuration(minutes: number): string {
   return `${minutes}m`;
 }
 
-function getStatusColor(status: ReservationStatus): string {
-  const colors: Record<ReservationStatus, string> = {
-    confirmed: '#7bb7ef',
-    seated: '#b1d9ff',
-    cancelled: '#ef4444',
-    no_show: '#f59e0b',
-  };
-  return colors[status];
+function maskPhoneValue(phone: string): string {
+  const compact = phone.replace(/\s+/g, '');
+  if (compact.length <= 4) return compact;
+  return `${compact.slice(0, 2)}${'*'.repeat(Math.max(4, compact.length - 4))}${compact.slice(-2)}`;
 }
 
 const SOURCE_ICONS = {
@@ -92,10 +83,12 @@ const OCCASION_LABELS_MAP: Record<OccasionLabel, { label: string; icon: string }
 };
 
 // Figma-style occasion icon badges
-const OCCASION_ICONS: Record<OccasionLabel, { Icon: typeof IconConfetti; color: string }> = {
+type ReservationIconComponent = ComponentType<{ size?: string | number; color?: string }>;
+
+const OCCASION_ICONS: Record<OccasionLabel, { Icon: ReservationIconComponent; color: string }> = {
   geburtstag: { Icon: IconConfetti, color: '#22c55e' },
   jahrestag: { Icon: IconHeartFilled, color: '#22c55e' },
-  besonderer_anlass: { Icon: IconSparkles, color: '#a855f7' },
+  besonderer_anlass: { Icon: Sparkles, color: '#a855f7' },
   date: { Icon: IconHeartHandshake, color: '#ec4899' },
   geschaeftsessen: { Icon: IconBriefcaseFilled, color: '#a855f7' },
   gratis_extra: { Icon: IconGiftFilled, color: '#22c55e' },
@@ -103,9 +96,9 @@ const OCCASION_ICONS: Record<OccasionLabel, { Icon: typeof IconConfetti; color: 
   theater_kino: { Icon: IconMasksTheater, color: '#f59e0b' },
 };
 
-const ALL_TAGS_MAP: Record<string, { label: string; color: string; Icon: typeof IconStarFilled }> = {
+const ALL_TAGS_MAP: Record<string, { label: string; color: string; Icon: ReservationIconComponent; }> = {
   vip: { label: 'VIP', color: '#eab308', Icon: IconStarFilled },
-  stammgast: { label: 'Stammgast', color: '#22d3ee', Icon: IconUserPlus },
+  stammgast: { label: 'Stammgast', color: '#22d3ee', Icon: UserPlus },
   allergiker: { label: 'Allergiker', color: '#ef4444', Icon: IconAlertTriangleFilled },
   vegetarier: { label: 'Vegetarier', color: '#22c55e', Icon: IconLeaf },
   vegan: { label: 'Vegan', color: '#16a34a', Icon: IconPlant2 },
@@ -116,22 +109,7 @@ const ALL_TAGS_MAP: Record<string, { label: string; color: string; Icon: typeof 
   presse: { label: 'Presse', color: '#a78bfa', Icon: IconNews },
 };
 
-// Deterministic color from name (like Google Contacts)
-const NAME_COLORS = [
-  '#e57373', '#f06292', '#ba68c8', '#9575cd',
-  '#7986cb', '#64b5f6', '#4fc3f7', '#4dd0e1',
-  '#4db6ac', '#81c784', '#aed581', '#dce775',
-  '#fff176', '#ffd54f', '#ffb74d', '#ff8a65',
-];
-function getNameColor(name: string): string {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return NAME_COLORS[Math.abs(hash) % NAME_COLORS.length];
-}
-
-export function ReservationPanel({ onClose, onSeatReservation }: ReservationPanelProps) {
+export function ReservationPanel({ onClose, onSeatReservation, onReservationsChange, initialShowForm = false, embedded = false }: ReservationPanelProps) {
   const { state } = useApp();
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [selectedDate, setSelectedDate] = useState(getTodayStr());
@@ -147,12 +125,17 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
   const [showSeated, setShowSeated] = useState(true);
   const [showShiftOverview, setShowShiftOverview] = useState(false);
   const [wizardStep, setWizardStep] = useState<'date' | 'guests' | 'guest_info'>('date');
+  const [calendarMonth, setCalendarMonth] = useState(() => {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth(), 1);
+  });
   const [guestSearch, setGuestSearch] = useState('');
   const [searchResults, setSearchResults] = useState<Guest[]>([]);
   const [, setTick] = useState(0); // force re-render every minute for seated duration
   const [formData, setFormData] = useState({
     guestName: '',
     guestPhone: '',
+    guestEmail: '',
     partySize: 2,
     date: getTodayStr(),
     time: '19:00',
@@ -168,9 +151,16 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
   });
 
   useEffect(() => {
-    setReservations(loadReservations());
+    const nextReservations = loadReservations();
+    setReservations(nextReservations);
+    onReservationsChange?.(nextReservations);
     setGuests(loadGuests());
   }, []);
+
+  useEffect(() => {
+    if (!initialShowForm) return;
+    handleOpenForm();
+  }, [initialShowForm]);
 
   // Update seated duration every 60s
   useEffect(() => {
@@ -179,8 +169,15 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
   }, []);
 
   const reloadAll = () => {
-    setReservations(loadReservations());
+    const nextReservations = loadReservations();
+    setReservations(nextReservations);
+    onReservationsChange?.(nextReservations);
     setGuests(loadGuests());
+  };
+
+  const applyReservationUpdate = (nextReservations: Reservation[]) => {
+    setReservations(nextReservations);
+    onReservationsChange?.(nextReservations);
   };
 
   const dayReservations = useMemo(() => {
@@ -255,6 +252,7 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
     setFormData({
       guestName: '',
       guestPhone: '',
+      guestEmail: '',
       partySize: 2,
       date: selectedDate,
       time: '19:00',
@@ -272,6 +270,8 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
     setMatchedGuest(null);
     setShowLabelPicker(false);
     setWizardStep('date');
+    const selected = new Date(selectedDate);
+    setCalendarMonth(new Date(selected.getFullYear(), selected.getMonth(), 1));
     setGuestSearch('');
     setSearchResults([]);
   };
@@ -279,6 +279,8 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
   const handleOpenForm = () => {
     resetForm();
     setFormData(prev => ({ ...prev, date: selectedDate }));
+    const selected = new Date(selectedDate);
+    setCalendarMonth(new Date(selected.getFullYear(), selected.getMonth(), 1));
     setWizardStep('date');
     setShowForm(true);
   };
@@ -306,33 +308,37 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
       ...prev,
       guestName: guest.name,
       guestPhone: guest.phone || '',
+      guestEmail: guest.email || '',
       guestId: guest.id,
     }));
     setGuestSearch('');
     setSearchResults([]);
   };
 
-  // Calendar helper: generate month data
-  const generateCalendarMonth = (year: number, month: number) => {
+  const generateCalendarMatrix = (year: number, month: number) => {
     const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const startDow = (firstDay.getDay() + 6) % 7; // Monday = 0
-    const daysInMonth = lastDay.getDate();
-    const weeks: (number | null)[][] = [];
-    let currentWeek: (number | null)[] = [];
-    for (let i = 0; i < startDow; i++) currentWeek.push(null);
-    for (let d = 1; d <= daysInMonth; d++) {
-      currentWeek.push(d);
-      if (currentWeek.length === 7) {
-        weeks.push(currentWeek);
-        currentWeek = [];
+    const startOffset = (firstDay.getDay() + 6) % 7;
+    const startDate = new Date(year, month, 1 - startOffset);
+    const weeks: { date: Date; currentMonth: boolean }[][] = [];
+
+    for (let week = 0; week < 6; week++) {
+      const row: { date: Date; currentMonth: boolean }[] = [];
+      for (let day = 0; day < 7; day++) {
+        const cellDate = new Date(startDate);
+        cellDate.setDate(startDate.getDate() + week * 7 + day);
+        row.push({
+          date: cellDate,
+          currentMonth: cellDate.getMonth() === month,
+        });
       }
+      weeks.push(row);
     }
-    if (currentWeek.length > 0) {
-      while (currentWeek.length < 7) currentWeek.push(null);
-      weeks.push(currentWeek);
-    }
+
     return weeks;
+  };
+
+  const shiftCalendarMonth = (delta: number) => {
+    setCalendarMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + delta, 1));
   };
 
   // Get reservation count for a specific date
@@ -344,6 +350,7 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
     setFormData({
       guestName: r.guestName,
       guestPhone: r.guestPhone || '',
+      guestEmail: r.guestEmail || '',
       partySize: r.partySize,
       date: r.date,
       time: r.time,
@@ -379,6 +386,7 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
         setFormData(prev => ({
           ...prev,
           guestName: prev.guestName || found.name,
+          guestEmail: prev.guestEmail || found.email || '',
           guestId: found.id,
         }));
       } else {
@@ -406,6 +414,7 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
           id: generateId(),
           name: formData.guestName.trim(),
           phone: formData.guestPhone.trim(),
+          email: formData.guestEmail.trim() || undefined,
           tags: [],
           notes: [],
           visits: [],
@@ -422,6 +431,7 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
       const updated = updateReservation(editingId, {
         guestName: formData.guestName.trim(),
         guestPhone: formData.guestPhone.trim() || undefined,
+        guestEmail: formData.guestEmail.trim() || undefined,
         partySize: formData.partySize,
         date: formData.date,
         time: formData.time,
@@ -434,12 +444,13 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
         occasionLabels: formData.occasionLabels.length > 0 ? formData.occasionLabels : undefined,
         referralSource: formData.referralSource.trim() || undefined,
       });
-      setReservations(updated);
+      applyReservationUpdate(updated);
     } else {
       const newRes: Reservation = {
         id: generateId(),
         guestName: formData.guestName.trim(),
         guestPhone: formData.guestPhone.trim() || undefined,
+        guestEmail: formData.guestEmail.trim() || undefined,
         partySize: formData.partySize,
         date: formData.date,
         time: formData.time,
@@ -455,21 +466,24 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
         createdAt: Date.now(),
       };
       const updated = addReservation(newRes);
-      setReservations(updated);
+      applyReservationUpdate(updated);
     }
     setShowForm(false);
     resetForm();
     reloadAll();
+    if (embedded) {
+      onClose();
+    }
   };
 
   const handleDelete = (id: string) => {
     const updated = deleteReservation(id);
-    setReservations(updated);
+    applyReservationUpdate(updated);
   };
 
   const handleStatusChange = (id: string, status: ReservationStatus) => {
     const updated = updateReservation(id, { status });
-    setReservations(updated);
+    applyReservationUpdate(updated);
     if (status === 'seated') {
       const res = reservations.find(r => r.id === id);
       if (res?.tableId && onSeatReservation) {
@@ -478,14 +492,9 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
     }
   };
 
-  const handleAssignTable = (resId: string, tableId: string) => {
-    const updated = updateReservation(resId, { tableId: tableId || undefined });
-    setReservations(updated);
-  };
-
   const handlePaymentStatus = (resId: string, status: 'open' | 'partial' | 'paid') => {
     const updated = updateReservation(resId, { paymentStatus: status === 'open' ? undefined : status });
-    setReservations(updated);
+    applyReservationUpdate(updated);
   };
 
   const handleToggleMultiTable = (resId: string, tableId: string) => {
@@ -497,21 +506,7 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
       tableIds: newIds.length > 0 ? newIds : undefined,
       tableId: newIds[0] || undefined,
     });
-    setReservations(updated);
-  };
-
-  const getTimeStatus = (r: Reservation): 'past' | 'soon' | 'upcoming' | 'now' => {
-    const now = new Date();
-    const [h, m] = r.time.split(':').map(Number);
-    const resTime = new Date(now);
-    const [ry, rm, rd] = r.date.split('-').map(Number);
-    resTime.setFullYear(ry, rm - 1, rd);
-    resTime.setHours(h, m, 0, 0);
-    const diffMin = (resTime.getTime() - now.getTime()) / 60000;
-    if (diffMin < -r.duration) return 'past';
-    if (diffMin <= 0) return 'now';
-    if (diffMin <= 30) return 'soon';
-    return 'upcoming';
+    applyReservationUpdate(updated);
   };
 
   // Find guest for a reservation (by phone match)
@@ -566,98 +561,231 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
 
   if (showGuestProfile) {
     return (
-      <GuestProfile
-        guest={showGuestProfile}
-        onClose={() => { setShowGuestProfile(null); reloadAll(); }}
-        onUpdated={() => {
-          setGuests(loadGuests());
-          const updated = loadGuests().find(g => g.id === showGuestProfile.id);
-          if (updated) setShowGuestProfile(updated);
-        }}
-        onReserve={handleReserveForGuest}
-      />
+      <div
+        className={embedded ? 'absolute inset-0 z-20 flex flex-col' : 'fixed inset-0 z-50 flex flex-col'}
+        style={{ background: embedded ? 'var(--vilo-bg-base)' : 'rgba(0,0,0,0.5)' }}
+        onClick={() => { if (!embedded) { setShowGuestProfile(null); reloadAll(); } }}
+      >
+        <div
+          className={embedded ? 'h-full min-h-0 flex flex-col relative overflow-hidden' : 'mt-auto rounded-t-2xl overflow-hidden shadow-2xl min-h-[70vh] max-h-[90vh] flex flex-col relative'}
+          style={{ background: 'var(--vilo-bg-base)' }}
+          onClick={e => e.stopPropagation()}
+        >
+          <GuestProfile
+            guest={showGuestProfile}
+            onClose={() => { setShowGuestProfile(null); reloadAll(); }}
+            onUpdated={() => {
+              setGuests(loadGuests());
+              const updated = loadGuests().find(g => g.id === showGuestProfile.id);
+              if (updated) setShowGuestProfile(updated);
+            }}
+            onReserve={handleReserveForGuest}
+          />
+        </div>
+      </div>
     );
   }
 
   if (showGuestList) {
     return (
-      <GuestList
-        onClose={() => { setShowGuestList(false); reloadAll(); }}
-        onSelectGuest={handleSelectGuestFromList}
-      />
+      <div
+        className={embedded ? 'absolute inset-0 z-20 flex flex-col' : 'fixed inset-0 z-50 flex flex-col'}
+        style={{ background: embedded ? 'var(--vilo-bg-base)' : 'rgba(0,0,0,0.5)' }}
+        onClick={() => { if (!embedded) { setShowGuestList(false); reloadAll(); } }}
+      >
+        <div
+          className={embedded ? 'h-full min-h-0 flex flex-col relative overflow-hidden' : 'mt-auto rounded-t-2xl overflow-hidden shadow-2xl min-h-[70vh] max-h-[90vh] flex flex-col relative'}
+          style={{ background: 'var(--vilo-bg-base)' }}
+          onClick={e => e.stopPropagation()}
+        >
+          <GuestList
+            onClose={() => { setShowGuestList(false); reloadAll(); }}
+            onSelectGuest={handleSelectGuestFromList}
+          />
+        </div>
+      </div>
     );
   }
 
-  return (
-    <div className="absolute inset-0 z-30 flex flex-col" style={{ background: '#141425' }}>
-      {/* resmio-style Header */}
-      <div className="px-4 pt-4 pb-2" style={{ background: '#141425' }}>
+  const renderEmbeddedCalendarSidebar = () => {
+    const monthNames = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+    const dayHeaders = ['M', 'D', 'M', 'D', 'F', 'S', 'S'];
+    const todayStr = getTodayStr();
+    const [selY, selM, selD] = formData.date.split('-').map(Number);
+    const year = calendarMonth.getFullYear();
+    const month = calendarMonth.getMonth();
+    const weeks = generateCalendarMatrix(year, month);
+
+    return (
+      <div className="flex-1 overflow-y-auto px-3 py-3">
+        <div className="relative flex items-center justify-center mb-3 pb-3 border-b border-white/[0.03]">
+          <span className="text-white font-semibold text-sm">Datum</span>
+          <button
+            onClick={() => {
+              setShowForm(false);
+              resetForm();
+              if (embedded) {
+                onClose();
+              }
+            }}
+            className="absolute right-0 top-1/2 -translate-y-1/2 p-1.5 text-[#b0b0cc] hover:text-[#e0e0f0] transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
         <div className="flex items-center justify-between mb-3">
-          <div>
-            <h1 className="text-white font-bold text-xl tracking-tight">Reservierungen</h1>
+          <button
+            type="button"
+            onClick={() => shiftCalendarMonth(-1)}
+            className="w-10 h-10 flex items-center justify-center text-white transition-colors"
+            style={{ background: '#312e4f' }}
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="px-2 py-2 text-[15px] font-semibold text-white">{monthNames[month]}</div>
+            <div className="px-2 py-2 text-[15px] font-semibold text-white">{year}</div>
           </div>
-          <div className="flex items-center gap-3">
-            <button onClick={onClose}
-              className="p-2 text-[#8888aa] hover:text-white transition-colors">
-              <X className="w-5 h-5" />
+          <button
+            type="button"
+            onClick={() => shiftCalendarMonth(1)}
+            className="w-10 h-10 flex items-center justify-center text-white transition-colors"
+            style={{ background: '#312e4f' }}
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-7 gap-x-1 mb-2">
+          {dayHeaders.map((d, i) => (
+            <div key={i} className="text-center text-[13px] font-semibold tracking-[0.08em] text-[#c4b5fd] py-1">
+              {d}
+            </div>
+          ))}
+        </div>
+
+        <div className="space-y-1">
+          {weeks.map((week, weekIndex) => (
+            <div key={weekIndex} className="grid grid-cols-7 gap-1">
+              {week.map(({ date, currentMonth }) => {
+                const dateStr = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+                const isToday2 = dateStr === todayStr;
+                const isSelected = date.getFullYear() === selY && date.getMonth() === selM - 1 && date.getDate() === selD;
+                const isPast = dateStr < todayStr;
+                const resCount = getReservationCountForDate(dateStr);
+
+                return (
+                  <button
+                    key={dateStr}
+                    disabled={isPast}
+                    onClick={() => {
+                      setFormData(prev => ({ ...prev, date: dateStr }));
+                      setWizardStep('guests');
+                    }}
+                    className="aspect-square w-full flex flex-col items-center justify-center transition-all duration-150"
+                    style={{
+                      background: isSelected ? '#d946ef' : (!isPast && resCount > 0 ? '#5b216f' : '#2d2b48'),
+                      color: isPast ? '#61677f' : currentMonth ? '#ffffff' : '#7f86a2',
+                      opacity: isPast ? 0.42 : 1,
+                      boxShadow: isSelected ? '0 8px 18px rgba(217,70,239,0.30)' : 'none',
+                      borderRadius: 0,
+                    }}
+                  >
+                    <span className="text-[17px] leading-none font-bold tracking-[-0.03em]">{date.getDate()}</span>
+                    <span className="mt-1 h-[8px] flex items-center justify-center text-[8px] font-semibold tracking-[0.08em]">
+                      {!isPast && isToday2 ? 'HEUTE' : ''}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div
+      className={embedded ? 'h-full min-h-0 flex flex-col relative' : 'fixed inset-0 z-50 flex flex-col'}
+      style={{ background: embedded ? 'var(--vilo-bg-base)' : 'rgba(0,0,0,0.5)' }}
+      onClick={embedded ? undefined : onClose}
+    >
+      <div
+        className={embedded ? 'h-full min-h-0 flex flex-col overflow-hidden' : 'mt-auto rounded-t-2xl overflow-hidden shadow-2xl min-h-[70vh] max-h-[90vh] flex flex-col'}
+        style={{ background: 'var(--vilo-bg-base)' }}
+        onClick={e => e.stopPropagation()}
+      >
+      {/* Header */}
+      {!(embedded && showForm) && (
+      <div className={'border-b border-[var(--vilo-border-subtle)] shrink-0 ' + (embedded ? 'px-3 py-3' : 'px-5 py-4')} style={{ background: 'var(--vilo-bg-base)' }}>
+        <div className={'mb-3 ' + (embedded ? 'space-y-2' : 'flex items-center justify-between')}>
+          <div className="flex items-center gap-3 min-w-0">
+            <h1 className="text-white font-bold text-xl tracking-tight">Reservierungen</h1>
+            {dayReservations.length > 0 && (
+              <span className="px-2 py-0.5 rounded-full text-xs font-bold text-white" style={{ background: 'var(--vilo-accent-secondary)' }}>
+                {dayReservations.length}
+              </span>
+            )}
+          </div>
+          <div className={'flex items-center gap-2 ' + (embedded ? 'flex-wrap' : '')}>
+            <button
+              onClick={() => setShowGuestList(true)}
+              className={'flex items-center gap-1.5 text-[#c0c0dd] font-medium border border-[#3d3d5c] hover:bg-[#2a2a42] transition-colors ' + (embedded ? 'px-2.5 py-2 rounded-lg text-[13px]' : 'px-3 py-2 rounded-xl text-sm')}
+            >
+              <Users className="w-4 h-4" />
+              Gästeliste
+            </button>
+            <button
+              onClick={handleOpenForm}
+              className={'flex items-center gap-1.5 text-white font-semibold ' + (embedded ? 'px-2.5 py-2 rounded-lg text-[13px]' : 'px-3 py-2 rounded-xl text-sm')}
+              style={{ background: 'var(--vilo-accent-secondary)' }}
+            >
+              <Plus className="w-4 h-4" />
+              Hinzufügen
+            </button>
+            <button onClick={onClose} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0] transition-colors">
+              <X className="w-6 h-6" />
             </button>
           </div>
         </div>
 
-        {/* Date navigation - resmio clean text style */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button onClick={() => navigateDate(-1)} className="p-1 text-[#555577] hover:text-white transition-colors">
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <div className="flex items-center gap-2">
-              <span className="text-white font-bold text-lg tracking-tight">
+        {/* Summary bar */}
+        <div className={'text-[#b0b0cc] ' + (embedded ? 'space-y-2 text-[13px]' : 'flex items-center justify-between gap-4 text-sm')}>
+          <div className={'min-w-0 ' + (embedded ? 'space-y-2' : 'flex items-center gap-4')}>
+            <div className="flex items-center gap-1.5">
+              <button onClick={() => navigateDate(-1)} className="p-1 -ml-1 text-[#555577] hover:text-white transition-colors">
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="font-semibold text-white whitespace-nowrap">
                 {isToday ? 'Heute' : formatDateDisplay(selectedDate)}
               </span>
-              <span className="text-[#8888aa] text-lg font-normal">
-                {(() => {
-                  const h = new Date().getHours();
-                  return h < 12 ? 'Morgen' : h < 17 ? 'Mittag' : 'Abend';
-                })()}
-              </span>
+              <button onClick={() => navigateDate(1)} className="p-1 -mr-1 text-[#555577] hover:text-white transition-colors">
+                <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
-            <button onClick={() => navigateDate(1)} className="p-1 text-[#555577] hover:text-white transition-colors">
-              <ChevronRight className="w-5 h-5" />
-            </button>
+            <div className={'gap-3 ' + (embedded ? 'grid grid-cols-2' : 'flex items-center')}>
+              <span className="flex items-center gap-1.5 whitespace-nowrap"><Armchair className="w-4 h-4 text-[#8888aa]" /> {dayReservations.length} Gruppen</span>
+              <span className="flex items-center gap-1.5 whitespace-nowrap"><Users className="w-4 h-4 text-[#8888aa]" /> {totalGuests} Gäste</span>
+            </div>
           </div>
-          <div className="flex items-center gap-3 text-[#8888aa] text-xs">
+          <div className={'flex items-center gap-3 shrink-0 ' + (embedded ? 'justify-between' : '')}>
             <button onClick={() => setShowShiftOverview(!showShiftOverview)}
               className={'p-1 rounded transition-colors ' + (showShiftOverview ? 'text-[#7bb7ef] bg-[#7bb7ef]/10' : 'text-[#8888aa] hover:text-white')}>
               <BarChart3 className="w-4 h-4" />
             </button>
-            <span className="flex items-center gap-1"><Armchair className="w-3.5 h-3.5" /> {dayReservations.length}</span>
-            <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" /> {totalGuests}</span>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span>{freeTables.length} Tische frei</span>
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Inline CTA Bars - always visible under header */}
-      <div className="mx-3 mt-1 mb-1 flex gap-2">
-        <button
-          onClick={handleOpenForm}
-          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-white font-semibold text-sm transition-all active:scale-[0.98]"
-          style={{ background: '#7c3aed', boxShadow: '0 2px 12px rgba(124, 58, 237, 0.3)' }}
-        >
-          <Plus className="w-4 h-4" />
-          Neue Reservierung
-        </button>
-        <button
-          onClick={() => setShowGuestList(true)}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[#c0c0dd] font-medium text-sm border border-[#3d3d5c] hover:bg-[#2a2a42] transition-all active:scale-[0.98]"
-        >
-          <Users className="w-4 h-4" />
-          Gästeliste
-        </button>
-      </div>
+      )}
 
             {/* Shift Overview Dashboard - like OpenTable */}
-            {showShiftOverview && (
-        <div className="px-3 pb-2" style={{ background: '#141425' }}>
+            {!showForm && showShiftOverview && (
+        <div className="px-3 pb-2" style={{ background: 'var(--vilo-bg-base)' }}>
           <div className="rounded-[6px] p-3" style={{ background: '#222240' }}>
             {/* Stats grid */}
             <div className="grid grid-cols-4 gap-2 mb-3">
@@ -830,12 +958,13 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
       )}
 
       {/* Dribbble-style reservation list */}
+      {embedded && showForm && wizardStep === 'date' ? renderEmbeddedCalendarSidebar() : !showForm && (
       <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-2">
         {dayReservations.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-[#555577]">
             <Calendar className="w-12 h-12 mb-3 opacity-40" />
             <p className="text-sm font-medium text-[#777]">Keine Reservierungen</p>
-            <p className="text-xs mt-1 text-[#6b6b8a]">Nutze den Button oben um eine anzulegen</p>
+            <p className="text-xs mt-1 text-[#6b6b8a]">Tippe auf "Hinzufügen" um eine Reservierung anzulegen</p>
           </div>
         ) : (
           <>
@@ -857,7 +986,7 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
                     {showUpcoming ? <ChevronUp className="w-4 h-4 text-[#8888aa]" /> : <ChevronDown className="w-4 h-4 text-[#8888aa]" />}
                   </div>
                 </button>
-                {showUpcoming && upcomingReservations.map((r, idx) => {
+                {showUpcoming && upcomingReservations.map((r) => {
                   const sourceColor = SOURCE_COLORS[r.source] || '#8888aa';
                   const SourceIcon = SOURCE_ICONS[r.source as keyof typeof SOURCE_ICONS] || Users;
                   const assignedTable = r.tableId ? state.tables.find(t => t.id === r.tableId) : null;
@@ -953,7 +1082,6 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
             {/* Context menu modal for upcoming */}
             {openMenuId && upcomingReservations.find(r => r.id === openMenuId) && (() => {
               const r = upcomingReservations.find(r => r.id === openMenuId)!;
-              const assignedTable = r.tableId ? state.tables.find(t => t.id === r.tableId) : null;
               const guestProfile = getGuestForReservation(r);
               return (
                 <div className="fixed inset-0 z-[9999] flex flex-col" onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); }} style={{ background: 'rgba(0,0,0,0.6)' }}>
@@ -1049,7 +1177,7 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
                     {showSeated ? <ChevronUp className="w-4 h-4 text-[#8888aa]" /> : <ChevronDown className="w-4 h-4 text-[#8888aa]" />}
                   </div>
                 </button>
-                {showSeated && seatedReservations.map((r, idx) => {
+                {showSeated && seatedReservations.map((r) => {
                   const sourceColor = SOURCE_COLORS[r.source] || '#8888aa';
                   const SourceIcon = SOURCE_ICONS[r.source as keyof typeof SOURCE_ICONS] || Users;
                   const assignedTable = r.tableId ? state.tables.find(t => t.id === r.tableId) : null;
@@ -1186,13 +1314,22 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
           </>
         )}
       </div>
+      )}
 
       {/* New/Edit Reservation Form - Bottom Drawer */}
-      {showForm && (
-        <div className="fixed inset-0 z-[9999] flex flex-col" style={{ background: 'rgba(0,0,0,0.6)' }} onClick={() => { setShowForm(false); resetForm(); }}>
-          <div className="mt-auto w-full rounded-t-2xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col" style={{ background: '#1a1a2e' }} onClick={e => e.stopPropagation()}>
+      {showForm && !(embedded && wizardStep === 'date') && (
+        <div
+          className={embedded ? 'absolute top-0 z-[30] h-full w-[280px] min-w-[280px] max-w-[calc(100vw-280px)] flex flex-col' : 'fixed inset-0 z-[9999] flex flex-col'}
+          {...(embedded ? { style: { background: '#1f1e33', left: 0, borderRight: '1px solid rgba(255,255,255,0.03)' } } : { style: { background: 'rgba(0,0,0,0.6)' } })}
+          onClick={() => { if (!embedded) { setShowForm(false); resetForm(); } }}
+        >
+          <div
+            className={embedded ? 'h-full w-full flex flex-col overflow-hidden' : 'mt-auto w-full rounded-t-2xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col'}
+            style={{ background: embedded ? '#1f1e33' : '#1a1a2e' }}
+            onClick={e => e.stopPropagation()}
+          >
           {/* Wizard Header */}
-          <div className="flex items-center justify-between px-3 py-2.5" style={{ background: '#1a1a2e' }}>
+          <div className={'flex items-center justify-between ' + (embedded ? 'px-4 py-3' : 'px-3 py-2.5')} style={{ background: '#1a1a2e' }}>
             <button onClick={() => {
               if (editingId || wizardStep === 'date') {
                 setShowForm(false); resetForm();
@@ -1203,13 +1340,13 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
               }
             }}
               className="p-1.5 text-[#b0b0cc] hover:text-[#e0e0f0] transition-colors">
-              <X className="w-5 h-5" />
+              {wizardStep === 'date' || editingId ? <X className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
             </button>
 
             <div className="flex-1 mx-3">
               <div className="flex items-center justify-center gap-2 px-4 py-2">
                 {wizardStep === 'date' && (
-                  <><Calendar className="w-4 h-4 text-[#b0b0cc]" /><span className="text-white font-semibold text-sm">Datum</span></>
+                  <span className="text-white font-semibold text-sm">Datum</span>
                 )}
                 {wizardStep === 'guests' && (
                   <><Users className="w-4 h-4 text-[#b0b0cc]" /><span className="text-white font-semibold text-sm">{formData.partySize} {formData.partySize === 1 ? 'Gast' : 'Gäste'}</span></>
@@ -1220,78 +1357,124 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
               </div>
             </div>
 
-            {/* Step indicator dots */}
-            {!editingId && (
-              <div className="flex items-center gap-1.5">
-                {['date', 'guests', 'guest_info'].map((step, i) => (
-                  <div key={step} className={'w-2 h-2 rounded-full transition-colors ' +
-                    (step === wizardStep ? 'bg-[#7bb7ef]' : i < ['date', 'guests', 'guest_info'].indexOf(wizardStep) ? 'bg-[#5d9edb]' : 'bg-[#555]')}
-                  />
-                ))}
-              </div>
-            )}
-            {editingId && <div className="w-8" />}
+            <button
+              onClick={() => {
+                setShowForm(false);
+                resetForm();
+                if (embedded) {
+                  onClose();
+                }
+              }}
+              className="p-1.5 text-[#b0b0cc] hover:text-[#e0e0f0] transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
           {/* Step Content */}
           <div className="flex-1 overflow-y-auto" style={{ background: '#1a1a2e' }}>
 
             {/* === STEP 1: DATE PICKER === */}
-            {wizardStep === 'date' && !editingId && (
-              <div className="pb-4">
-                <p className="text-center text-xs font-medium text-[#b0b0cc] py-1.5">{state.restaurant?.name || 'Restaurant'}</p>
+            {wizardStep === 'date' && !editingId && !embedded && (
+              <div className="pb-5 pt-3">
                 {(() => {
-                  const today = new Date();
-                  const months: { year: number; month: number }[] = [];
-                  for (let i = 0; i < 3; i++) {
-                    const d = new Date(today.getFullYear(), today.getMonth() + i, 1);
-                    months.push({ year: d.getFullYear(), month: d.getMonth() });
-                  }
                   const monthNames = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
                   const dayHeaders = ['M', 'D', 'M', 'D', 'F', 'S', 'S'];
                   const todayStr = getTodayStr();
                   const [selY, selM, selD] = formData.date.split('-').map(Number);
+                  const year = calendarMonth.getFullYear();
+                  const month = calendarMonth.getMonth();
+                  const weeks = generateCalendarMatrix(year, month);
 
-                  return months.map(({ year, month }) => {
-                    const weeks = generateCalendarMonth(year, month);
-                    return (
-                      <div key={`${year}-${month}`} className="mb-2">
-                        <h3 className="text-center text-sm font-bold text-white py-1.5">
-                          {monthNames[month]} {year}
-                        </h3>
-                        <div className="grid grid-cols-7 gap-0 px-3">
-                          {dayHeaders.map((d, i) => (
-                            <div key={i} className="text-center text-xs font-semibold text-[#b0b0cc] py-1">{d}</div>
-                          ))}
-                          {weeks.flat().map((day, i) => {
-                            if (day === null) return <div key={`empty-${i}`} />;
-                            const dateStr = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
-                            const isToday2 = dateStr === todayStr;
-                            const isSelected = year === selY && month === selM - 1 && day === selD;
-                            const isPast = dateStr < todayStr;
-                            const resCount = getReservationCountForDate(dateStr);
-                            return (
-                              <button key={dateStr}
-                                disabled={isPast}
-                                onClick={() => {
-                                  setFormData(prev => ({ ...prev, date: dateStr }));
-                                  setWizardStep('guests');
-                                }}
-                                className={'flex flex-col items-center py-1 rounded-lg transition-colors ' +
-                                  (isSelected ? 'bg-[#5d9edb] text-white' : isToday2 ? 'bg-purple-900/40 text-[#7bb7ef]' : isPast ? 'opacity-30 text-[#777] cursor-not-allowed' : 'text-[#c0c0dd] hover:bg-[#2a2a42]')}>
-                                <span className={'text-xs font-semibold ' + (isSelected ? 'text-white' : isPast ? 'text-[#777] line-through' : '')}>{day}</span>
-                                {resCount > 0 && !isPast && (
-                                  <span className={'text-[7px] leading-none ' + (isSelected ? 'text-purple-200' : 'text-[#7bb7ef]')}>
-                                    {resCount}
-                                  </span>
-                                )}
-                              </button>
-                            );
-                          })}
+                  return (
+                    <section
+                      className="p-2"
+                      style={{
+                        background: 'transparent',
+                        borderRadius: 0,
+                      }}
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <button
+                          type="button"
+                          onClick={() => shiftCalendarMonth(-1)}
+                          className="w-10 h-10 flex items-center justify-center text-white transition-colors"
+                          style={{ background: '#312e4f', borderRadius: 0 }}
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        <div className="flex items-center gap-2">
+                          <div className="px-2 py-2 text-[15px] font-semibold text-white">
+                            {monthNames[month]}
+                          </div>
+                          <div className="px-2 py-2 text-[15px] font-semibold text-white">
+                            {year}
+                          </div>
                         </div>
+                        <button
+                          type="button"
+                          onClick={() => shiftCalendarMonth(1)}
+                          className="w-10 h-10 flex items-center justify-center text-white transition-colors"
+                          style={{ background: '#312e4f', borderRadius: 0 }}
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
                       </div>
-                    );
-                  });
+
+                      <div className="grid grid-cols-7 gap-x-2 mb-2 px-1">
+                        {dayHeaders.map((d, i) => (
+                          <div key={i} className="text-center text-[13px] font-semibold tracking-[0.08em] text-[#c4b5fd] py-1">
+                            {d}
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="space-y-1">
+                        {weeks.map((week, weekIndex) => {
+                          return (
+                            <div
+                              key={weekIndex}
+                              className="grid grid-cols-7 gap-1"
+                            >
+                              {week.map(({ date, currentMonth }) => {
+                                const dateStr = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+                                const isToday2 = dateStr === todayStr;
+                                const isSelected = date.getFullYear() === selY && date.getMonth() === selM - 1 && date.getDate() === selD;
+                                const isPast = dateStr < todayStr;
+                                const resCount = getReservationCountForDate(dateStr);
+
+                                return (
+                                  <button
+                                    key={dateStr}
+                                    disabled={isPast}
+                                    onClick={() => {
+                                      setFormData(prev => ({ ...prev, date: dateStr }));
+                                      setWizardStep('guests');
+                                    }}
+                                    className="aspect-square w-full flex flex-col items-center justify-center transition-all duration-150"
+                                    style={{
+                                      background: isSelected ? '#d946ef' : (!isPast && resCount > 0 ? '#5b216f' : '#2d2b48'),
+                                      color: isPast ? '#61677f' : currentMonth ? '#ffffff' : '#7f86a2',
+                                      opacity: isPast ? 0.42 : 1,
+                                      boxShadow: isSelected ? '0 8px 18px rgba(217,70,239,0.30)' : 'none',
+                                      borderRadius: 0,
+                                    }}
+                                  >
+                                    <span className="text-[17px] leading-none font-bold tracking-[-0.03em]">
+                                      {date.getDate()}
+                                    </span>
+                                    <span className="mt-1 h-[8px] flex items-center justify-center text-[8px] font-semibold tracking-[0.08em]">
+                                      {!isPast && isToday2 ? 'HEUTE' : ''}
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  );
                 })()}
               </div>
             )}
@@ -1299,49 +1482,61 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
             {/* === STEP 2: PARTY SIZE + TIME === */}
             {wizardStep === 'guests' && !editingId && (
               <div className="p-4 space-y-4">
-                <div className="text-center">
-                  <p className="text-xs text-[#b0b0cc] mb-0.5">{formatDateDisplay(formData.date)}</p>
-                  <h3 className="text-base font-bold text-white">Wie viele Gäste?</h3>
-                </div>
-
                 {/* Party size - compact grid like Waitlist */}
                 <div>
-                  <div className="flex gap-2 flex-wrap">
-                    {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
+                  <div className="grid grid-cols-4 gap-2">
+                    {[1, 2, 3, 4, 5, 6, 7].map(n => (
                       <button key={n} onClick={() => setFormData(prev => ({ ...prev, partySize: n }))}
-                        className={'w-12 h-12 rounded-xl border-2 text-base font-bold transition-colors ' +
-                          (formData.partySize === n ? 'border-[#7bb7ef] bg-[#7bb7ef] text-white' : 'border-[#3d3d5c] text-[#c0c0dd] hover:border-[#7bb7ef]')}>
+                        className={'w-full aspect-square text-[18px] font-bold transition-colors ' +
+                          (formData.partySize === n ? 'bg-[#d946ef] text-white' : 'bg-[#26243f] text-[#d7d3e8] hover:bg-[#302d4a]')}
+                        style={{ borderRadius: 0 }}>
                         {n}
                       </button>
                     ))}
+                    <div
+                      className={'relative w-full aspect-square transition-colors ' +
+                        (formData.partySize > 7 ? 'bg-[#d946ef] text-white' : 'bg-[#26243f] text-[#d7d3e8] hover:bg-[#302d4a]')}
+                      style={{ borderRadius: 0 }}
+                    >
+                      <input
+                        type="number"
+                        min={1}
+                        max={50}
+                        value={formData.partySize > 7 ? formData.partySize : ''}
+                        onChange={e => {
+                          const val = parseInt(e.target.value);
+                          if (val > 0) setFormData(prev => ({ ...prev, partySize: val }));
+                        }}
+                        className="absolute inset-0 w-full h-full bg-transparent text-center text-[18px] font-bold text-inherit outline-none appearance-none [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                        style={{ borderRadius: 0 }}
+                      />
+                      {!(formData.partySize > 7) && (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-[26px] font-bold tracking-[-0.08em]">
+                          ...
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <input
-                    type="number"
-                    min={1}
-                    max={50}
-                    placeholder="Andere Anzahl..."
-                    value={formData.partySize > 8 ? formData.partySize : ''}
-                    onChange={e => {
-                      const val = parseInt(e.target.value);
-                      if (val > 0) setFormData(prev => ({ ...prev, partySize: val }));
-                    }}
-                    className="w-full mt-2 border border-[#3d3d5c] rounded-xl py-2.5 px-4 text-center text-white outline-none focus:border-[#7bb7ef] bg-[#2a2a42] placeholder:text-[#8888aa] text-sm"
-                  />
                 </div>
 
                 {/* Time picker - compact */}
-                <div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <h4 className="text-xs font-semibold text-[#b0b0cc] uppercase tracking-wider">Uhrzeit</h4>
-                    <input type="time" value={formData.time}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between gap-3">
+                    <h4 className="text-[11px] font-semibold text-[#b0b0cc] uppercase tracking-[0.14em]">Uhrzeit</h4>
+                    <input
+                      type="time"
+                      value={formData.time}
                       onChange={e => setFormData(prev => ({ ...prev, time: e.target.value }))}
-                      className="border border-[#3d3d5c] rounded-lg py-1.5 px-3 text-center text-white outline-none focus:border-[#7bb7ef] text-xs bg-[#2a2a42] w-24" />
+                      className="py-1 w-[36px] text-transparent caret-transparent outline-none text-[11px] bg-[#26243f] cursor-pointer"
+                      style={{ borderRadius: 10 }}
+                    />
                   </div>
-                  <div className="flex gap-1 overflow-x-auto pb-1">
+                  <div className="grid grid-cols-4 gap-1">
                     {['17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00', '21:30', '22:00', '22:30'].map(t => (
                       <button key={t} onClick={() => setFormData(prev => ({ ...prev, time: t }))}
-                        className={'shrink-0 px-2.5 py-1.5 rounded-lg text-[11px] font-medium border transition-colors ' +
-                          (formData.time === t ? 'border-[#7bb7ef] bg-[#7bb7ef]/20 text-[#7bb7ef]' : 'border-[#3d3d5c] text-[#b0b0cc] hover:bg-[#2a2a42]')}>
+                        className={'px-0 py-2 text-[11px] font-medium transition-colors ' +
+                          (formData.time === t ? 'bg-[#8b5cf6] text-white' : 'bg-[#26243f] text-[#b0b0cc] hover:bg-[#302d4a]')}
+                        style={{ borderRadius: 0 }}>
                         {t}
                       </button>
                     ))}
@@ -1357,13 +1552,14 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
                 )}
 
                 {/* Duration - compact inline */}
-                <div className="flex items-center gap-3">
-                  <h4 className="text-xs font-semibold text-[#b0b0cc] uppercase tracking-wider shrink-0">Dauer</h4>
-                  <div className="flex gap-1.5 flex-1">
+                <div className="space-y-1.5">
+                  <h4 className="text-[11px] font-semibold text-[#b0b0cc] uppercase tracking-[0.14em]">Dauer</h4>
+                  <div className="grid grid-cols-5 gap-1.5">
                     {[60, 90, 120, 150, 180].map(d => (
                       <button key={d} onClick={() => setFormData(prev => ({ ...prev, duration: d }))}
-                        className={'flex-1 py-1.5 rounded-lg text-[11px] font-medium border transition-colors ' +
-                          (formData.duration === d ? 'border-[#7bb7ef] bg-[#7bb7ef]/20 text-[#7bb7ef]' : 'border-[#3d3d5c] text-[#b0b0cc] hover:bg-[#2a2a42]')}>
+                        className={'py-2 text-[11px] font-medium transition-colors ' +
+                          (formData.duration === d ? 'bg-[#8b5cf6] text-white' : 'bg-[#26243f] text-[#b0b0cc] hover:bg-[#302d4a]')}
+                        style={{ borderRadius: 0 }}>
                         {d}m
                       </button>
                     ))}
@@ -1373,20 +1569,51 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
                 {/* Table assignment */}
                 <div>
                   <h4 className="text-xs font-semibold text-[#b0b0cc] uppercase tracking-wider mb-1.5">Tisch (optional)</h4>
-                  <select value={formData.tableId}
-                    onChange={e => setFormData(prev => ({ ...prev, tableId: e.target.value }))}
-                    className="w-full rounded-lg px-3 py-2 border border-[#3d3d5c] text-[#c0c0dd] outline-none focus:border-[#7bb7ef] text-xs bg-[#2a2a42]">
-                    <option value="">Automatisch zuweisen</option>
-                    {state.tables.map(t => (
-                      <option key={t.id} value={t.id}>{t.name} ({t.status === 'free' ? 'frei' : 'besetzt'})</option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <div
+                      className={'flex items-center gap-3 px-4 py-3 ' +
+                        (formData.tableId ? 'bg-[#26243f]' : 'border border-dashed border-[#6f5c9a] bg-transparent')}
+                      style={{ borderRadius: 0 }}
+                    >
+                      <Armchair className="w-5 h-5 text-[#c7c0e8] shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-white text-sm font-semibold leading-tight">
+                          {formData.tableId
+                            ? state.tables.find(t => t.id === formData.tableId)?.name ?? 'Tisch'
+                            : 'Kein Tisch'}
+                        </div>
+                        <div className="text-[#c8b8ff] text-xs leading-tight mt-0.5">
+                          {formData.tableId
+                            ? (() => {
+                                const selectedTable = state.tables.find(t => t.id === formData.tableId);
+                                return selectedTable
+                                  ? selectedTable.status === 'free'
+                                    ? 'Tisch verfügbar'
+                                    : 'Tisch belegt'
+                                  : 'Tisch zugewiesen';
+                              })()
+                            : 'Automatisch zuweisen'}
+                        </div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-[#9f93ca] shrink-0" />
+                    </div>
+                    <select
+                      value={formData.tableId}
+                      onChange={e => setFormData(prev => ({ ...prev, tableId: e.target.value }))}
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                    >
+                      <option value="">Automatisch zuweisen</option>
+                      {state.tables.map(t => (
+                        <option key={t.id} value={t.id}>{t.name} ({t.status === 'free' ? 'frei' : 'besetzt'})</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
                 {/* Continue button */}
                 <button onClick={() => setWizardStep('guest_info')}
-                  className="w-full py-3 rounded-xl font-semibold text-white text-sm"
-                  style={{ background: '#7c3aed' }}>
+                  className="w-full py-4 font-semibold text-white text-sm"
+                  style={{ background: '#8b5cf6', borderRadius: 0 }}>
                   Weiter
                 </button>
               </div>
@@ -1396,32 +1623,33 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
             {(wizardStep === 'guest_info' || editingId) && (
               <div className="pb-20">
                 {/* Search bar */}
-                <div className="px-4 py-3 border-b border-[#333355]">
+                <div className="px-4 py-2">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8888aa]" />
+                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8888aa]" />
                     <input
                       type="text"
                       value={guestSearch}
                       onChange={e => handleGuestSearch(e.target.value)}
                       placeholder="Nach Telefonnummer oder Namen suchen"
-                      className="w-full pl-9 pr-3 py-2.5 border border-[#3d3d5c] rounded-lg text-sm text-white outline-none focus:border-[#7bb7ef] bg-[#2a2a42] placeholder:text-[#8888aa]"
+                      className="w-full pl-3 pr-9 py-2.5 text-sm text-white outline-none bg-[#211f36] placeholder:text-[#8888aa] border border-transparent focus:border-[#8b5cf6] focus:ring-0"
+                      style={{ borderRadius: 10 }}
                     />
                   </div>
                   {/* Search results dropdown */}
                   {searchResults.length > 0 && (
-                    <div className="mt-1 border border-[#3d3d5c] rounded-lg overflow-hidden shadow-lg">
+                    <div className="mt-1 overflow-hidden shadow-lg" style={{ borderRadius: 0 }}>
                       {searchResults.slice(0, 5).map(g => (
                         <button key={g.id} onClick={() => handleSelectSearchGuest(g)}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-[#353558] text-left border-b border-[#333355] last:border-0 bg-[#2a2a42]">
-                          <div className="w-8 h-8 rounded-full bg-purple-900/40 flex items-center justify-center">
-                            <User className="w-4 h-4 text-[#7bb7ef]" />
+                          className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-[#302d4a] text-left border-b border-[#26243f] last:border-0 bg-[#26243f]">
+                          <div className="w-8 h-8 bg-[#31224d] flex items-center justify-center" style={{ borderRadius: 0 }}>
+                            <User className="w-4 h-4 text-[#d8c7ff]" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-white truncate">{g.name}</p>
                             {g.phone && <p className="text-xs text-[#b0b0cc]">{g.phone}</p>}
                           </div>
                           {g.totalVisits > 0 && (
-                            <span className="text-xs text-[#7bb7ef] font-medium">{g.totalVisits}x</span>
+                            <span className="text-xs text-[#d8c7ff] font-medium">{g.totalVisits}x</span>
                           )}
                         </button>
                       ))}
@@ -1433,12 +1661,12 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
                 <div className="px-4 py-3 space-y-4">
                   {/* Matched guest banner */}
                   {matchedGuest && (
-                    <div className="rounded-lg bg-[#7bb7ef]/15 border border-purple-700/30 p-3 flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-purple-900/40 flex items-center justify-center shrink-0">
-                        <User className="w-4 h-4 text-[#7bb7ef]" />
+                    <div className="bg-[#26243f] px-3 py-2.5 flex items-center gap-3" style={{ borderRadius: 12 }}>
+                      <div className="w-10 h-10 bg-[#8b5cf6] flex items-center justify-center shrink-0 text-white font-semibold text-sm" style={{ borderRadius: 0 }}>
+                        {(matchedGuest.name || 'G').charAt(0).toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-[#b1d9ff]">{matchedGuest.name}</p>
+                        <p className="text-sm font-semibold text-[#f2eaff]">{matchedGuest.name}</p>
                         {matchedGuest.tags.length > 0 && (
                           <div className="flex gap-1 mt-0.5">
                             {matchedGuest.tags.slice(0, 3).map(tag => {
@@ -1454,42 +1682,52 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
                         )}
                       </div>
                       <button onClick={() => setShowGuestProfile(matchedGuest)}
-                        className="text-xs text-[#7bb7ef] font-medium hover:text-[#b1d9ff] shrink-0">
+                        className="text-xs text-[#d8c7ff] font-medium hover:text-white shrink-0">
                         Profil
                       </button>
                     </div>
                   )}
 
                   {/* Form fields in resmio style */}
-                  <div className="space-y-0 border border-[#3d3d5c] rounded-lg overflow-hidden">
-                    <div className="flex items-center border-b border-[#3d3d5c] px-3 py-2.5 bg-[#2a2a42]">
-                      <span className="text-sm text-[#b0b0cc] w-24 shrink-0">Vorname</span>
+                  <div className="space-y-3">
+                    <div>
                       <input type="text" value={formData.guestName.split(' ')[0] || ''}
                         onChange={e => {
                           const lastName = formData.guestName.split(' ').slice(1).join(' ');
                           setFormData(prev => ({ ...prev, guestName: e.target.value + (lastName ? ' ' + lastName : '') }));
                         }}
                         placeholder="Vorname"
-                        className="flex-1 text-sm text-white outline-none bg-transparent placeholder:text-[#8888aa]"
+                        className="w-full px-3 py-3 text-[15px] text-white outline-none bg-[#26243f] placeholder:text-[#8888aa] border border-transparent focus:border-[#8b5cf6]"
+                        style={{ borderRadius: 12 }}
                       />
                     </div>
-                    <div className="flex items-center border-b border-[#3d3d5c] px-3 py-2.5 bg-[#2a2a42]">
-                      <span className="text-sm text-[#b0b0cc] w-24 shrink-0">Nachname</span>
+                    <div>
                       <input type="text" value={formData.guestName.split(' ').slice(1).join(' ')}
                         onChange={e => {
                           const firstName = formData.guestName.split(' ')[0] || '';
                           setFormData(prev => ({ ...prev, guestName: firstName + (e.target.value ? ' ' + e.target.value : '') }));
                         }}
                         placeholder="Nachname"
-                        className="flex-1 text-sm text-white outline-none bg-transparent placeholder:text-[#8888aa]"
+                        className="w-full px-3 py-3 text-[15px] text-white outline-none bg-[#26243f] placeholder:text-[#8888aa] border border-transparent focus:border-[#8b5cf6]"
+                        style={{ borderRadius: 12 }}
                       />
                     </div>
-                    <div className="flex items-center border-b border-[#3d3d5c] px-3 py-2.5 bg-[#2a2a42]">
-                      <span className="text-sm text-[#b0b0cc] w-24 shrink-0">Telefon</span>
-                      <input type="tel" value={formData.guestPhone}
+                    <div>
+                      <input type="tel" value={maskPhoneValue(formData.guestPhone)}
                         onChange={e => handlePhoneChange(e.target.value)}
                         placeholder="Telefonnummer"
-                        className="flex-1 text-sm text-white outline-none bg-transparent placeholder:text-[#8888aa]"
+                        className="w-full px-3 py-3 text-[15px] text-white outline-none bg-[#26243f] placeholder:text-[#8888aa] border border-transparent focus:border-[#8b5cf6]"
+                        style={{ borderRadius: 12 }}
+                      />
+                    </div>
+                    <div>
+                      <input
+                        type="email"
+                        value={formData.guestEmail}
+                        onChange={e => setFormData(prev => ({ ...prev, guestEmail: e.target.value }))}
+                        placeholder="E-Mail"
+                        className="w-full px-3 py-3 text-[15px] text-white outline-none bg-[#26243f] placeholder:text-[#8888aa] border border-transparent focus:border-[#8b5cf6]"
+                        style={{ borderRadius: 12 }}
                       />
                     </div>
                   </div>
@@ -1501,8 +1739,9 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
                       {([['phone', 'Telefon'], ['online', 'Online'], ['walk_in', 'Walk-In']] as const).map(([val, label]) => (
                         <button key={val}
                           onClick={() => setFormData(prev => ({ ...prev, source: val }))}
-                          className={'flex-1 py-2 rounded-lg text-xs font-medium border transition-colors ' +
-                            (formData.source === val ? 'border-[#7bb7ef] bg-[#7bb7ef]/20 text-[#7bb7ef]' : 'border-[#3d3d5c] text-[#b0b0cc] hover:bg-[#2a2a42]')}>
+                          className={'flex-1 py-2 text-xs font-medium transition-colors ' +
+                            (formData.source === val ? 'bg-[#8b5cf6] text-white' : 'bg-[#26243f] text-[#b0b0cc] hover:bg-[#302d4a]')}
+                          style={{ borderRadius: 0 }}>
                           {label}
                         </button>
                       ))}
@@ -1515,7 +1754,8 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
                     <input type="text" value={formData.referralSource}
                       onChange={e => setFormData(prev => ({ ...prev, referralSource: e.target.value }))}
                       placeholder="z.B. Hotel Adlon, Google, Freund Max M."
-                      className="w-full px-3 py-2.5 border border-[#3d3d5c] rounded-lg text-sm text-white outline-none focus:border-[#7bb7ef] bg-[#2a2a42] placeholder:text-[#8888aa]"
+                      className="w-full px-3 py-3 text-sm text-white outline-none bg-[#26243f] placeholder:text-[#8888aa] border border-transparent focus:border-[#8b5cf6]"
+                      style={{ borderRadius: 12 }}
                     />
                   </div>
 
@@ -1546,10 +1786,11 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
                     <p className="text-xs text-[#b0b0cc] font-semibold uppercase tracking-wider mb-2">ETIKETTEN</p>
                     <button
                       onClick={() => setShowLabelPicker(!showLabelPicker)}
-                      className="px-3 py-1.5 rounded-full border border-[#7bb7ef] text-[#7bb7ef] text-xs font-medium hover:bg-[#7bb7ef]/20 transition-colors">
+                      className="px-3 py-2 text-[#d8c7ff] text-xs font-medium transition-colors bg-[#26243f] hover:bg-[#302d4a]"
+                      style={{ borderRadius: 16 }}>
                       + Etiketten hinzufügen
                       {(formData.seatLabels.length + formData.occasionLabels.length) > 0 && (
-                        <span className="ml-1 bg-[#5d9edb] text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold">
+                        <span className="ml-1 bg-[#8b5cf6] text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold">
                           {formData.seatLabels.length + formData.occasionLabels.length}
                         </span>
                       )}
@@ -1559,12 +1800,12 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
                     {(formData.seatLabels.length > 0 || formData.occasionLabels.length > 0) && (
                       <div className="flex flex-wrap gap-1 mt-2">
                         {formData.seatLabels.map(sl => (
-                          <span key={sl} className="px-2 py-1 rounded-full text-[10px] font-medium bg-blue-900/30 text-blue-400 border border-blue-800">
+                          <span key={sl} className="px-2 py-1 rounded-full text-[10px] font-medium bg-[#31224d] text-[#d8c7ff]">
                             {SEAT_LABELS_MAP[sl]?.label}
                           </span>
                         ))}
                         {formData.occasionLabels.map(ol => (
-                          <span key={ol} className="px-2 py-1 rounded-full text-[10px] font-medium bg-amber-900/30 text-amber-400 border border-amber-800">
+                          <span key={ol} className="px-2 py-1 rounded-full text-[10px] font-medium bg-[#5b216f] text-white">
                             {OCCASION_LABELS_MAP[ol]?.label}
                           </span>
                         ))}
@@ -1572,7 +1813,7 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
                     )}
 
                     {showLabelPicker && (
-                      <div className="mt-3 space-y-3 p-3 border border-[#3d3d5c] rounded-lg bg-[#2a2a42]">
+                      <div className="mt-3 space-y-3 p-3 bg-[#26243f]" style={{ borderRadius: 0 }}>
                         <div>
                           <p className="text-[10px] text-[#b0b0cc] font-semibold uppercase tracking-wider mb-1.5 flex items-center gap-1">
                             <Armchair className="w-3 h-3" /> Sitzplatz-Präferenzen
@@ -1586,8 +1827,9 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
                                     ...prev,
                                     seatLabels: isActive ? prev.seatLabels.filter(s => s !== key) : [...prev.seatLabels, key],
                                   }))}
-                                  className={'px-2 py-1 rounded-lg text-[10px] font-medium border transition-colors ' +
-                                    (isActive ? 'border-blue-500 bg-blue-900/40 text-blue-300' : 'border-[#3d3d5c] bg-[#353558] text-[#b0b0cc] hover:border-[#5a5a5a]')}>
+                                  className={'px-2 py-1 text-[10px] font-medium transition-colors ' +
+                                    (isActive ? 'bg-[#8b5cf6] text-white' : 'bg-[#312e4f] text-[#b0b0cc] hover:bg-[#3a365c]')}
+                                  style={{ borderRadius: 0 }}>
                                   {val.label}
                                 </button>
                               );
@@ -1607,8 +1849,9 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
                                     ...prev,
                                     occasionLabels: isActive ? prev.occasionLabels.filter(o => o !== key) : [...prev.occasionLabels, key],
                                   }))}
-                                  className={'px-2 py-1 rounded-lg text-[10px] font-medium border transition-colors ' +
-                                    (isActive ? 'border-amber-500 bg-amber-900/40 text-amber-300' : 'border-[#3d3d5c] bg-[#353558] text-[#b0b0cc] hover:border-[#5a5a5a]')}>
+                                  className={'px-2 py-1 text-[10px] font-medium transition-colors ' +
+                                    (isActive ? 'bg-[#d946ef] text-white' : 'bg-[#312e4f] text-[#b0b0cc] hover:bg-[#3a365c]')}
+                                  style={{ borderRadius: 0 }}>
                                   {val.label}
                                 </button>
                               );
@@ -1626,13 +1869,14 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
                       onChange={e => setFormData(prev => ({ ...prev, notes: e.target.value }))}
                       placeholder="z.B. Allergien, Kinderstuhl, Geburtstag..."
                       rows={2}
-                      className="w-full rounded-lg px-3 py-2.5 border border-[#3d3d5c] text-white text-sm outline-none focus:border-[#7bb7ef] resize-none bg-[#2a2a42] placeholder:text-[#8888aa]"
+                      className="w-full px-3 py-3 text-white text-sm outline-none resize-none bg-[#26243f] placeholder:text-[#8888aa] border border-transparent focus:border-[#8b5cf6]"
+                      style={{ borderRadius: 12 }}
                     />
                   </div>
 
                   {/* Edit mode: compact iOS-style inline rows */}
-                  {editingId && (
-                    <div className="border border-[#3d3d5c] rounded-lg overflow-hidden bg-[#2a2a42]">
+	                  {editingId && (
+	                    <div className="border border-[#3d3d5c] rounded-lg overflow-hidden bg-[#2a2a42]">
                       <div className="flex items-center justify-between px-3 py-2.5 border-b border-[#333355]">
                         <span className="text-xs text-[#b0b0cc]">Datum</span>
                         <input type="date" value={formData.date}
@@ -1673,27 +1917,28 @@ export function ReservationPanel({ onClose, onSeatReservation }: ReservationPane
                             <option key={t.id} value={t.id}>{t.name}</option>
                           ))}
                         </select>
-                      </div>
-                    </div>
-                  )}
-                </div>
+	                      </div>
+	                    </div>
+	                  )}
+	                  <div className="sticky bottom-0 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] bg-gradient-to-t from-[var(--vilo-bg-base)] via-[var(--vilo-bg-base)] to-transparent">
+	                    <button
+	                      onClick={handleSave}
+	                      disabled={!formData.guestName.trim()}
+	                      className="w-full py-3.5 font-semibold text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+	                      style={{ background: 'var(--vilo-accent)' }}
+	                    >
+	                      {editingId ? 'Speichern' : 'Reservierung anlegen'}
+	                    </button>
+	                  </div>
+	                </div>
 
-                {/* Sticky Reservieren button at bottom */}
-                <div className="px-4 py-3" style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}>
-                  <button onClick={handleSave}
-                    disabled={!formData.guestName.trim()}
-                    className="w-full py-3.5 rounded-xl font-semibold text-white text-base flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                    style={{ background: '#7c3aed' }}>
-                    <Check className="w-5 h-5" />
-                    {editingId ? 'Speichern' : 'Reservieren'}
-                  </button>
-                </div>
-              </div>
+	              </div>
             )}
           </div>
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

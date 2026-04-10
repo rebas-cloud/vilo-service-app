@@ -51,6 +51,7 @@ export type AppAction =
   | { type: 'SET_ACTIVE_TABLE'; tableId: string }
   | { type: 'CLEAR_ACTIVE_TABLE' }
   | { type: 'ADD_ORDER_ITEMS'; items: OrderItem[] }
+  | { type: 'UPDATE_ORDER_QUANTITY'; orderId: string; quantity: number }
   | { type: 'SET_COURSE_LAST'; course: 'starter' | 'main' | 'dessert' }
   | { type: 'ADD_NOTE'; note: string }
   | { type: 'REMOVE_ORDER_ITEM'; orderId: string }
@@ -75,6 +76,7 @@ export type AppAction =
   | { type: 'BLOCK_TABLE'; tableId: string }
   | { type: 'UNBLOCK_TABLE'; tableId: string }
   | { type: 'SET_GUEST_COUNT'; tableId: string; guestCount: number }
+  | { type: 'SET_GUEST_NAME'; tableId: string; guestName: string }
   | { type: 'CLEAR_SHIFT' }
   | { type: 'SYNC_STATE'; sessions: Record<string, TableSession>; closedTables: ClosedTableRecord[]; tipHistory: TipRecord[]; closedTableRevenue: number; shiftStart: number; shiftHistory: ShiftHistoryRecord[] }
   | { type: 'SYNC_CONFIG'; zones: Zone[]; tables: Table[]; menu: MenuItem[]; staff: Staff[] };
@@ -243,6 +245,25 @@ function appReducer(state: AppState, action: AppAction): AppState {
           [state.activeTableId]: {
             ...session,
             orders: session.orders.filter(o => o.id !== action.orderId),
+          },
+        },
+      };
+    }
+
+    case 'UPDATE_ORDER_QUANTITY': {
+      if (!state.activeTableId) return state;
+      const session = state.sessions[state.activeTableId];
+      if (!session) return state;
+
+      return {
+        ...state,
+        sessions: {
+          ...state.sessions,
+          [state.activeTableId]: {
+            ...session,
+            orders: session.orders.map(o =>
+              o.id === action.orderId ? { ...o, quantity: Math.max(1, action.quantity) } : o
+            ),
           },
         },
       };
@@ -526,6 +547,18 @@ function appReducer(state: AppState, action: AppAction): AppState {
       };
     }
 
+    case 'SET_GUEST_NAME': {
+      const namedSess = state.sessions[action.tableId];
+      if (!namedSess) return state;
+      return {
+        ...state,
+        sessions: {
+          ...state.sessions,
+          [action.tableId]: { ...namedSess, guestName: action.guestName.trim() || undefined },
+        },
+      };
+    }
+
     case 'CLEAR_SHIFT': {
       // Persist current shift as history record before clearing
       const shiftRevenue = state.closedTableRevenue;
@@ -571,13 +604,32 @@ function appReducer(state: AppState, action: AppAction): AppState {
     case 'SYNC_STATE': {
       // Merge remote state from WebSocket
       // Preserve local-only fields: activeTableId, currentUser, voiceState, etc.
+      const remoteSessions = action.sessions as Record<string, TableSession>;
+      const mergedSessions: Record<string, TableSession> = { ...remoteSessions };
+
+      Object.entries(state.sessions).forEach(([tableId, localSession]) => {
+        if (mergedSessions[tableId]) return;
+
+        const table = state.tables.find(t => t.id === tableId);
+        const hasEndedServiceStatus = !!(localSession.serviceStatus && ['abgeraeumt', 'beendet'].includes(localSession.serviceStatus));
+        const shouldKeepLocalSession = !hasEndedServiceStatus && (
+          table?.status === 'occupied' ||
+          table?.status === 'billing' ||
+          Boolean(localSession.serviceStatus)
+        );
+
+        if (shouldKeepLocalSession) {
+          mergedSessions[tableId] = localSession;
+        }
+      });
+
       const syncedTables = state.tables.map(t => {
         // Update table status based on sessions
-        const hasSession = action.sessions[t.id] !== undefined;
+        const hasSession = mergedSessions[t.id] !== undefined;
         if (hasSession && t.status === 'free') {
-          return { ...t, status: 'occupied' as const, sessionId: action.sessions[t.id].id };
+          return { ...t, status: 'occupied' as const, sessionId: mergedSessions[t.id].id };
         }
-        if (!hasSession && t.status === 'occupied') {
+        if (!hasSession && (t.status === 'occupied' || t.status === 'billing')) {
           return { ...t, status: 'free' as const, sessionId: undefined };
         }
         return t;
@@ -585,7 +637,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         tables: syncedTables,
-        sessions: action.sessions as Record<string, TableSession>,
+        sessions: mergedSessions,
         closedTables: action.closedTables as ClosedTableRecord[],
         tipHistory: action.tipHistory as TipRecord[],
         closedTableRevenue: action.closedTableRevenue,

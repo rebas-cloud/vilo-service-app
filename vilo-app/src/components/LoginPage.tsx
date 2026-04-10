@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { useApp } from '../context/AppContext';
 import { LogOut } from 'lucide-react';
+
+import { useApp } from '../context/AppContext';
+import viloLogo from '../assets/VILO.svg';
 
 interface LoginPageProps {
   onLogout?: () => void;
@@ -37,14 +39,12 @@ export function LoginPage({ onLogout }: LoginPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 flex flex-col items-center justify-center px-4" style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#151b31', paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
       {/* Logo */}
       <div className="mb-8 text-center">
-        <div className="flex items-center justify-center mb-2">
-          <h1 className="text-5xl font-bold text-white tracking-tight" style={{ fontFamily: 'Otista, sans-serif', letterSpacing: '0.032em' }}>vilo</h1>
+        <div className="flex items-center justify-center">
+          <img src={viloLogo} alt="VILO" className="h-10 w-auto" />
         </div>
-        <p className="text-[#b0b0cc] text-sm">Voice-First POS</p>
-        <p className="text-[#8888aa] text-xs mt-1">{state.restaurant.name}</p>
       </div>
 
       {/* PIN Display */}
@@ -57,8 +57,8 @@ export function LoginPage({ onLogout }: LoginPageProps) {
                 i < pin.length
                   ? error
                     ? 'bg-red-500 border-red-500'
-                    : 'bg-[#7bb7ef] border-violet-500'
-                  : 'border-[#5a5a5a]'
+                    : 'bg-[#8b5cf6] border-[#8b5cf6]'
+                  : 'border-[#5d5878]'
               }`}
             />
           ))}
@@ -77,8 +77,8 @@ export function LoginPage({ onLogout }: LoginPageProps) {
               <button
                 key="del"
                 onClick={handleDelete}
-                className="h-16 rounded-xl bg-[#353558]/50 text-[#c0c0dd] text-lg font-medium
-                  active:bg-[#555] transition-colors flex items-center justify-center"
+                className="h-16 rounded-xl bg-[#2b2944] text-[#d3ceed] text-lg font-medium
+                  active:bg-[#3a3657] transition-colors flex items-center justify-center"
               >
                 ←
               </button>
@@ -88,8 +88,8 @@ export function LoginPage({ onLogout }: LoginPageProps) {
             <button
               key={key}
               onClick={() => handlePinEntry(key)}
-              className="h-16 rounded-xl bg-[#353558]/80 text-white text-2xl font-medium
-                active:bg-[#7bb7ef] transition-colors hover:bg-[#555]"
+              className="h-16 rounded-xl bg-[#353558] text-white text-2xl font-medium
+                active:bg-[#8b5cf6] transition-colors hover:bg-[#413d63]"
             >
               {key}
             </button>
@@ -97,23 +97,23 @@ export function LoginPage({ onLogout }: LoginPageProps) {
         })}
       </div>
 
-      <p className="text-[#8888aa] text-xs mt-8">PIN eingeben zum Anmelden</p>
-      <p className="text-[#8888aa] text-xs mt-1">
+      <p className="text-[#9b96b8] text-xs mt-8">PIN eingeben zum Anmelden</p>
+      <p className="text-[#9b96b8] text-xs mt-1">
         {state.staff.map(s => `${s.name} (${s.pin})`).join(' · ')}
       </p>
 
       {/* Restaurant Code Display */}
       {state.restaurant.code && state.restaurant.code !== '000000' && (
-        <div className="mt-6 px-4 py-2 rounded-lg bg-[#2a2a42]/60 border border-[#333355]">
-          <p className="text-[#8888aa] text-xs text-center">Restaurant-Code</p>
-          <p className="text-[#b1d9ff] text-lg font-mono font-bold text-center tracking-widest">{state.restaurant.code}</p>
+        <div className="mt-6 px-4 py-2 rounded-lg bg-[#2b2944] border border-[#4f4772]">
+          <p className="text-[#9b96b8] text-xs text-center">Restaurant-Code</p>
+          <p className="text-[#d8c7ff] text-lg font-mono font-bold text-center tracking-widest">{state.restaurant.code}</p>
         </div>
       )}
 
       {onLogout && (
         <button
           onClick={onLogout}
-          className="mt-6 flex items-center gap-2 px-4 py-2 rounded-lg text-[#8888aa] hover:text-[#c0c0dd] hover:bg-[#353558]/50 transition-colors text-sm"
+          className="mt-6 flex items-center gap-2 px-4 py-2 rounded-lg text-[#9b96b8] hover:text-[#d3ceed] hover:bg-[#2b2944] transition-colors text-sm"
         >
           <LogOut className="w-4 h-4" />
           Anderes Restaurant

@@ -1,6 +1,8 @@
 import React, { useState, useRef, useCallback } from 'react';
+import { AlertTriangle, ArrowLeft, ChefHat, ChevronDown, ChevronRight, Clock, Coffee, CreditCard, CupSoda, Search, Trash2, Users, UtensilsCrossed, Wine } from 'lucide-react';
+
 import { useApp } from '../context/AppContext';
-import { ArrowLeft, Send, ChevronRight, Clock, UtensilsCrossed, Wine, Coffee, Trash2, ChevronDown } from 'lucide-react';
+
 import { feedbackOrderAdded, feedbackOrderSent, feedbackItemDeleted } from '../utils/feedback';
 import { TableServiceStatus } from '../types';
 
@@ -40,13 +42,15 @@ function getServiceStatusInfo(status?: TableServiceStatus) {
 
 interface TableDetailProps {
   onBack: () => void;
+  voiceIndicator?: React.ReactNode;
 }
 
-export function TableDetail({ onBack }: TableDetailProps) {
+export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
   const { state, dispatch } = useApp();
-  const [showMenu, setShowMenu] = useState(false);
+  const [showMenu, setShowMenu] = useState(true);
   const [menuCategory, setMenuCategory] = useState<string>('drinks');
   const [showStatusPicker, setShowStatusPicker] = useState(false);
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
 
   const table = state.tables.find(t => t.id === state.activeTableId);
   const session = state.activeTableId ? state.sessions[state.activeTableId] : null;
@@ -56,6 +60,7 @@ export function TableDetail({ onBack }: TableDetailProps) {
   const ordersByState = {
     ordered: session.orders.filter(o => o.state === 'ordered'),
     sent: session.orders.filter(o => o.state === 'sent_to_kitchen' || o.state === 'sent_to_bar'),
+    problem: session.orders.filter(o => o.state === 'problem'),
     ready: session.orders.filter(o => o.state === 'ready'),
     served: session.orders.filter(o => o.state === 'served'),
   };
@@ -71,6 +76,30 @@ export function TableDetail({ onBack }: TableDetailProps) {
     const menuItem = state.menu.find(m => m.id === itemId);
     if (!menuItem) return;
 
+    const inferredCourse =
+      menuItem.category === 'starters' ? 'starter' :
+      menuItem.category === 'mains' ? 'main' :
+      menuItem.category === 'desserts' ? 'dessert' :
+      undefined;
+
+    const existingOrder = session.orders.find(order =>
+      order.menuItemId === menuItem.id &&
+      order.state === 'ordered' &&
+      order.modifiers.length === 0 &&
+      !order.notes &&
+      order.course === inferredCourse
+    );
+
+    if (existingOrder) {
+      dispatch({
+        type: 'UPDATE_ORDER_QUANTITY',
+        orderId: existingOrder.id,
+        quantity: existingOrder.quantity + 1,
+      });
+      feedbackOrderAdded();
+      return;
+    }
+
     dispatch({
       type: 'ADD_ORDER_ITEMS',
       items: [{
@@ -82,6 +111,7 @@ export function TableDetail({ onBack }: TableDetailProps) {
         modifiers: [],
         state: 'ordered',
         routing: menuItem.routing,
+        course: inferredCourse,
         timestamp: Date.now(),
       }],
     });
@@ -96,6 +126,14 @@ export function TableDetail({ onBack }: TableDetailProps) {
     dispatch({ type: 'UPDATE_ORDER_STATE', orderId, state: 'ready' });
   };
 
+  const handleAcknowledgeProblem = (order: { id: string; routing: string }) => {
+    dispatch({
+      type: 'UPDATE_ORDER_STATE',
+      orderId: order.id,
+      state: order.routing === 'bar' ? 'sent_to_bar' : 'sent_to_kitchen',
+    });
+  };
+
   const handleDeleteOrder = (orderId: string) => {
     dispatch({ type: 'REMOVE_ORDER_ITEM', orderId });
     feedbackItemDeleted();
@@ -106,6 +144,7 @@ export function TableDetail({ onBack }: TableDetailProps) {
       case 'ordered': return <Clock className="w-3.5 h-3.5 text-amber-400" />;
       case 'sent_to_kitchen': return <UtensilsCrossed className="w-3.5 h-3.5 text-blue-400" />;
       case 'sent_to_bar': return <Wine className="w-3.5 h-3.5 text-purple-400" />;
+      case 'problem': return <AlertTriangle className="w-3.5 h-3.5 text-[#ec4899]" />;
       case 'ready': return <Coffee className="w-3.5 h-3.5 text-emerald-400" />;
       case 'served': return <ChevronRight className="w-3.5 h-3.5 text-[#8888aa]" />;
       default: return null;
@@ -117,6 +156,7 @@ export function TableDetail({ onBack }: TableDetailProps) {
       case 'ordered': return 'Bestellt';
       case 'sent_to_kitchen': return 'In Küche';
       case 'sent_to_bar': return 'An Bar';
+      case 'problem': return 'Problem';
       case 'ready': return 'Fertig';
       case 'served': return 'Serviert';
       default: return orderState;
@@ -137,11 +177,11 @@ export function TableDetail({ onBack }: TableDetailProps) {
     return d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
   };
 
-  const categoryIcons: Record<string, string> = {
-    drinks: '🍺',
-    starters: '🥗',
-    mains: '🍕',
-    desserts: '🍰',
+  const categoryIcons: Record<string, React.ReactNode> = {
+    drinks: <CupSoda className="h-5 w-5" />,
+    starters: <UtensilsCrossed className="h-5 w-5" />,
+    mains: <Wine className="h-5 w-5" />,
+    desserts: <Coffee className="h-5 w-5" />,
   };
 
   const categoryLabels: Record<string, string> = {
@@ -151,225 +191,446 @@ export function TableDetail({ onBack }: TableDetailProps) {
     desserts: 'Desserts',
   };
 
+  const categoryTileStyles: Record<string, { surface: string; strong: string; soft: string; muted: string; ink: string }> = {
+    drinks: { surface: '#8b5cf6', strong: '#7c3aed', soft: '#8b5cf6', muted: '#7447db', ink: '#ffffff' },
+    starters: { surface: '#a855f7', strong: '#9333ea', soft: '#a855f7', muted: '#9147dd', ink: '#ffffff' },
+    mains: { surface: '#d946ef', strong: '#c026d3', soft: '#d946ef', muted: '#bd3fd1', ink: '#ffffff' },
+    desserts: { surface: '#ec4899', strong: '#db2777', soft: '#ec4899', muted: '#cf3f87', ink: '#ffffff' },
+  };
+
+  const operatorLabel = state.staff[0]
+    ? `${state.staff[0].name} | PIN ${state.staff[0].pin}`
+    : state.restaurant?.name || 'Vilo Service';
+
+  const menuItemsForCategory = state.menu.filter(item => item.category === menuCategory);
+  const guestSourceLabel =
+    session.guestSource === 'walk_in' ? 'Walk-in' :
+    session.guestSource === 'phone' ? 'Telefon' :
+    session.guestSource === 'online' ? 'Online' :
+    'Offen';
+  const activePositionCount = session.orders.filter(order => order.state !== 'served').length;
+  const currentServiceStatusInfo = getServiceStatusInfo(session.serviceStatus);
+  const accentAccordionColor = '#8b5cf6';
+  const quantityByMenuItem = session.orders.reduce<Record<string, number>>((acc, order) => {
+    acc[order.menuItemId] = (acc[order.menuItemId] || 0) + order.quantity;
+    return acc;
+  }, {});
+
+  const toggleSection = (sectionId: string) => {
+    setCollapsedSections(prev => ({
+      ...prev,
+      [sectionId]: !prev[sectionId],
+    }));
+  };
+
+  const handleSelectCategory = (category: string) => {
+    setMenuCategory(category);
+  };
+
+  const leftSections = [
+    {
+      id: 'order',
+      title: 'BESTELLUNG',
+      accent: 'text-sky-300',
+      color: '#8b5cf6',
+      helper: 'Offene Positionen',
+      orders: session.orders.filter(order => !order.course).sort((a, b) => a.timestamp - b.timestamp),
+    },
+    {
+      id: 'starter',
+      title: 'GANG 1',
+      accent: 'text-emerald-300',
+      color: '#8b5cf6',
+      helper: 'Vorspeisen',
+      orders: session.orders.filter(order => order.course === 'starter').sort((a, b) => a.timestamp - b.timestamp),
+    },
+    {
+      id: 'main',
+      title: 'GANG 2',
+      accent: 'text-amber-300',
+      color: '#8b5cf6',
+      helper: 'Hauptgerichte',
+      orders: session.orders.filter(order => order.course === 'main').sort((a, b) => a.timestamp - b.timestamp),
+    },
+    {
+      id: 'dessert',
+      title: 'GANG 3',
+      accent: 'text-pink-300',
+      color: '#a855f7',
+      helper: 'Desserts',
+      orders: session.orders.filter(order => order.course === 'dessert').sort((a, b) => a.timestamp - b.timestamp),
+    },
+  ].filter(section => section.orders.length > 0);
+
   return (
     <div className="h-full bg-[#1a1a2e] flex flex-col">
       {/* Header */}
-      <header className="bg-[#2a2a42]/80 backdrop-blur border-b border-[#333355] px-4 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onBack}
-              className="p-1.5 rounded-lg bg-[#353558] text-[#c0c0dd] hover:bg-[#555] transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <div>
-              <h2 className="text-white font-semibold text-lg leading-tight">{table.name}</h2>
-              <p className="text-[#b0b0cc] text-xs">
-                Seit {formatTime(session.startTime)} · {session.orders.length} Positionen
-              </p>
+      <header className="bg-[#2a2a42]/80 backdrop-blur border-b border-[#333355]">
+        <div className="flex">
+          <div className={`px-4 py-3 border-r border-[#333355] ${showMenu ? 'w-full lg:basis-[28%] lg:max-w-[28%]' : 'flex-1'}`}>
+            <div className="flex items-center justify-between gap-3">
+              <button
+                onClick={onBack}
+                className="p-1.5 rounded-lg bg-[#353558] text-[#c0c0dd] hover:bg-[#555] transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-white font-semibold text-lg leading-tight">{table.name}</h2>
+                <div className="flex items-center gap-3 text-[#b0b0cc] text-xs">
+                  <span className="truncate">Seit {formatTime(session.startTime)} · {session.orders.length} Positionen</span>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {ordersByState.ordered.length > 0 && (
-              <button
-                onClick={handleSendOrders}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#7bb7ef] text-white text-sm font-medium
-                  hover:bg-[#7bb7ef] active:bg-violet-700 transition-colors"
-              >
-                <Send className="w-4 h-4" />
-                Senden
-              </button>
-            )}
-            <button
-              onClick={() => dispatch({ type: 'SHOW_BILLING' })}
-              className="px-3 py-2 rounded-lg bg-[#353558] text-[#c0c0dd] text-sm font-medium
-                hover:bg-[#555] transition-colors"
-            >
-              Rechnung
-            </button>
-          </div>
+          {showMenu && (
+            <div className="hidden lg:flex flex-1 items-center justify-between gap-3 px-4 py-3 bg-[#24223c]">
+              <div className="flex items-center gap-3">
+                <p className="text-sm font-semibold text-white">{categoryLabels[menuCategory]}</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="inline-flex flex-shrink-0 items-center gap-1.5 text-sm text-[#cfd3e6]">
+                  <Users className="w-4 h-4 text-[#8b5cf6]" />
+                  {operatorLabel}
+                </span>
+                <button className="p-2 text-[#8b5cf6] hover:text-white transition-colors">
+                  <Search className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </header>
 
-      {/* Service Status Bar */}
-      <div className="px-4 py-2 border-b border-[#333355]/50" style={{ background: '#1a1a2e' }}>
-        <button
-          onClick={() => setShowStatusPicker(!showStatusPicker)}
-          className="w-full flex items-center justify-between"
-        >
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] text-[#8888aa] font-semibold uppercase tracking-wider">Status:</span>
-            {session.serviceStatus ? (
-              <span className="px-2 py-0.5 rounded-full text-xs font-semibold"
-                style={{ background: (getServiceStatusInfo(session.serviceStatus)?.color || '#64748b') + '22', color: getServiceStatusInfo(session.serviceStatus)?.color || '#94a3b8' }}>
-                {getServiceStatusInfo(session.serviceStatus)?.label || session.serviceStatus}
-              </span>
-            ) : (
-              <span className="text-xs text-[#8888aa]">Kein Status</span>
+      <div className="flex-1 min-h-0 flex flex-col lg:flex-row">
+        <section className={`min-w-0 flex flex-col border-b lg:border-b-0 lg:border-r border-[#2c2e49] bg-[#1a1b2d] ${showMenu ? 'lg:basis-[28%] lg:max-w-[28%]' : 'flex-1'}`}>
+          <div className="border-b border-[#2c2e49] bg-[#1d1f33]">
+            <div
+              className="px-4 py-3"
+              style={{
+                background: accentAccordionColor + '33',
+                boxShadow: `inset 4px 0 0 ${accentAccordionColor}`,
+              }}
+            >
+              <button
+                onClick={() => setShowStatusPicker(!showStatusPicker)}
+                className="flex w-full items-center justify-between gap-3"
+              >
+                <div className="flex min-w-0 items-center gap-2">
+                  {session.serviceStatus ? (
+                    <span
+                      className="truncate text-sm font-semibold uppercase tracking-[0.12em] text-white"
+                    >
+                      {currentServiceStatusInfo?.label || session.serviceStatus}
+                    </span>
+                  ) : (
+                    <span className="text-sm font-semibold uppercase tracking-[0.12em] text-white">KEIN STATUS</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-3">
+                  {session.serviceStatus && (
+                    <span className="text-[11px] font-semibold text-white">1</span>
+                  )}
+                  <ChevronDown
+                    className={'h-4 w-4 flex-shrink-0 text-white transition-transform ' + (showStatusPicker ? 'rotate-180' : '')}
+                  />
+                </div>
+              </button>
+
+              {showStatusPicker && (
+                <div className="mt-2 max-h-[300px] overflow-y-auto">
+                  {[
+                    { label: 'Sitzplatz', keys: SERVICE_STATUS_OPTIONS.filter(s => s.group === 'sitzplatz') },
+                    { label: 'Gang (Standard)', keys: SERVICE_STATUS_OPTIONS.filter(s => s.group === 'gang') },
+                    { label: 'Gang (Nummer)', keys: SERVICE_STATUS_OPTIONS.filter(s => s.group === 'gang_num') },
+                    { label: 'Service', keys: SERVICE_STATUS_OPTIONS.filter(s => s.group === 'service') },
+                    { label: 'Zahlung', keys: SERVICE_STATUS_OPTIONS.filter(s => s.group === 'zahlung') },
+                    { label: 'Aktion', keys: SERVICE_STATUS_OPTIONS.filter(s => s.group === 'aktion') },
+                  ].map(group => (
+                    <div key={group.label} className="pt-2 first:pt-1">
+                      <p className="px-3 pb-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-[#ffffff]/70">{group.label}</p>
+                      <div className="space-y-0.5">
+                        {group.keys.map(opt => {
+                          const isActive = session.serviceStatus === opt.key;
+                          return (
+                            <button
+                              key={opt.key}
+                              onClick={() => {
+                                dispatch({ type: 'SET_SERVICE_STATUS', tableId: table.id, serviceStatus: opt.key });
+                                setShowStatusPicker(false);
+                              }}
+                              className="w-full px-3 py-2 text-left transition-colors hover:bg-white/10"
+                              style={isActive ? { background: 'rgba(0,0,0,0.12)' } : undefined}
+                            >
+                              <span
+                                className="block text-[13px] leading-tight"
+                                style={{ color: '#ffffff', fontWeight: isActive ? 700 : 500 }}
+                              >
+                                {opt.label}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="mx-3 mt-2 h-px bg-white/10" />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-3 gap-px bg-[#2c2e49]">
+              <button className="bg-[#23253a] px-3 py-3 text-left hover:bg-[#282b45] transition-colors">
+                <span className="block text-[10px] uppercase tracking-[0.18em] text-[#8888aa]">Partei</span>
+                <span className="mt-1.5 block text-sm font-semibold text-white">{guestSourceLabel}</span>
+              </button>
+              <button className="bg-[#23253a] px-3 py-3 text-left hover:bg-[#282b45] transition-colors">
+                <span className="block text-[10px] uppercase tracking-[0.18em] text-[#8888aa]">Umbuchen</span>
+                <span className="mt-1.5 block text-sm font-semibold text-white">Später</span>
+              </button>
+              <button className="bg-[#23253a] px-3 py-3 text-left hover:bg-[#282b45] transition-colors">
+                <span className="block text-[10px] uppercase tracking-[0.18em] text-[#8888aa]">Gäste</span>
+                <span className="mt-1.5 block text-sm font-semibold text-white">{session.guestCount || 0}</span>
+              </button>
+            </div>
+
+            {session.notes.length > 0 && (
+              <div className="border-t border-[#2c2e49] px-4 py-2.5">
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8888aa]">Notizen</p>
+                <div className="flex flex-wrap gap-2">
+                  {session.notes.map((note, i) => (
+                    <span key={i} className="rounded-full bg-amber-800/30 px-2 py-0.5 text-xs text-amber-200">
+                      {note}
+                    </span>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
-          <ChevronDown className={'w-4 h-4 text-[#8888aa] transition-transform ' + (showStatusPicker ? 'rotate-180' : '')} />
-        </button>
 
-        {showStatusPicker && (
-          <div className="mt-2 space-y-2 pb-1">
-            {/* Quick status groups */}
-            {[
-              { label: 'Sitzplatz', keys: SERVICE_STATUS_OPTIONS.filter(s => s.group === 'sitzplatz') },
-              { label: 'Gang (Standard)', keys: SERVICE_STATUS_OPTIONS.filter(s => s.group === 'gang') },
-              { label: 'Gang (Nummer)', keys: SERVICE_STATUS_OPTIONS.filter(s => s.group === 'gang_num') },
-              { label: 'Service', keys: SERVICE_STATUS_OPTIONS.filter(s => s.group === 'service') },
-              { label: 'Zahlung', keys: SERVICE_STATUS_OPTIONS.filter(s => s.group === 'zahlung') },
-              { label: 'Aktion', keys: SERVICE_STATUS_OPTIONS.filter(s => s.group === 'aktion') },
-            ].map(group => (
-              <div key={group.label}>
-                <p className="text-[9px] text-[#777] font-semibold uppercase tracking-wider mb-1">{group.label}</p>
-                <div className="flex flex-wrap gap-1">
-                  {group.keys.map(opt => {
-                    const isActive = session.serviceStatus === opt.key;
+          <div className="flex-1 overflow-y-auto bg-[#1a1b2d]">
+            {session.orders.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-[#8888aa]">
+                <UtensilsCrossed className="w-12 h-12 mb-3 opacity-50" />
+                <p className="text-sm">Noch keine Bestellungen</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-[#2c2e49]">
+                {leftSections.map(section => (
+                  <div key={section.id} className="overflow-hidden">
+                    <button
+                      onClick={() => toggleSection(section.id)}
+                      className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors"
+                      style={{
+                        background: section.color + '33',
+                        boxShadow: `inset 4px 0 0 ${section.color}`,
+                      }}
+                    >
+                      <div className="min-w-0">
+                        <p
+                          className="text-[12px] font-semibold uppercase tracking-[0.1em]"
+                          style={{ color: '#ffffff' }}
+                        >
+                          {section.title}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[11px] font-semibold text-white">{section.orders.length}</span>
+                        <ChevronDown
+                          className={`h-4 w-4 transition-transform ${collapsedSections[section.id] ? '' : 'rotate-180'}`}
+                          style={{ color: '#ffffff' }}
+                        />
+                      </div>
+                    </button>
+                    {!collapsedSections[section.id] && (
+                      <div className="divide-y divide-[#333355] bg-[#1a1b2d]">
+                        {section.orders.map(order => (
+                          <OrderRow
+                            key={order.id}
+                            order={order}
+                            getStateIcon={getStateIcon}
+                            getStateLabel={getStateLabel}
+                            getCourseLabel={getCourseLabel}
+                            formatTime={formatTime}
+                            onAction={
+                              order.state === 'problem' ? () => handleAcknowledgeProblem(order) :
+                              order.state === 'ready' ? () => handleMarkServed(order.id) :
+                              (order.state === 'sent_to_kitchen' || order.state === 'sent_to_bar') ? () => handleMarkReady(order.id) :
+                              undefined
+                            }
+                            actionLabel={
+                              order.state === 'problem' ? 'Quittieren' :
+                              order.state === 'ready' ? 'Serviert' :
+                              (order.state === 'sent_to_kitchen' || order.state === 'sent_to_bar') ? 'Fertig' :
+                              undefined
+                            }
+                            onDelete={() => handleDeleteOrder(order.id)}
+                            dimmed={order.state === 'served'}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                <div className="border-t border-[#2f3150]">
+                  <button
+                    className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors"
+                    style={{
+                      background: '#8b5cf633',
+                      boxShadow: 'inset 4px 0 0 #8b5cf6',
+                    }}
+                  >
+                    <span className="text-[12px] font-semibold uppercase tracking-[0.1em] text-white">Gang hinzufügen</span>
+                    <span className="text-[18px] leading-none text-white">+</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="border-t border-[#2c2e49] bg-[#171827]">
+            <div className="px-2 py-2">
+              <div className="mb-2 flex items-center gap-2">
+                <span className="rounded-full bg-[#23253a] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white">
+                  Hier
+                </span>
+                <span className="rounded-full bg-[#23253a] px-2.5 py-1 text-[10px] font-semibold text-[#c0c0dd]">
+                  {activePositionCount} offen
+                </span>
+              </div>
+              <div className={`grid gap-2 ${ordersByState.ordered.length > 0 ? 'grid-cols-[minmax(0,1fr)_auto]' : 'grid-cols-1'}`}>
+              <button
+                onClick={() => dispatch({ type: 'SHOW_BILLING' })}
+                className={`border border-[#333355]/40 bg-[#26243f] px-3 py-2.5 text-white min-w-0 transition-colors hover:bg-[#2d2a49] ${ordersByState.ordered.length > 0 ? 'text-left' : 'text-center'}`}
+              >
+                <span className="block text-[9px] uppercase tracking-[0.18em] text-[#9f9aba]">Gesamt</span>
+                <span className={`mt-1 flex items-center gap-1.5 text-[16px] leading-none font-bold whitespace-nowrap ${ordersByState.ordered.length > 0 ? 'justify-start text-white' : 'justify-center text-white'}`}>
+                  <CreditCard className="h-3.5 w-3.5 shrink-0 text-[#cf8cff]" />
+                  <span>{total.toFixed(2)} €</span>
+                </span>
+              </button>
+              {ordersByState.ordered.length > 0 && (
+                <button
+                  onClick={handleSendOrders}
+                  className="flex items-center gap-1.5 border border-[#b66cff]/40 bg-[#a855f7] px-3 py-2.5 text-[12px] font-semibold text-white transition-colors hover:bg-[#9333ea] whitespace-nowrap"
+                >
+                  <ChefHat className="h-3.5 w-3.5" />
+                  Senden
+                </button>
+              )}
+              </div>
+            </div>
+            <div className="px-2 pb-3 flex items-center justify-between gap-2 lg:hidden">
+              <button
+                onClick={() => setShowMenu(!showMenu)}
+                className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors ${
+                  showMenu ? 'bg-[#353558] text-white hover:bg-[#404064]' : 'bg-[#8b5cf6] text-white hover:bg-[#7c3aed]'
+                }`}
+              >
+                {showMenu ? 'Menü ausblenden' : 'POS-Menü öffnen'}
+              </button>
+            </div>
+          </div>
+
+          {voiceIndicator && (
+            <div className="border-t border-[#2c2e49]">
+              {voiceIndicator}
+            </div>
+          )}
+        </section>
+
+        {showMenu && (
+          <aside className="w-full lg:flex-1 bg-[#1d1c32] flex flex-col min-h-[48vh]">
+            <div className="border-b border-[#333355] bg-[#24223c] lg:hidden">
+              <div className="flex items-center justify-between gap-3 px-4 py-2.5">
+                <div />
+                <div className="flex items-center gap-3">
+                  <p className="text-sm font-semibold text-white">{categoryLabels[menuCategory]}</p>
+                </div>
+                <div />
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-3 bg-[#1d1c32]">
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                  {Object.entries(categoryLabels).map(([key, label]) => {
+                    const style = categoryTileStyles[key];
+                    const isActive = menuCategory === key;
                     return (
-                      <button key={opt.key}
-                        onClick={() => {
-                          dispatch({ type: 'SET_SERVICE_STATUS', tableId: table.id, serviceStatus: opt.key });
-                          setShowStatusPicker(false);
+                      <button
+                        key={key}
+                        onClick={() => handleSelectCategory(key)}
+                        className="min-h-[132px] p-4 text-left transition-transform hover:scale-[1.01]"
+                        style={{
+                          background: isActive ? style.surface : style.muted,
+                          boxShadow: isActive ? `inset 0 0 0 2px ${style.ink}22` : 'none',
                         }}
-                        className={'px-2 py-1 rounded-lg text-[10px] font-medium border transition-colors ' +
-                          (isActive ? 'border-white/40 text-white' : 'border-[#333355] text-[#b0b0cc] hover:border-[#5a5a5a]')}
-                        style={isActive ? { background: opt.color + '33', borderColor: opt.color } : {}}>
-                        {opt.label}
+                      >
+                        <div className="flex h-full flex-col justify-between">
+                          <div>
+                            <div className="inline-flex h-10 w-10 items-center justify-center" style={{ color: style.ink }}>
+                              {categoryIcons[key]}
+                            </div>
+                            <p className="mt-6 text-[16px] font-semibold leading-tight" style={{ color: style.ink }}>{label}</p>
+                          </div>
+                          <p className="text-sm" style={{ color: style.ink + 'aa' }}>
+                            {state.menu.filter(item => item.category === key).length} Artikel
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                  {menuItemsForCategory.map(item => {
+                    const style = categoryTileStyles[item.category];
+                    const quantity = quantityByMenuItem[item.id] || 0;
+                    const isSelected = quantity > 0;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => handleAddItem(item.id)}
+                        className="min-h-[132px] p-4 text-left transition-transform hover:scale-[1.01]"
+                        style={{
+                          background: isSelected ? style.surface : style.muted,
+                          color: style.ink,
+                        }}
+                      >
+                        <div className="flex h-full flex-col justify-between">
+                          <div>
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="inline-flex h-10 w-10 items-center justify-center">
+                                {categoryIcons[item.category]}
+                              </div>
+                              {quantity > 0 && (
+                                <span
+                                  className="px-2 py-0.5 text-[11px] font-semibold"
+                                  style={{ background: 'rgba(0,0,0,0.16)' }}
+                                >
+                                  {quantity}
+                                </span>
+                              )}
+                            </div>
+                            <p className="mt-6 text-[16px] font-semibold leading-tight">
+                              {item.name}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-sm font-semibold whitespace-nowrap" style={{ color: style.ink + 'dd' }}>
+                              {item.price.toFixed(2)} €
+                            </span>
+                          </div>
+                        </div>
                       </button>
                     );
                   })}
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Notes */}
-      {session.notes.length > 0 && (
-        <div className="px-4 py-2 bg-amber-900/30 border-b border-amber-800/50">
-          <div className="flex flex-wrap gap-2">
-            {session.notes.map((note, i) => (
-              <span key={i} className="px-2 py-0.5 bg-amber-800/50 text-amber-200 text-xs rounded-full">
-                {note}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Orders */}
-      <div className="flex-1 overflow-y-auto pb-4">
-        {session.orders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-[#8888aa]">
-            <UtensilsCrossed className="w-12 h-12 mb-3 opacity-50" />
-            <p className="text-sm">Noch keine Bestellungen</p>
-            <p className="text-xs mt-1">Sage "Hey Vilo" und bestelle per Sprache</p>
-          </div>
-        ) : (
-          <div className="px-4 py-3 space-y-2">
-            {/* Pending orders */}
-            {ordersByState.ordered.length > 0 && (
-              <div>
-                <p className="text-amber-400 text-xs font-medium uppercase tracking-wider mb-2">
-                  Neu bestellt ({ordersByState.ordered.length})
-                </p>
-                {ordersByState.ordered.map(order => (
-                  <OrderRow key={order.id} order={order} getStateIcon={getStateIcon} getStateLabel={getStateLabel} getCourseLabel={getCourseLabel} formatTime={formatTime} onDelete={() => handleDeleteOrder(order.id)} />
-                ))}
-              </div>
-            )}
-
-            {/* Sent orders */}
-            {ordersByState.sent.length > 0 && (
-              <div className="mt-4">
-                <p className="text-blue-400 text-xs font-medium uppercase tracking-wider mb-2">
-                  In Zubereitung ({ordersByState.sent.length})
-                </p>
-                {ordersByState.sent.map(order => (
-                  <OrderRow key={order.id} order={order} getStateIcon={getStateIcon} getStateLabel={getStateLabel} getCourseLabel={getCourseLabel} formatTime={formatTime} onAction={() => handleMarkReady(order.id)} actionLabel="Fertig" onDelete={() => handleDeleteOrder(order.id)} />
-                ))}
-              </div>
-            )}
-
-            {/* Ready orders */}
-            {ordersByState.ready.length > 0 && (
-              <div className="mt-4">
-                <p className="text-emerald-400 text-xs font-medium uppercase tracking-wider mb-2">
-                  Fertig ({ordersByState.ready.length})
-                </p>
-                {ordersByState.ready.map(order => (
-                  <OrderRow key={order.id} order={order} getStateIcon={getStateIcon} getStateLabel={getStateLabel} getCourseLabel={getCourseLabel} formatTime={formatTime} onAction={() => handleMarkServed(order.id)} actionLabel="Serviert" onDelete={() => handleDeleteOrder(order.id)} />
-                ))}
-              </div>
-            )}
-
-            {/* Served orders */}
-            {ordersByState.served.length > 0 && (
-              <div className="mt-4">
-                <p className="text-[#8888aa] text-xs font-medium uppercase tracking-wider mb-2">
-                  Serviert ({ordersByState.served.length})
-                </p>
-                {ordersByState.served.map(order => (
-                  <OrderRow key={order.id} order={order} getStateIcon={getStateIcon} getStateLabel={getStateLabel} getCourseLabel={getCourseLabel} formatTime={formatTime} dimmed onDelete={() => handleDeleteOrder(order.id)} />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Quick Add Menu */}
-        {showMenu && (
-          <div className="px-4 py-3 border-t border-[#333355]">
-            <div className="flex gap-2 mb-3 overflow-x-auto">
-              {Object.entries(categoryLabels).map(([key, label]) => (
-                <button
-                  key={key}
-                  onClick={() => setMenuCategory(key)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
-                    menuCategory === key ? 'bg-[#7bb7ef] text-white' : 'bg-[#2a2a42] text-[#c0c0dd]'
-                  }`}
-                >
-                  {categoryIcons[key]} {label}
-                </button>
-              ))}
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              {state.menu.filter(m => m.category === menuCategory).map(item => (
-                <button
-                  key={item.id}
-                  onClick={() => handleAddItem(item.id)}
-                  className="p-2.5 rounded-lg bg-[#2a2a42] border border-[#333355] text-left
-                    hover:border-violet-600 active:bg-[#353558] transition-colors"
-                >
-                  <p className="text-white text-sm font-medium">{item.name}</p>
-                  <p className="text-[#b0b0cc] text-xs">{item.price.toFixed(2)} €</p>
-                </button>
-              ))}
-            </div>
-          </div>
+          </aside>
         )}
-      </div>
-
-      {/* Bottom Bar */}
-      <div className="bg-[#2a2a42]/90 backdrop-blur border-t border-[#333355]">
-        <div className="px-4 py-3 flex items-center justify-between">
-          <div>
-            <p className="text-[#b0b0cc] text-xs">Gesamt</p>
-            <p className="text-white text-lg font-bold">{total.toFixed(2)} €</p>
-          </div>
-          <button
-            onClick={() => setShowMenu(!showMenu)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              showMenu ? 'bg-[#555] text-white' : 'bg-[#7bb7ef] text-white hover:bg-[#7bb7ef]'
-            }`}
-          >
-            {showMenu ? 'Menü schließen' : '+ Manuell hinzufügen'}
-          </button>
-        </div>
       </div>
     </div>
   );
@@ -387,6 +648,7 @@ interface OrderRowProps {
     seatId?: number;
     timestamp: number;
     routing: string;
+    notes?: string;
   };
   getStateIcon: (state: string) => React.ReactNode;
   getStateLabel: (state: string) => string;
@@ -466,12 +728,12 @@ function OrderRow({ order, getStateIcon, getStateLabel, getCourseLabel, formatTi
   }, [onDelete]);
 
   return (
-    <div className={`relative overflow-hidden rounded-lg mb-1.5 ${isRemoving ? 'h-0 mb-0 opacity-0' : ''}`}
+    <div className={`relative overflow-hidden ${isRemoving ? 'h-0 opacity-0' : ''}`}
       style={{ transition: isRemoving ? 'height 0.25s ease, opacity 0.25s ease, margin 0.25s ease' : undefined }}
     >
       {/* Red delete background - only visible when swiping */}
       {offsetX < 0 && (
-        <div className="absolute inset-0 bg-red-600 flex items-center justify-end pr-5 rounded-lg">
+        <div className="absolute inset-0 bg-red-600 flex items-center justify-end pr-5">
           <Trash2 className="w-5 h-5 text-white" />
         </div>
       )}
@@ -479,7 +741,7 @@ function OrderRow({ order, getStateIcon, getStateLabel, getCourseLabel, formatTi
       {/* Swipeable content */}
       <div
         ref={rowRef}
-        className={`relative flex items-center gap-3 p-3 bg-[#2a2a42]/60 ${dimmed ? 'opacity-50' : ''} select-none`}
+        className={`relative grid grid-cols-[36px_minmax(0,1fr)_auto] items-start gap-3 px-4 py-3 bg-transparent hover:bg-[#23253a]/65 ${dimmed ? 'opacity-50' : ''} select-none`}
         style={{
           transform: `translateX(${offsetX}px)`,
           transition: isDraggingRef.current ? 'none' : 'transform 0.25s ease',
@@ -489,22 +751,22 @@ function OrderRow({ order, getStateIcon, getStateLabel, getCourseLabel, formatTi
         onTouchEnd={handleTouchEnd}
         onMouseDown={handleMouseDown}
       >
-        <div className="flex-shrink-0">
-          {getStateIcon(order.state)}
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#3a3d61] bg-[#262944]">
+          <span className="text-[13px] font-bold leading-none text-[#ffffff]">{order.quantity}</span>
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-baseline gap-2">
-            <span className="text-[#b1d9ff] text-sm font-bold min-w-6">{order.quantity}x</span>
-            <p className="text-white text-sm font-medium">
+        <div className="min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <p className="text-white text-sm font-medium leading-tight">
               {order.name}
             </p>
             {order.seatId && (
-              <span className="text-xs text-[#b1d9ff] bg-violet-900/50 px-1.5 py-0.5 rounded">
+              <span className="rounded bg-[#8b5cf6]/12 px-1.5 py-0.5 text-[10px] font-semibold text-[#c4b5fd]">
                 Gast {order.seatId}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2 mt-0.5">
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="flex-shrink-0">{getStateIcon(order.state)}</span>
             <span className="text-[#b0b0cc] text-xs">{formatTime(order.timestamp)}</span>
             <span className="text-[#777] text-xs">·</span>
             <span className="text-[#b0b0cc] text-xs">{getStateLabel(order.state)}</span>
@@ -520,18 +782,26 @@ function OrderRow({ order, getStateIcon, getStateLabel, getCourseLabel, formatTi
                 <span className="text-amber-400 text-xs">{order.modifiers.join(', ')}</span>
               </>
             )}
+            {order.notes && (
+              <>
+                <span className="text-[#777] text-xs">·</span>
+                <span className="text-[#f5d78a] text-xs">{order.notes}</span>
+              </>
+            )}
           </div>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <span className="text-[#c0c0dd] text-sm">{(order.price * order.quantity).toFixed(2)} €</span>
-          {onAction && (
-            <button
-              onClick={onAction}
-              className="px-2 py-1 rounded bg-[#353558] text-xs text-[#c0c0dd] hover:bg-[#555] transition-colors"
-            >
-              {actionLabel}
-            </button>
-          )}
+        <div className="flex flex-col items-end gap-2 text-right">
+          <span className="text-[#c0c0dd] text-sm font-medium">{(order.price * order.quantity).toFixed(2)} €</span>
+          <div className="flex items-center gap-2">
+            {onAction && (
+              <button
+                onClick={onAction}
+                className="rounded-md bg-[#353558] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#c0c0dd] hover:bg-[#555] transition-colors"
+              >
+                {actionLabel}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

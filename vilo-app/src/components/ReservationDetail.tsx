@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { Check, ChevronRight, CreditCard, Edit3, Mail, MessageSquare, Phone, Plus, Sofa, Trash2, X } from 'lucide-react';
+
 import { createPortal } from 'react-dom';
 import { useApp } from '../context/AppContext';
 import { Reservation, Table } from '../types';
-import { Check, Edit3, X, Trash2, Calendar, Clock, Users, Phone, Mail, MessageSquare, Tag } from 'lucide-react';
+
 import { updateReservation, deleteReservation, loadReservations } from '../utils/storage';
 
 interface ReservationDetailProps {
@@ -12,16 +14,26 @@ interface ReservationDetailProps {
   onUpdated: (reservations: Reservation[]) => void;
   onEdit?: () => void;
   onSeat?: () => void;
+  inline?: boolean;
 }
 
-export function ReservationDetail({ reservation, allTables, onClose, onUpdated, onEdit, onSeat }: ReservationDetailProps) {
+export function ReservationDetail({ reservation, allTables, onClose, onUpdated, onEdit, onSeat, inline = false }: ReservationDetailProps) {
   const { state, dispatch } = useApp();
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
 
   const r = reservation;
   const assignedIds = r.tableIds && r.tableIds.length > 0 ? r.tableIds : (r.tableId ? [r.tableId] : []);
 
   const isSeated = ['seated', 'partially_seated', 'appetizer', 'entree', 'dessert', 'cleared', 'check_dropped', 'paid', 'bussing_needed'].includes(r.status);
+
+  const requestClose = useCallback(() => {
+    setIsClosing(true);
+    window.setTimeout(() => {
+      onClose();
+      setIsClosing(false);
+    }, 140);
+  }, [onClose]);
 
   const handleToggleTable = (tableId: string) => {
     const currentIds = [...assignedIds];
@@ -96,6 +108,7 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
   });
 
   const paymentStatus = r.paymentStatus || 'open';
+  const guestInitial = (r.guestName || '?').trim().charAt(0).toUpperCase() || '?';
 
   // Format date for display
   const formatDate = (dateStr: string) => {
@@ -112,192 +125,194 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
     return h > 0 ? (m > 0 ? `${h}h ${m}min` : `${h}h`) : `${m}min`;
   };
 
-  // Source labels
-  const sourceLabels: Record<string, string> = { phone: 'Telefon', online: 'Online', walk_in: 'Walk-In' };
-  const sourceColors: Record<string, string> = { phone: '#f59e0b', online: '#ec4899', walk_in: '#22c55e' };
-
-  // Status labels
-  const statusLabels: Record<string, string> = {
-    confirmed: 'Bestätigt', seated: 'Platziert', partially_seated: 'Teilweise platziert',
-    cancelled: 'Storniert', no_show: 'No-Show', appetizer: 'Vorspeise', entree: 'Hauptgang',
-    dessert: 'Dessert', cleared: 'Abgeräumt', check_dropped: 'Rechnung', paid: 'Bezahlt', bussing_needed: 'Abräumen'
-  };
-
   // Assigned table names
   const assignedTableNames = assignedIds
     .map(id => allTables.find(t => t.id === id))
     .filter(Boolean)
     .map(t => t!.name);
 
-  return createPortal(
-    <div className="fixed inset-0 z-[60] flex flex-col" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={onClose}>
-      <div className="mt-auto w-full rounded-t-2xl overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto" style={{ background: '#1a1a2e' }} onClick={e => e.stopPropagation()}>
+  const paymentStatusLabel: Record<typeof paymentStatus, string> = {
+    open: 'Zahlung offen',
+    partial: 'Anzahlung',
+    paid: 'Bezahlt',
+  };
+  const cardBg = '#2d2c48';
+  const surfaceBg = '#26243f';
 
-        {/* Header - Guest Name + Status */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-2">
-          <div>
-            <h2 className="text-2xl font-bold text-white">{r.guestName}</h2>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{
-                background: r.status === 'cancelled' ? '#ef444433' : isSeated ? '#7c3aed33' : '#7bb7ef33',
-                color: r.status === 'cancelled' ? '#ef4444' : isSeated ? '#7c3aed' : '#7bb7ef'
-              }}>
-                {statusLabels[r.status] || r.status}
-              </span>
-              <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{
-                background: (sourceColors[r.source] || '#8888aa') + '22',
-                color: sourceColors[r.source] || '#8888aa'
-              }}>
-                {sourceLabels[r.source] || r.source}
-              </span>
-            </div>
-          </div>
-          <button onClick={onClose} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0]"><X className="w-6 h-6" /></button>
+  const panel = (
+    <div
+      className={
+        inline
+          ? 'h-full w-[320px] max-w-[36vw] overflow-y-auto border-l border-white/[0.03]'
+          : `h-full w-[320px] max-w-[92vw] overflow-y-auto shadow-2xl ${isClosing ? 'vilo-panel-exit' : 'vilo-panel-enter'}`
+      }
+      style={{ background: '#1f1e33', borderLeft: inline ? '1px solid rgba(255,255,255,0.03)' : undefined }}
+      onClick={e => e.stopPropagation()}
+    >
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.03]">
+          <h2 className="text-[16px] font-bold text-white">Reservierung</h2>
+          <button onClick={requestClose} className="ml-3 p-1 text-[#b0b0cc] hover:text-[#e0e0f0] shrink-0"><X className="w-5 h-5" /></button>
         </div>
 
-        {/* BLOCK 1: Reservierungsdetails */}
-        <div className="mx-5 mt-3 rounded-xl border border-[#333355]" style={{ background: '#1a1a2e' }}>
-          <div className="grid grid-cols-2 gap-0">
-            <div className="flex items-center gap-2.5 px-4 py-3 border-b border-r border-[#333355]">
-              <Calendar className="w-4 h-4 text-[#7bb7ef] shrink-0" />
-              <span className="text-sm text-white">{formatDate(r.date)}</span>
+        <div className="px-4 py-4 space-y-3">
+          <div className="flex items-center gap-4 px-4 py-4" style={{ background: surfaceBg }}>
+            <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center bg-[#8b5cf6] text-[28px] font-bold text-white">
+              {guestInitial}
             </div>
-            <div className="flex items-center gap-2.5 px-4 py-3 border-b border-[#333355]">
-              <Clock className="w-4 h-4 text-[#7bb7ef] shrink-0" />
-              <span className="text-sm text-white">{r.time} Uhr</span>
-              <span className="text-xs text-[#8888aa]">({formatDuration(r.duration || 90)})</span>
-            </div>
-            <div className="flex items-center gap-2.5 px-4 py-3 border-r border-[#333355]">
-              <Users className="w-4 h-4 text-[#7bb7ef] shrink-0" />
-              <span className="text-sm text-white">{r.partySize} {r.partySize === 1 ? 'Gast' : 'Gäste'}</span>
-            </div>
-            <div className="flex items-center gap-2.5 px-4 py-3">
-              <Tag className="w-4 h-4 text-[#7bb7ef] shrink-0" />
-              <span className="text-sm text-white truncate">
-                {assignedTableNames.length > 0 ? assignedTableNames.join(', ') : 'Kein Tisch'}
-              </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <div className="min-w-0 flex-1 truncate text-[16px] font-bold text-white">{r.guestName}</div>
+                {onEdit && (
+                  <button
+                    onClick={() => { onEdit(); onClose(); }}
+                    className="shrink-0 p-1 text-[#c4b5fd] hover:text-[#e9ddff] transition-colors"
+                    aria-label="Reservierung bearbeiten"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              {r.guestPhone && (
+                <div className="mt-1 flex items-center gap-2 text-[12px] font-medium text-[#d8c7ff]">
+                  <Phone className="w-4 h-4 shrink-0" />
+                  <span className="truncate">{r.guestPhone}</span>
+                </div>
+              )}
             </div>
           </div>
-        </div>
 
-        {/* BLOCK 2: Gästeprofil */}
-        <div className="mx-5 mt-3 rounded-xl border border-[#333355]" style={{ background: '#1a1a2e' }}>
-          {r.guestPhone && (
-            <div className="flex items-center gap-2.5 px-4 py-3 border-b border-[#333355]">
-              <Phone className="w-4 h-4 text-[#b0b0cc] shrink-0" />
-              <span className="text-sm text-white">{r.guestPhone}</span>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="px-3 py-2.5 text-center" style={{ background: surfaceBg }}>
+              <div className="text-[12px] font-bold text-white">{r.time}</div>
             </div>
-          )}
-          {r.guestEmail && (
-            <div className="flex items-center gap-2.5 px-4 py-3 border-b border-[#333355]">
-              <Mail className="w-4 h-4 text-[#b0b0cc] shrink-0" />
-              <span className="text-sm text-white">{r.guestEmail}</span>
+            <div className="px-3 py-2.5 text-center" style={{ background: surfaceBg }}>
+              <div className="text-[12px] font-bold text-white">{r.partySize} P.</div>
             </div>
-          )}
-          {r.notes && (
-            <div className="flex items-start gap-2.5 px-4 py-3 border-b border-[#333355]">
-              <MessageSquare className="w-4 h-4 text-[#b0b0cc] shrink-0 mt-0.5" />
-              <span className="text-sm text-[#c0c0dd]">{r.notes}</span>
+            <div className="px-3 py-2.5 text-center" style={{ background: surfaceBg }}>
+              <div className="text-[12px] font-bold text-white">{formatDuration(r.duration || 90)}</div>
             </div>
-          )}
-          {r.referralSource && (
-            <div className="flex items-center gap-2.5 px-4 py-3 border-b border-[#333355]">
-              <Tag className="w-4 h-4 text-[#a78bfa] shrink-0" />
-              <span className="text-sm text-[#a78bfa]">via {r.referralSource}</span>
+          </div>
+
+          <div className="px-4 py-4" style={{ background: surfaceBg }}>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center text-[#b8c4db]">
+                <Sofa className="w-5 h-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-[13px] font-bold text-white">
+                  {assignedTableNames.length > 0 ? assignedTableNames.join(', ') : 'Kein Tisch'}
+                </div>
+                <div className="mt-0.5 text-[11px] text-[#9aa4bd]">
+                  {assignedTableNames.length > 0 ? 'Zugewiesen' : 'Nicht zugewiesen'}
+                </div>
+              </div>
+              <ChevronRight className="h-4 w-4 shrink-0 text-[#a9a4ca]" />
             </div>
-          )}
-          {!r.guestPhone && !r.guestEmail && !r.notes && !r.referralSource && (
-            <div className="px-4 py-3 text-sm text-[#555577]">Keine Kontaktdaten hinterlegt</div>
-          )}
+          </div>
+
+          <div className="px-4 py-4" style={{ background: surfaceBg }}>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center text-[#b8c4db]">
+                <MessageSquare className="w-5 h-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-[13px] font-bold text-white">{r.guestPhone || 'Keine Telefonnummer'}</div>
+                <div className="mt-1 inline-flex bg-[#4b3a83] px-2 py-1 text-[11px] font-medium text-[#d9c4ff]">
+                  {r.guestPhone ? 'SMS-Updates aktiv' : 'SMS-Updates deaktiviert'}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <button className="flex min-h-[68px] items-center justify-center bg-[#373454] text-[#b8c4db] transition-colors hover:bg-[#403d61]">
+              <Mail className="h-6 w-6" />
+            </button>
+            <button className="flex min-h-[68px] items-center justify-center bg-[#373454] text-[#b8c4db] transition-colors hover:bg-[#403d61]">
+              <CreditCard className="h-6 w-6" />
+            </button>
+          </div>
+
+          <div className="overflow-hidden" style={{ background: surfaceBg }}>
+            <div className="flex items-center justify-between gap-3 px-4 py-4 border-b border-white/[0.06]">
+              <span className="text-[#eef1fb] text-[13px] font-semibold">Zahlungsstatus</span>
+              <span className="text-[11px] text-[#b4afd2]">{paymentStatusLabel[paymentStatus]}</span>
+            </div>
+            <div className="grid grid-cols-3 gap-1.5 p-2.5">
+              {([
+                { value: 'open', label: 'OFFEN' },
+                { value: 'partial', label: 'ANZAHLUNG' },
+                { value: 'paid', label: 'BEZAHLT' },
+              ] as const).map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => handlePaymentStatus(opt.value)}
+                  className={
+                    'min-h-[44px] px-1.5 py-2 text-[10px] font-bold tracking-[0.08em] leading-none whitespace-nowrap transition-colors ' +
+                    (paymentStatus === opt.value
+                      ? 'text-white bg-[#d946ef]'
+                      : 'text-[#c0c0dd] bg-[#373454] hover:bg-[#403d61]')
+                  }
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="px-4 py-4" style={{ background: surfaceBg }}>
+            <div className="flex items-center gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="text-[#eef1fb] text-[13px] font-semibold">Vermittler*in</div>
+                <div className="mt-0.5 text-[11px] text-[#8f97b3] truncate">
+                  {r.referralSource || 'Noch nicht zugewiesen'}
+                </div>
+              </div>
+              {!r.referralSource && <Plus className="w-4 h-4 text-[#c4b5fd] shrink-0" />}
+            </div>
+          </div>
         </div>
 
         {/* BLOCK 3: Aktionen */}
-        <div className="px-5 py-3 space-y-2">
+        <div className="px-4 py-4 space-y-2">
           {/* Platzieren */}
           {!isSeated && (
             <button onClick={handleSeat}
-              className="w-full flex items-center gap-3 py-4 px-4 rounded-xl text-white font-semibold text-base transition-colors"
-              style={{ background: '#7c3aed' }}>
+              className="w-full flex items-center justify-center gap-3 py-3 px-4 text-white font-semibold text-[15px] transition-colors"
+              style={{ background: '#8b5cf6' }}>
               <Check className="w-5 h-5" />
               Platzieren
             </button>
           )}
-
-          {/* Bearbeiten */}
-          <button onClick={() => { if (onEdit) onEdit(); onClose(); }}
-            className="w-full flex items-center gap-3 py-4 px-4 rounded-xl border border-[#3d3d5c] text-[#c0c0dd] font-medium text-base hover:bg-[#2a2a42] active:bg-[#353558] transition-colors">
-            <Edit3 className="w-5 h-5 text-[#b0b0cc]" />
-            Bearbeiten
-          </button>
-        </div>
-
-        {/* Tische zuweisen */}
-        <div className="px-5 py-3">
-          <p className="text-sm font-bold text-[#b0b0cc] tracking-wider mb-3">Tische zuweisen</p>
-          <div className="max-h-[160px] overflow-y-auto pr-1">
-            <div className="flex flex-wrap gap-2">
-              {allTables.map(table => {
-                const isAssigned = assignedIds.includes(table.id);
-                const isOccupied = occupiedTableIds.has(table.id);
-                const isBlocked = table.status === 'blocked';
-                const isDisabled = isOccupied || isBlocked;
-
-                return (
-                  <button key={table.id}
-                    onClick={() => !isDisabled && handleToggleTable(table.id)}
-                    className={'px-3 py-2 rounded-lg text-sm font-medium transition-all ' +
-                      (isAssigned
-                        ? 'border-2 border-[#7bb7ef] text-white bg-[#2a2a42]'
-                        : isDisabled
-                          ? 'border border-[#333355] text-[#555577] bg-[#222238] cursor-not-allowed'
-                          : 'border border-[#3d3d5c] text-[#c0c0dd] bg-[#2d2d50] hover:bg-[#444] cursor-pointer')
-                    }>
-                    {table.name}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Zahlungsstatus */}
-        <div className="px-5 py-3">
-          <p className="text-sm font-bold text-[#b0b0cc] tracking-wider mb-3">Zahlungsstatus</p>
-          <div className="flex gap-2">
-            {([
-              { value: 'open', label: 'OFFEN' },
-              { value: 'partial', label: 'ANZAHLUNG' },
-              { value: 'paid', label: 'BEZAHLT' },
-            ] as const).map(opt => (
-              <button key={opt.value}
-                onClick={() => handlePaymentStatus(opt.value)}
-                className={'px-4 py-2.5 rounded-lg text-sm font-bold tracking-wider transition-all ' +
-                  (paymentStatus === opt.value
-                    ? 'border-2 border-[#7bb7ef] text-white bg-[#2a2a42]'
-                    : 'border border-[#3d3d5c] text-[#c0c0dd] bg-[#2d2d50] hover:bg-[#444]')
-                }>
-                {opt.label}
-              </button>
-            ))}
-          </div>
         </div>
 
         {/* Danger Zone */}
-        <div className="px-5 py-3 pb-20 space-y-1">
+        <div className="px-4 py-4 pb-20 space-y-2">
           {r.status !== 'cancelled' && (
             <button onClick={handleCancel}
-              className="w-full flex items-center gap-3 py-4 px-4 text-[#ef4444] font-semibold text-base hover:bg-[#3a1a1a] transition-colors rounded-xl">
+              className="w-full flex items-center justify-center gap-3 py-3 px-4 text-[#f5d0fe] font-semibold text-[15px] transition-colors"
+              style={{ background: '#2b2944' }}>
               <X className="w-5 h-5" />
               Stornieren
             </button>
           )}
           <button onClick={handleDelete}
-            className="w-full flex items-center gap-3 py-4 px-4 text-[#ef4444] font-semibold text-base hover:bg-[#3a1a1a] transition-colors rounded-xl">
+            className="w-full flex items-center justify-center gap-3 py-3 px-4 text-[#f5d0fe] font-semibold text-[15px] transition-colors"
+            style={{ background: '#4a1733' }}>
             <Trash2 className="w-5 h-5" />
             {confirmDelete ? 'Wirklich loeschen?' : 'Loeschen'}
           </button>
         </div>
       </div>
+  );
+
+  if (inline) {
+    return panel;
+  }
+
+  return createPortal(
+    <div className={`fixed inset-0 z-[60] flex justify-end ${isClosing ? 'vilo-overlay-exit' : 'vilo-overlay-enter'}`} style={{ background: 'rgba(0,0,0,0.34)' }} onClick={requestClose}>
+      {panel}
     </div>,
     document.body
   );

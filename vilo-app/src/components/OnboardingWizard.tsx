@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ArrowLeft, ArrowRight, Plus, Trash2, Check, Zap, Store, LayoutGrid, UtensilsCrossed, Users } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, LayoutGrid, Plus, Store, Trash2, Users, UtensilsCrossed, Zap } from 'lucide-react';
+
 import { Zone, Table, MenuItem, Staff, MenuCategory } from '../types';
 
 interface OnboardingWizardProps {

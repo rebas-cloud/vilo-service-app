@@ -1,4 +1,6 @@
 import { useCallback, useState, useRef, useEffect } from 'react';
+import { AlertTriangle, BarChart3, BookOpen, Calendar, ChefHat, ChevronLeft, ChevronRight, Eye, LayoutGrid, LogOut, Menu, Settings, Sparkles } from 'lucide-react';
+
 import './App.css';
 import { AppProvider, useApp } from './context/AppContext';
 import { useVoice } from './hooks/useVoice';
@@ -20,16 +22,15 @@ import { Dashboard } from './components/Dashboard';
 import { KitchenBarDisplay } from './components/KitchenBarDisplay';
 import { ManagerSettings } from './components/ManagerSettings';
 import { ReservationList } from './components/ReservationList';
-import { ReservationPanel } from './components/Reservations';
 import { Timeline } from './components/Timeline';
 import { ProblemReservations } from './components/ProblemReservations';
-import { BookOpen, CalendarDays, CalendarCheck, Menu, MessageSquare, ChevronLeft, ChevronRight, Mic, LogOut, Settings, LayoutGrid, Sparkles, Megaphone, BarChart3, Eye, List, Clock, AlertTriangle, X, ChefHat } from 'lucide-react';
-// DirectMessages import removed - using ReservationPanel instead
+import viloLogo from './assets/VILO.svg';
+
 import { Restaurant, Zone, Table, MenuItem, Staff, ViloStorage } from './types';
 import { restaurant as demoRestaurantData, zones as demoZones, tables as demoTables, menu as demoMenu, staff as demoStaff } from './data/mockData';
 
 type AppScreen = 'welcome' | 'register' | 'onboarding' | 'waiter-login' | 'pos';
-type SubTab = 'statistiken' | 'uebersicht' | 'liste' | 'raumplan' | 'timeline' | 'probleme' | 'reservierungen';
+type SubTab = 'statistiken' | 'uebersicht' | 'liste' | 'raumplan' | 'timeline' | 'probleme' | 'reservierungen' | 'bearbeiten';
 
 function POSContent({ onLogout }: { onLogout: () => void }) {
   const { state, dispatch, executeIntent } = useApp();
@@ -38,11 +39,13 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
   const [showKitchenBar, setShowKitchenBar] = useState(false);
-  const [currentZoneName, setCurrentZoneName] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [voiceToastVisible, setVoiceToastVisible] = useState(false);
   const voiceToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isHomeSection = ['statistiken', 'uebersicht', 'probleme'].includes(subTab);
+  const isReservationSection = ['liste', 'timeline'].includes(subTab);
+  const isFloorPlanSection = ['raumplan', 'bearbeiten'].includes(subTab);
 
   // WebSocket sync hook - connects to backend and syncs state in real-time
   useSync();
@@ -122,22 +125,7 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
   }, [dispatch]);
 
   // Handle zone change from FloorPlan
-  const handleZoneChange = useCallback((_zoneId: string, zoneName: string) => {
-    setCurrentZoneName(zoneName);
-  }, []);
-
-  // Header arrow handlers - delegate to FloorPlan zone switching
-  const handlePrevZone = useCallback(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const fn = (window as any).__floorPlanPrevZone;
-    if (typeof fn === 'function') fn();
-  }, []);
-
-  const handleNextZone = useCallback(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const fn = (window as any).__floorPlanNextZone;
-    if (typeof fn === 'function') fn();
-  }, []);
+  const handleZoneChange = useCallback((_zoneId: string, _zoneName: string) => {}, []);
 
   // Show voice toast for a few seconds after each command
   useEffect(() => {
@@ -166,20 +154,24 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
     return (
       <div className="flex flex-col h-screen-safe bg-[#1a1a2e]">
         <div className="flex-1 overflow-hidden" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
-          <TableDetail onBack={() => dispatch({ type: 'CLEAR_ACTIVE_TABLE' })} />
+          <TableDetail
+            onBack={() => dispatch({ type: 'CLEAR_ACTIVE_TABLE' })}
+            voiceIndicator={
+              <VoiceIndicator
+                mode={voice.mode}
+                transcript={voice.transcript}
+                lastCommand={state.lastCommand}
+                lastConfirmation={state.lastConfirmation}
+                isSupported={voice.isSupported}
+                isWakeMode={voice.isWakeMode}
+                onTapSpeak={voice.startDirectCommand}
+                onToggleWake={voice.startListening}
+                onStop={voice.stopListening}
+                onUndo={handleUndo}
+              />
+            }
+          />
         </div>
-        <VoiceIndicator
-          mode={voice.mode}
-          transcript={voice.transcript}
-          lastCommand={state.lastCommand}
-          lastConfirmation={state.lastConfirmation}
-          isSupported={voice.isSupported}
-          isWakeMode={voice.isWakeMode}
-          onTapSpeak={voice.startDirectCommand}
-          onToggleWake={voice.startListening}
-          onStop={voice.stopListening}
-          onUndo={handleUndo}
-        />
         {state.showBilling && <BillingModal />}
       </div>
     );
@@ -224,7 +216,13 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
         return (
           <FloorPlan
             onZoneChange={handleZoneChange}
-            onShowReservations={() => setSubTab('reservierungen')}
+          />
+        );
+      case 'bearbeiten':
+        return (
+          <FloorPlan
+            onZoneChange={handleZoneChange}
+            initialEditMode={true}
           />
         );
       case 'timeline':
@@ -232,7 +230,7 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
       case 'probleme':
         return <ProblemReservations onSelectTable={handleSelectTable} />;
       case 'reservierungen':
-        return <ReservationPanel onClose={() => setSubTab('statistiken')} />;
+        return <ReservationList onSelectTable={handleSelectTable} />;
       default:
         return null;
     }
@@ -244,44 +242,48 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
       {/* Top Header */}
       {subTab !== 'reservierungen' && (
         <>
-          <header className="px-4 py-2.5 grid grid-cols-3 items-center" style={{ background: '#1a1a2e', paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
-            {/* Left: VILO logo + zone name */}
-            <div className="flex items-center gap-2">
-              <span className="text-white font-bold text-lg italic tracking-tight" style={{ fontFamily: 'Georgia, serif' }}>vilo</span>
-              {!isToday() && (
-                <button
-                  onClick={() => setSelectedDate(new Date())}
-                  className="text-[#7bb7ef] text-xs font-medium px-2 py-1 rounded-lg bg-[#7bb7ef]/10 hover:bg-[#7bb7ef]/20 transition-colors"
-                >
-                  Heute
-                </button>
-              )}
+          <header className="grid grid-cols-[auto_1fr_auto] items-center gap-2 px-3 py-2" style={{ background: '#1a1a2e', paddingTop: 'max(0.625rem, env(safe-area-inset-top))' }}>
+            {/* Left: logo */}
+            <div className="flex items-center">
+              <img src={viloLogo} alt="Vilo" className="h-4 w-auto flex-shrink-0" />
             </div>
+
             {/* Center: date with chevrons */}
-            <div className="flex items-center justify-center gap-1">
-              <button onClick={() => changeDate(-1)} className="p-1 text-[#b0b0cc] hover:text-white transition-colors">
+            <div className="min-w-0 flex items-center justify-center gap-1">
+              <button onClick={() => changeDate(-1)} className="shrink-0 p-1 text-[#b0b0cc] hover:text-white transition-colors">
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setShowDatePicker(true)}
-                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                className="min-w-0 max-w-full flex items-center justify-center gap-2 hover:opacity-80 transition-opacity"
               >
-                <h1 className="text-white font-bold text-lg">{getDateHeader()}</h1>
-                <span className="text-[#b0b0cc] text-sm font-medium">{getShiftName()}</span>
-                {!isToday() && <span className="text-[#7bb7ef] text-xs">(nicht heute)</span>}
+                <h1 className="truncate text-white font-bold text-[14px] sm:text-[15px] leading-none">{getDateHeader()}</h1>
+                <span className="truncate text-[#b0b0cc] text-[12px] sm:text-[13px] font-medium leading-none max-w-[92px] sm:max-w-none">
+                  {getShiftName()}
+                </span>
+                {!isToday() && <span className="hidden sm:inline text-[#cf45f3] text-[10px] leading-none">(nicht heute)</span>}
               </button>
-              <button onClick={() => changeDate(1)} className="p-1 text-[#b0b0cc] hover:text-white transition-colors">
+              <button onClick={() => changeDate(1)} className="shrink-0 p-1 text-[#b0b0cc] hover:text-white transition-colors">
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
-            {/* Right: settings */}
+
+            {/* Right: actions */}
             <div className="flex items-center justify-end gap-1">
-              <div className="relative ml-1">
+              {!isToday() && (
+                <button
+                  onClick={() => setSelectedDate(new Date())}
+                  className="hidden sm:inline-flex shrink-0 text-[#cf45f3] text-[11px] font-medium px-2 py-1 bg-[#cf45f3]/10 hover:bg-[#cf45f3]/20 transition-colors"
+                >
+                  Heute
+                </button>
+              )}
+              <div className="relative">
                 <button
                   onClick={() => setShowMoreMenu(prev => !prev)}
-                  className="p-2 rounded-xl text-[#b0b0cc] hover:text-white hover:bg-[#2a2a42] transition-colors"
+                  className="p-1.5 text-[#b0b0cc] hover:text-white hover:bg-[#2a2a42] transition-colors"
                 >
-                  <Settings className="w-5 h-5" />
+                  <Settings className="w-4.5 h-4.5" />
                 </button>
                 {showMoreMenu && (
                   <div className="absolute right-0 top-full mt-1 bg-[#2a2a42] border border-[#333355] rounded-xl shadow-xl z-50 min-w-[180px] overflow-hidden animate-fade-in">
@@ -349,27 +351,34 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
         {/* Scrollable Sub-Tabs */}
         {subTab !== 'reservierungen' && (
           <div className="flex overflow-x-auto hide-scrollbar border-b border-[#333355] shrink-0" style={{ background: '#1a1a2e' }}>
-            {[
-              { id: 'statistiken' as SubTab, label: 'Statistiken' },
-              { id: 'uebersicht' as SubTab, label: 'Übersicht' },
-              { id: 'liste' as SubTab, label: 'Liste' },
-              { id: 'raumplan' as SubTab, label: 'Raumplan' },
-              { id: 'timeline' as SubTab, label: 'Timeline' },
-              { id: 'probleme' as SubTab, label: 'Probleme' },
-              { id: 'reservierungen' as SubTab, label: 'Reservierungen' },
-            ].map(tab => (
+            {(isHomeSection
+              ? [
+                  { id: 'statistiken' as SubTab, label: 'Statistiken' },
+                  { id: 'uebersicht' as SubTab, label: 'Übersicht' },
+                  { id: 'probleme' as SubTab, label: 'Probleme' },
+                ]
+              : isFloorPlanSection
+                ? [
+                    { id: 'raumplan' as SubTab, label: 'Raumplanung' },
+                    { id: 'bearbeiten' as SubTab, label: 'Bearbeiten' },
+                  ]
+                : [
+                    { id: 'liste' as SubTab, label: 'Liste' },
+                    { id: 'timeline' as SubTab, label: 'Timeline' },
+                  ]
+            ).map(tab => (
               <button
                 key={tab.id}
                 onClick={() => { setSubTab(tab.id); setShowMoreMenu(false); }}
                 className={`px-4 py-2.5 text-sm font-semibold whitespace-nowrap transition-colors relative ${
                   subTab === tab.id
-                    ? 'text-[#7bb7ef]'
+                    ? 'text-[#c4b5fd]'
                     : 'text-[#8888aa] hover:text-[#c0c0dd]'
                 }`}
               >
                 {tab.label}
                 {subTab === tab.id && (
-                  <div className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full" style={{ background: '#7bb7ef' }} />
+                  <div className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full" style={{ background: '#8b5cf6' }} />
                 )}
               </button>
             ))}
@@ -431,8 +440,8 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
             onClick={() => { setSubTab('statistiken'); setShowDrawer(false); }}
             className="relative flex flex-col items-center justify-center w-16 h-full transition-colors"
           >
-            <BookOpen className={`w-6 h-6 ${subTab === 'statistiken' && !showDrawer ? 'text-[#7bb7ef]' : 'text-[#6b6b8a]'}`} />
-            {subTab === 'statistiken' && !showDrawer && <div className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-[#7bb7ef]" />}
+            <BookOpen className={`w-6 h-6 ${isHomeSection && !showDrawer ? 'text-[#8b5cf6]' : 'text-[#6b6b8a]'}`} />
+            {isHomeSection && !showDrawer && <div className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-[#8b5cf6]" />}
           </button>
           {/* AI Voice */}
           <button
@@ -453,19 +462,19 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
           </button>
           {/* Reservierungen */}
           <button
-            onClick={() => { setSubTab('reservierungen'); setShowDrawer(false); }}
+            onClick={() => { setSubTab('liste'); setShowDrawer(false); }}
             className="relative flex flex-col items-center justify-center w-16 h-full transition-colors"
           >
-            <CalendarDays className={`w-6 h-6 ${subTab === 'reservierungen' && !showDrawer ? 'text-[#7bb7ef]' : 'text-[#6b6b8a]'}`} />
-            {subTab === 'reservierungen' && !showDrawer && <div className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-[#7bb7ef]" />}
+            <Calendar className={`w-6 h-6 ${isReservationSection && !showDrawer ? 'text-[#8b5cf6]' : 'text-[#6b6b8a]'}`} />
+            {isReservationSection && !showDrawer && <div className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-[#8b5cf6]" />}
           </button>
           {/* Raumplan */}
           <button
             onClick={() => { setSubTab('raumplan'); setShowDrawer(false); }}
             className="relative flex flex-col items-center justify-center w-16 h-full transition-colors"
           >
-            <LayoutGrid className={`w-6 h-6 ${subTab === 'raumplan' && !showDrawer ? 'text-[#7bb7ef]' : 'text-[#6b6b8a]'}`} />
-            {subTab === 'raumplan' && !showDrawer && <div className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-[#7bb7ef]" />}
+            <LayoutGrid className={`w-6 h-6 ${isFloorPlanSection && !showDrawer ? 'text-[#8b5cf6]' : 'text-[#6b6b8a]'}`} />
+            {isFloorPlanSection && !showDrawer && <div className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-[#8b5cf6]" />}
           </button>
           {/* Mehr - Slide-Up Drawer */}
           <button
@@ -499,11 +508,7 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
                 {[
                   { id: 'statistiken' as SubTab, label: 'Statistiken', icon: BarChart3 },
                   { id: 'uebersicht' as SubTab, label: 'Übersicht', icon: Eye },
-                  { id: 'liste' as SubTab, label: 'Liste', icon: List },
-                  { id: 'raumplan' as SubTab, label: 'Raumplan', icon: LayoutGrid },
-                  { id: 'timeline' as SubTab, label: 'Timeline', icon: Clock },
                   { id: 'probleme' as SubTab, label: 'Probleme', icon: AlertTriangle },
-                  { id: 'reservierungen' as SubTab, label: 'Reserv.', icon: CalendarDays },
                 ].map(item => {
                   const Icon = item.icon;
                   const isActive = subTab === item.id;
@@ -513,7 +518,7 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
                       onClick={() => { setSubTab(item.id); setShowDrawer(false); }}
                       className={`flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl transition-colors ${
                         isActive
-                          ? 'bg-[#7bb7ef]/15 text-[#7bb7ef]'
+                          ? 'bg-[#8b5cf6]/15 text-[#c4b5fd]'
                           : 'text-[#8888aa] hover:bg-[#2a2a42] hover:text-[#c0c0dd]'
                       }`}
                     >

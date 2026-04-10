@@ -1,6 +1,13 @@
 import { useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { subscribeToState, unsubscribeChannel, supabaseUpdateState, supabaseSaveConfig } from '../utils/supabase';
+import {
+  isSupabaseAvailable,
+  subscribeToState,
+  unsubscribeChannel,
+  supabaseRestaurantExists,
+  supabaseUpdateState,
+  supabaseSaveConfig,
+} from '../utils/supabase';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import type { AppState } from '../context/AppContext';
 
@@ -18,58 +25,76 @@ export function useSync() {
   const prevStateRef = useRef<AppState | null>(null);
   const isRemoteUpdate = useRef(false);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const canSyncRef = useRef(false);
 
   // Subscribe to Supabase Realtime on mount
   useEffect(() => {
-    if (!restaurantId) return;
+    if (!restaurantId || !isSupabaseAvailable()) {
+      canSyncRef.current = false;
+      return;
+    }
 
-    const channel = subscribeToState(
-      restaurantId,
-      // State change handler
-      (payload) => {
-        console.log('[VILO SYNC] State change:', payload.eventType);
-        isRemoteUpdate.current = true;
+    let isCancelled = false;
 
-        const row = payload.new;
-        if (row && Object.keys(row).length > 0) {
-          dispatch({
-            type: 'SYNC_STATE',
-            sessions: (row.sessions_json as Record<string, unknown>) || {},
-            closedTables: (row.closed_tables_json as unknown[]) || [],
-            tipHistory: (row.tip_history_json as unknown[]) || [],
-            closedTableRevenue: (row.closed_table_revenue as number) || 0,
-            shiftStart: (row.shift_start as number) || Date.now(),
-            shiftHistory: (row.shift_history_json as unknown[]) || [],
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          } as any);
-        }
-
-        setTimeout(() => { isRemoteUpdate.current = false; }, 50);
-      },
-      // Config change handler
-      (payload) => {
-        console.log('[VILO SYNC] Config change:', payload.eventType);
-        isRemoteUpdate.current = true;
-
-        const row = payload.new;
-        if (row && Object.keys(row).length > 0) {
-          dispatch({
-            type: 'SYNC_CONFIG',
-            zones: (row.zones_json as unknown[]) || [],
-            tables: (row.tables_json as unknown[]) || [],
-            menu: (row.menu_json as unknown[]) || [],
-            staff: (row.staff_json as unknown[]) || [],
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          } as any);
-        }
-
-        setTimeout(() => { isRemoteUpdate.current = false; }, 50);
+    void (async () => {
+      const exists = await supabaseRestaurantExists(restaurantId);
+      if (isCancelled || !exists) {
+        canSyncRef.current = false;
+        return;
       }
-    );
 
-    channelRef.current = channel;
+      canSyncRef.current = true;
+
+      const channel = subscribeToState(
+        restaurantId,
+        // State change handler
+        (payload) => {
+          console.log('[VILO SYNC] State change:', payload.eventType);
+          isRemoteUpdate.current = true;
+
+          const row = payload.new;
+          if (row && Object.keys(row).length > 0) {
+            dispatch({
+              type: 'SYNC_STATE',
+              sessions: (row.sessions_json as Record<string, unknown>) || {},
+              closedTables: (row.closed_tables_json as unknown[]) || [],
+              tipHistory: (row.tip_history_json as unknown[]) || [],
+              closedTableRevenue: (row.closed_table_revenue as number) || 0,
+              shiftStart: (row.shift_start as number) || Date.now(),
+              shiftHistory: (row.shift_history_json as unknown[]) || [],
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } as any);
+          }
+
+          setTimeout(() => { isRemoteUpdate.current = false; }, 50);
+        },
+        // Config change handler
+        (payload) => {
+          console.log('[VILO SYNC] Config change:', payload.eventType);
+          isRemoteUpdate.current = true;
+
+          const row = payload.new;
+          if (row && Object.keys(row).length > 0) {
+            dispatch({
+              type: 'SYNC_CONFIG',
+              zones: (row.zones_json as unknown[]) || [],
+              tables: (row.tables_json as unknown[]) || [],
+              menu: (row.menu_json as unknown[]) || [],
+              staff: (row.staff_json as unknown[]) || [],
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } as any);
+          }
+
+          setTimeout(() => { isRemoteUpdate.current = false; }, 50);
+        }
+      );
+
+      channelRef.current = channel;
+    })();
 
     return () => {
+      isCancelled = true;
+      canSyncRef.current = false;
       if (channelRef.current) {
         unsubscribeChannel(channelRef.current);
         channelRef.current = null;
@@ -101,7 +126,7 @@ export function useSync() {
 
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
     debounceTimer.current = setTimeout(() => {
-      if (!restaurantId) return;
+      if (!restaurantId || !canSyncRef.current) return;
 
       supabaseUpdateState({
         restaurant_id: restaurantId,
@@ -140,7 +165,7 @@ export function useSync() {
 
     if (configDebounceTimer.current) clearTimeout(configDebounceTimer.current);
     configDebounceTimer.current = setTimeout(() => {
-      if (!restaurantId) return;
+      if (!restaurantId || !canSyncRef.current) return;
 
       supabaseSaveConfig({
         restaurant_id: restaurantId,

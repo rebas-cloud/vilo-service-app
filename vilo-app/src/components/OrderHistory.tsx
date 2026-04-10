@@ -1,11 +1,7 @@
 import { useState } from 'react';
+import { AlertTriangle, Banknote, Check, ChevronDown, ChevronUp, Clock, CreditCard, Euro, FileDown, HandCoins, Receipt, RotateCcw, Shuffle, TrendingUp, Users } from 'lucide-react';
+
 import { useApp } from '../context/AppContext';
-import {
-  Clock, Euro, HandCoins, Users, Receipt,
-  ChevronDown, ChevronUp, CreditCard, Banknote,
-  Shuffle, TrendingUp, AlertTriangle, Check,
-  FileDown, RotateCcw
-} from 'lucide-react';
 
 interface OrderHistoryProps {
   onSelectTable: (tableId: string) => void;

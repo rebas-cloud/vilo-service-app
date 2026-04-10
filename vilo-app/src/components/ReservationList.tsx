@@ -1,11 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Reservation, Guest, OccasionLabel } from '../types';
-import { loadReservations, loadGuests } from '../utils/storage';
-import {
-  Users, ChevronUp, ChevronDown, Armchair,
-  Printer, Download
-} from 'lucide-react';
-import { IconConfetti, IconHeartFilled, IconGiftFilled, IconHeartHandshake, IconSparkles, IconSchool, IconMasksTheater, IconBriefcaseFilled, IconStarFilled } from '@tabler/icons-react';
+import { ChevronDown, ChevronUp, Clock3, Download, Phone, Printer, Users } from 'lucide-react';
+
+import { useApp } from '../context/AppContext';
+import { ReservationDetail } from './ReservationDetail';
+import { Reservation } from '../types';
+import { loadReservations } from '../utils/storage';
 
 interface ReservationListProps {
   onSelectTable?: (tableId: string) => void;
@@ -18,45 +17,27 @@ function getTodayStr(): string {
 
 // Figma source colors
 const SOURCE_COLORS: Record<string, string> = {
-  phone: '#f59e0b',
+  phone: '#8b5cf6',
   online: '#ec4899',
   walk_in: '#22c55e',
 };
 
+const SOURCE_ICONS: Record<string, typeof Phone> = {
+  phone: Phone,
+  online: Phone,
+  walk_in: Phone,
+};
+
 // Figma occasion icon badges
-const OCCASION_ICONS: Record<string, { Icon: typeof IconConfetti; color: string }> = {
-  geburtstag: { Icon: IconConfetti, color: '#22c55e' },
-  jahrestag: { Icon: IconHeartFilled, color: '#22c55e' },
-  besonderer_anlass: { Icon: IconSparkles, color: '#a855f7' },
-  date: { Icon: IconHeartHandshake, color: '#ec4899' },
-  geschaeftsessen: { Icon: IconBriefcaseFilled, color: '#a855f7' },
-  gratis_extra: { Icon: IconGiftFilled, color: '#22c55e' },
-  schulabschluss: { Icon: IconSchool, color: '#3b82f6' },
-  theater_kino: { Icon: IconMasksTheater, color: '#f59e0b' },
-};
-
-const ALL_TAGS_MAP: Record<string, { label: string; color: string }> = {
-  vip: { label: 'VIP', color: '#eab308' },
-  stammgast: { label: 'Stammgast', color: '#22d3ee' },
-  allergiker: { label: 'Allergiker', color: '#ef4444' },
-  vegetarier: { label: 'Vegetarier', color: '#22c55e' },
-  vegan: { label: 'Vegan', color: '#16a34a' },
-  kinderstuhl: { label: 'Kinderstuhl', color: '#f97316' },
-  rollstuhl: { label: 'Rollstuhl', color: '#8b5cf6' },
-  geburtstag: { label: 'Geburtstag', color: '#ec4899' },
-  business: { label: 'Business', color: '#6366f1' },
-  presse: { label: 'Presse', color: '#a78bfa' },
-};
-
-export function ReservationList({ onSelectTable: _onSelectTable }: ReservationListProps) {
+export function ReservationList({ onSelectTable }: ReservationListProps) {
+  const { state } = useApp();
   const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [guests, setGuests] = useState<Guest[]>([]);
   const [collapsed, setCollapsed] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [selectedReservationId, setSelectedReservationId] = useState<string | null>(null);
 
   useEffect(() => {
     setReservations(loadReservations());
-    setGuests(loadGuests());
   }, [refreshKey]);
 
   useEffect(() => {
@@ -73,11 +54,17 @@ export function ReservationList({ onSelectTable: _onSelectTable }: ReservationLi
 
   const totalGroups = todayReservations.length;
   const totalGuests = todayReservations.reduce((sum, r) => sum + r.partySize, 0);
+  const selectedReservation = todayReservations.find(r => r.id === selectedReservationId) || null;
 
-  const getGuestForReservation = (r: Reservation): Guest | undefined => {
-    if (!r.guestPhone) return undefined;
-    return guests.find(g => g.phone === r.guestPhone);
-  };
+  useEffect(() => {
+    if (!selectedReservationId && todayReservations.length > 0) {
+      setSelectedReservationId(todayReservations[0].id);
+      return;
+    }
+    if (selectedReservationId && !todayReservations.some(r => r.id === selectedReservationId)) {
+      setSelectedReservationId(todayReservations[0]?.id ?? null);
+    }
+  }, [todayReservations, selectedReservationId]);
 
   const getPaymentLabel = (r: Reservation): string => {
     if (r.paymentStatus === 'paid') return 'Bezahlt';
@@ -87,7 +74,7 @@ export function ReservationList({ onSelectTable: _onSelectTable }: ReservationLi
 
   const getTableStatusLabel = (r: Reservation): string => {
     if (r.status === 'seated') return 'Platziert';
-    if (r.status === 'completed') return 'Fertig';
+    if (r.status === 'finished') return 'Fertig';
     if (r.status === 'confirmed' && r.tableId) return 'Zugewiesen';
     return '-';
   };
@@ -108,8 +95,6 @@ export function ReservationList({ onSelectTable: _onSelectTable }: ReservationLi
   };
 
   // OpenTable-style stats for header
-  const seatedCount = todayReservations.filter(r => r.status === 'seated').length;
-  const confirmedCount = todayReservations.filter(r => r.status === 'confirmed').length;
   const walkInCount = todayReservations.filter(r => r.source === 'walk_in').length;
   const onlineCount = todayReservations.filter(r => r.source === 'online').length;
   const phoneCount = todayReservations.filter(r => r.source === 'phone').length;
@@ -135,7 +120,6 @@ export function ReservationList({ onSelectTable: _onSelectTable }: ReservationLi
       <table>
         <thead><tr><th>Zeit</th><th>Pers.</th><th>Gast</th><th>Tisch</th><th>Notizen &amp; Tags</th><th>Zahlung</th><th>Tisch-Status</th><th>Erstellt</th></tr></thead>
         <tbody>${todayReservations.map(r => {
-          const st = r.status === 'confirmed' ? 'Best\u00e4tigt' : r.status === 'seated' ? '<span class="seated">Platziert</span>' : r.status === 'completed' ? 'Fertig' : r.status;
           const pay = r.paymentStatus === 'paid' ? '<span class="paid">Bezahlt</span>' : r.paymentStatus === 'partial' ? 'Angezahlt' : '-';
           const tblSt = r.status === 'seated' ? '<span class="seated">Platziert</span>' : r.tableId ? 'Zugewiesen' : '-';
           const created = r.createdAt ? new Date(r.createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }) : '-';
@@ -149,107 +133,104 @@ export function ReservationList({ onSelectTable: _onSelectTable }: ReservationLi
   };
 
   return (
-    <div className="h-full overflow-y-auto" style={{ background: 'transparent' }}>
-      {/* Section header - OpenTable style with stats */}
-      <div className="flex items-center justify-between px-3 py-2.5">
-        <div>
-          <h2 className="text-white font-bold text-[15px]">Reservierungen</h2>
-          <p className="text-[#8888aa] text-[10px]">{totalGuests} Covers &middot; {totalGroups} Parties &middot; {walkInCount} Walk-Ins &middot; {onlineCount} Online</p>
+    <div className="flex h-full min-h-0" style={{ background: 'transparent' }}>
+      <div className="min-w-0 flex-1 overflow-y-auto">
+        {/* Section header - OpenTable style with stats */}
+        <div className="flex items-center justify-between px-3 py-2.5">
+          <div>
+            <h2 className="text-white font-bold text-[15px]">Reservierungen</h2>
+            <p className="text-[#8888aa] text-[10px]">{totalGuests} Covers &middot; {totalGroups} Parties &middot; {walkInCount} Walk-Ins &middot; {onlineCount} Online</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <button onClick={handleExportCSV} className="p-0.5 text-[#8888aa] hover:text-[#7bb7ef] transition-colors" title="CSV Export">
+              <Download className="w-4 h-4" />
+            </button>
+            <button onClick={handlePrint} className="p-0.5 text-[#8888aa] hover:text-[#7bb7ef] transition-colors" title="Drucken">
+              <Printer className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="p-0.5 text-[#8888aa] hover:text-white transition-colors"
+            >
+              {collapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <button onClick={handleExportCSV} className="p-0.5 text-[#8888aa] hover:text-[#7bb7ef] transition-colors" title="CSV Export">
-            <Download className="w-4 h-4" />
-          </button>
-          <button onClick={handlePrint} className="p-0.5 text-[#8888aa] hover:text-[#7bb7ef] transition-colors" title="Drucken">
-            <Printer className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="p-0.5 text-[#8888aa] hover:text-white transition-colors"
-          >
-            {collapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
-          </button>
-        </div>
+
+        {/* Figma-style reservation cards */}
+        {!collapsed && (
+          <div>
+            {todayReservations.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-[#555577]">
+                <Users className="w-10 h-10 mb-3 opacity-40" />
+                <p className="text-sm font-medium text-[#777]">Keine Reservierungen für heute</p>
+              </div>
+            ) : (
+              todayReservations.map((r) => {
+                const sourceColor = SOURCE_COLORS[r.source] || '#8888aa';
+                const tableNumber = r.tableId ? r.tableId.replace(/[^0-9]/g, '') || '?' : null;
+                const SourceIcon = SOURCE_ICONS[r.source] || Users;
+                const detailLabel = r.guestName;
+                const isSelected = r.id === selectedReservationId;
+
+                return (
+                  <div key={r.id} className="px-2" style={{ marginBottom: '4px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedReservationId(r.id)}
+                      className="flex min-h-[60px] w-full items-stretch text-left hover:brightness-110 active:brightness-125 transition-all"
+                      style={{
+                        background: isSelected ? '#332f52' : '#2a2944',
+                        boxShadow: isSelected ? 'inset 0 0 0 1px rgba(168, 85, 247, 0.45)' : 'none',
+                      }}
+                    >
+                      <div className="flex shrink-0 flex-col items-center justify-center gap-[2px]" style={{ background: sourceColor, width: '26px' }}>
+                        <span className="text-[10px] font-bold leading-none text-white">{r.partySize}</span>
+                      </div>
+
+                      <div className="flex min-w-0 flex-1 items-center justify-between gap-3 px-4 py-2">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5 text-[10px] font-semibold text-[#d7d3e8]">
+                            <SourceIcon className="h-3 w-3 shrink-0 text-[#a855f7]" />
+                            <span>{r.time}</span>
+                          </div>
+                          <div className="mt-0.5">
+                            <span className="truncate text-[13px] font-semibold text-white">{detailLabel}</span>
+                          </div>
+                        </div>
+
+                        {tableNumber ? (
+                          <div className="flex h-[38px] min-w-[38px] items-center justify-center bg-[#9333ea] px-2">
+                            <span className="text-white font-bold text-[14px] leading-none">{tableNumber}</span>
+                          </div>
+                        ) : (
+                          <div className="flex h-[38px] w-[38px] items-center justify-center bg-[#2f2d4a]">
+                            <Clock3 className="h-4.5 w-4.5 text-[#76709a]" />
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Figma-style reservation cards */}
-      {!collapsed && (
-        <div>
-          {todayReservations.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-[#555577]">
-              <Users className="w-10 h-10 mb-3 opacity-40" />
-              <p className="text-sm font-medium text-[#777]">Keine Reservierungen für heute</p>
-            </div>
-          ) : (
-            todayReservations.map((r, idx) => {
-              const sourceColor = SOURCE_COLORS[r.source] || '#8888aa';
-              const guestProfile = getGuestForReservation(r);
-              const isVip = guestProfile?.tags.includes('vip') || guestProfile?.tags.includes('stammgast');
-              const occasions = (r.occasionLabels || []) as OccasionLabel[];
-              const guestTags = guestProfile?.tags || [];
-              const tableNumber = r.tableId ? r.tableId.replace(/[^0-9]/g, '') || '?' : null;
-
-              return (
-                <div key={r.id} style={{ marginBottom: '2px' }}>
-                  {/* Figma card: #2d333f bg, h-[52px] */}
-                  <div
-                    className="flex items-center h-[52px] rounded-[3px] hover:brightness-110 active:brightness-125 transition-all"
-                    style={{ background: '#252540' }}
-                  >
-                    {/* Left color bar - Figma: w-[21px] h-[45px] rounded-[3px] */}
-                    <div className="shrink-0 ml-[3px] rounded-[3px]" style={{ background: sourceColor, width: '21px', height: '45px' }} />
-
-                    {/* Content area */}
-                    <div className="flex-1 min-w-0 ml-[10px]">
-                      {/* Line 1: party size + time + occasion icons */}
-                      <div className="flex items-center gap-[6px]">
-                        <span className="text-white font-black text-[13px]">{r.partySize}</span>
-                        <span className="text-white font-normal text-[12px]">{r.time} Uhr</span>
-                        {occasions.map(oc => {
-                          const info = OCCASION_ICONS[oc];
-                          if (!info) return null;
-                          const OcIcon = info.Icon;
-                          return (
-                            <OcIcon key={oc} size={16} color={info.color} />
-                          );
-                        })}
-                        {guestTags.filter(t => t !== 'vip' && t !== 'stammgast').map(tag => {
-                          const info = ALL_TAGS_MAP[tag];
-                          if (!info) return null;
-                          return (
-                            <span key={tag} className="px-1.5 py-[1px] rounded-[3px] text-[9px] font-bold uppercase leading-none text-white" style={{ background: info.color }}>
-                              {info.label}
-                            </span>
-                          );
-                        })}
-                      </div>
-                      {/* Line 2: star + guest name */}
-                      <div className="flex items-center gap-[4px] mt-[1px]">
-                        {isVip && <IconStarFilled size={15} color="#FFCC00" />}
-                        <span className="text-white font-semibold text-[16px] truncate whitespace-nowrap">{r.guestName}</span>
-                      </div>
-                    </div>
-
-                    {/* Right side - table badge (OpenTable-style lila) */}
-                    <div className="shrink-0 mr-[3px]">
-                      {tableNumber ? (
-                        <div className="flex flex-col items-center justify-center rounded-[4px]"
-                          style={{ background: '#9333ea', width: '45px', height: '45px' }}>
-                          <span className="text-white font-bold text-[15px] leading-none">{tableNumber}</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-center rounded-[4px]"
-                          style={{ background: '#222238', width: '45px', height: '45px' }}>
-                          <Armchair className="w-5 h-5 text-[#555577]" />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
+      {selectedReservation && (
+        <ReservationDetail
+          inline
+          reservation={selectedReservation}
+          allTables={state.tables}
+          onClose={() => setSelectedReservationId(null)}
+          onUpdated={(updatedReservations) => setReservations(updatedReservations)}
+          onSeat={() => {
+            if (selectedReservation.tableId && onSelectTable) {
+              onSelectTable(selectedReservation.tableId);
+            }
+          }}
+        />
       )}
     </div>
   );

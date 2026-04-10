@@ -1,4 +1,6 @@
-import { Mic, Loader2, Undo2, Radio } from 'lucide-react';
+
+
+import { Loader2, Mic, Radio, Undo2 } from 'lucide-react';
 
 interface VoiceIndicatorProps {
   mode: string;
@@ -47,11 +49,11 @@ export function VoiceIndicator({
 
   const getModeColor = () => {
     switch (mode) {
-      case 'idle': return 'bg-[#2a2a42]';
-      case 'listening_wake': return 'bg-violet-900/80';
-      case 'listening_command': return 'bg-[#7bb7ef]';
+      case 'idle': return 'bg-[#251a3d]';
+      case 'listening_wake': return 'bg-[#5b21b6]';
+      case 'listening_command': return 'bg-[#742fe6]';
       case 'processing': return 'bg-amber-900/80';
-      default: return 'bg-[#2a2a42]';
+      default: return 'bg-[#251a3d]';
     }
   };
 
@@ -66,7 +68,7 @@ export function VoiceIndicator({
   };
 
   return (
-    <div className={`border-t border-[#333355] transition-colors ${getModeColor()}`}>
+    <div className={`transition-colors ${getModeColor()}`}>
       {/* Last command & confirmation */}
       {(lastCommand || lastConfirmation) && (
         <div className="px-4 py-2 bg-[#2a2a42]/50 flex items-center justify-between">
@@ -82,7 +84,7 @@ export function VoiceIndicator({
           </div>
           <button
             onClick={onUndo}
-            className="ml-2 p-1.5 rounded-lg bg-[#353558]/80 text-[#c0c0dd] hover:bg-[#555] transition-colors flex-shrink-0"
+            className="ml-2 p-1.5 rounded-lg bg-[#8b5cf6]/20 text-[#c4b5fd] hover:bg-[#8b5cf6]/30 transition-colors flex-shrink-0"
             title="Rückgängig"
           >
             <Undo2 className="w-4 h-4" />
@@ -91,18 +93,18 @@ export function VoiceIndicator({
       )}
 
       {/* Voice status bar */}
-      <div className="px-4 py-3 flex items-center gap-3" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
+      <div className="px-4 py-3 flex items-center gap-3" style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
         {/* Main mic button - tap to speak */}
         <button
           onClick={handleMicClick}
           className={`relative p-3 rounded-full transition-all ${
             mode === 'listening_command'
-              ? 'bg-[#7bb7ef] text-white shadow-lg shadow-violet-500/30'
+              ? 'bg-[#742fe6] text-white shadow-lg shadow-violet-500/30'
               : mode === 'listening_wake'
-              ? 'bg-violet-700 text-white'
+              ? 'bg-[#7c3aed] text-white'
               : mode === 'processing'
               ? 'bg-amber-600 text-white'
-              : 'bg-[#555] text-[#c0c0dd] hover:bg-slate-500'
+              : 'bg-[#3b245f] text-[#e9ddff] hover:bg-[#4c2f79]'
           }`}
         >
           {mode === 'listening_command' && (
@@ -131,8 +133,8 @@ export function VoiceIndicator({
           onClick={() => isWakeMode ? onStop() : onToggleWake()}
           className={`p-2 rounded-lg transition-colors ${
             isWakeMode
-              ? 'bg-[#7bb7ef] text-white'
-              : 'bg-[#353558] text-[#b0b0cc] hover:bg-[#555]'
+              ? 'bg-[#742fe6] text-white'
+              : 'bg-[#3b245f]/70 text-[#c4b5fd] hover:bg-[#4c2f79]'
           }`}
           title={isWakeMode ? 'Hey Vilo Modus aus' : 'Hey Vilo Modus an'}
         >

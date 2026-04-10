@@ -1,6 +1,8 @@
 import React from 'react';
-import { useApp } from '../context/AppContext';
 import { LogOut, Mic, MicOff, Users } from 'lucide-react';
+
+import viloLogo from '../assets/VILO.svg';
+import { useApp } from '../context/AppContext';
 
 interface TableOverviewProps {
   voiceMode: string;
@@ -50,7 +52,7 @@ export function TableOverview({ voiceMode, onStartVoice, onStopVoice }: TableOve
       <header className="bg-[#2a2a42]/80 backdrop-blur border-b border-[#333355] px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h1 className="text-white font-semibold text-xl leading-tight" style={{ fontFamily: 'Otista, sans-serif', letterSpacing: '0.032em' }}>vilo</h1>
+            <img src={viloLogo} alt="Vilo" className="h-5 w-auto flex-shrink-0" />
             <span className="text-[#8888aa] text-xs">·</span>
             <p className="text-[#b0b0cc] text-xs">{state.restaurant.name} · {state.currentUser?.name}</p>
           </div>

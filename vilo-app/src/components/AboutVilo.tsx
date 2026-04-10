@@ -1,6 +1,8 @@
 import { useState, useCallback, useRef, TouchEvent } from 'react';
 import { X } from 'lucide-react';
 
+import viloLogo from '../assets/VILO.svg';
+
 interface AboutViloProps {
   onClose: () => void;
 }
@@ -10,12 +12,7 @@ const slides = [
     id: 1,
     content: (
       <div className="flex flex-col items-center justify-center h-full px-8 text-center">
-        <h1
-          className="text-6xl font-bold text-white mb-6"
-          style={{ fontFamily: 'Otista, sans-serif', letterSpacing: '0.04em' }}
-        >
-          vilo
-        </h1>
+        <img src={viloLogo} alt="Vilo" className="mb-6 h-14 w-auto" />
         <p className="text-xl text-white/90 font-light leading-relaxed max-w-md">
           Die Intelligenzschicht{' '}
           <span className="text-[#7bb7ef]">fur Unternehmen</span>
@@ -146,10 +143,7 @@ const slides = [
           <div className="w-px h-6 bg-white/10 mx-auto" />
           <div className="text-white/50 text-sm font-light tracking-wide">Systeme</div>
           <div className="w-px h-6 bg-[#7bb7ef]/30 mx-auto" />
-          <div className="text-[#7bb7ef] text-2xl font-semibold tracking-wide"
-            style={{ fontFamily: 'Otista, sans-serif' }}>
-            vilo
-          </div>
+          <img src={viloLogo} alt="Vilo" className="mx-auto h-8 w-auto" />
         </div>
         <div className="mt-12 w-12 h-px bg-white/10" />
         <p className="mt-6 text-white/40 text-sm font-light tracking-wide">

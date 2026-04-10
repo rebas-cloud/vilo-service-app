@@ -1,9 +1,6 @@
 import { useState } from 'react';
-import {
-  ArrowLeft, Store, LayoutGrid, UtensilsCrossed, Users,
-  Plus, Trash2, Edit3, Check, X, ChevronDown, ChevronUp,
-  GripVertical, Copy, Receipt
-} from 'lucide-react';
+import { ArrowLeft, Check, ChevronDown, ChevronUp, Copy, Edit3, GripVertical, LayoutGrid, Plus, Receipt, Store, Trash2, Users, UtensilsCrossed, X } from 'lucide-react';
+
 import { Restaurant, Zone, Table, MenuItem, MenuCategory, Staff } from '../types';
 import { loadStorage, saveStorage } from '../utils/storage';
 import { OrderHistory } from './OrderHistory';

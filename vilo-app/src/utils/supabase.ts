@@ -130,6 +130,19 @@ export async function supabaseGetRestaurant(code: string): Promise<Record<string
   };
 }
 
+export async function supabaseRestaurantExists(restaurantId: string): Promise<boolean> {
+  if (!isSupabaseConfigured || !restaurantId) return false;
+
+  const { data, error } = await supabase
+    .from('restaurants')
+    .select('id')
+    .eq('id', restaurantId)
+    .maybeSingle();
+
+  if (error) return false;
+  return Boolean(data?.id);
+}
+
 // --- Save Config ---
 
 export async function supabaseSaveConfig(data: {
@@ -141,15 +154,18 @@ export async function supabaseSaveConfig(data: {
   setup_complete?: boolean;
   onboarding_step?: number;
 }): Promise<void> {
-  const { error } = await supabase.from('restaurant_data').upsert({
-    restaurant_id: data.restaurant_id,
-    zones_json: data.zones,
-    tables_json: data.tables,
-    menu_json: data.menu,
-    staff_json: data.staff,
-    setup_complete: data.setup_complete ?? false,
-    onboarding_step: data.onboarding_step ?? 0,
-  });
+  const { error } = await supabase.from('restaurant_data').upsert(
+    {
+      restaurant_id: data.restaurant_id,
+      zones_json: data.zones,
+      tables_json: data.tables,
+      menu_json: data.menu,
+      staff_json: data.staff,
+      setup_complete: data.setup_complete ?? false,
+      onboarding_step: data.onboarding_step ?? 0,
+    },
+    { onConflict: 'restaurant_id' }
+  );
   if (error) throw new Error(error.message);
 }
 
@@ -218,7 +234,7 @@ export async function supabaseUpdateState(data: {
   if (data.guests !== undefined) updateData.guests_json = data.guests;
   if (data.waitlist !== undefined) updateData.waitlist_json = data.waitlist;
 
-  const { error } = await supabase.from('shared_state').upsert(updateData);
+  const { error } = await supabase.from('shared_state').upsert(updateData, { onConflict: 'restaurant_id' });
   if (error) throw new Error(error.message);
 }
 

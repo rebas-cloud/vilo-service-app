@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { UtensilsCrossed, UserCircle } from 'lucide-react';
+import { UserCircle, UtensilsCrossed } from 'lucide-react';
+
+import viloLogo from '../assets/VILO.svg';
 import { AboutVilo } from './AboutVilo';
 
 interface WelcomePageProps {
@@ -18,12 +20,7 @@ export function WelcomePage({ onCreateRestaurant, onWaiterLogin }: WelcomePagePr
     >
       {/* Logo */}
       <div className="mb-12 text-center">
-        <h1
-          className="text-6xl font-bold text-white mb-2"
-          style={{ fontFamily: 'Otista, sans-serif', letterSpacing: '0.032em' }}
-        >
-          vilo
-        </h1>
+        <img src={viloLogo} alt="Vilo" className="mx-auto mb-3 h-14 w-auto" />
         <p className="text-[#b0b0cc] text-sm">Voice-First POS</p>
       </div>
 

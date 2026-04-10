@@ -15,6 +15,42 @@
   to { transform: translateY(0); opacity: 1; }
 }
 
+@keyframes viloPanelIn {
+  from { opacity: 0; transform: translateX(12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes viloPanelOut {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(10px); }
+}
+
+@keyframes viloOverlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes viloOverlayOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.vilo-panel-enter {
+  animation: viloPanelIn 180ms ease-out both;
+}
+
+.vilo-panel-exit {
+  animation: viloPanelOut 140ms ease-in both;
+}
+
+.vilo-overlay-enter {
+  animation: viloOverlayIn 180ms ease-out both;
+}
+
+.vilo-overlay-exit {
+  animation: viloOverlayOut 140ms ease-in both;
+}
+
 @font-face {
   font-family: 'Otista';
   src: url('/fonts/Otista-Regular.otf') format('opentype');
@@ -46,14 +82,50 @@
 @layer base {
   :root {
     --radius: 0.5rem;
-    --bg-primary: #1a1a2e;
-    --bg-secondary: #2a2a42;
-    --bg-tertiary: #252540;
-    --accent: #7bb7ef;
-    --accent-light: #b1d9ff;
-    --accent-hover: #5d9edb;
-    --text-primary: #e0e0f0;
-    --text-secondary: #b0b0cc;
+    --vilo-bg-base: #1a1a2e;
+    --vilo-bg-surface: #2a2a42;
+    --vilo-bg-panel: #252540;
+    --vilo-bg-elevated: #353558;
+    --vilo-bg-calendar: #20243c;
+    --vilo-bg-calendar-cell: #272c46;
+
+    --vilo-border-subtle: #333355;
+    --vilo-border-strong: #3d3d5c;
+    --vilo-border-soft: rgba(255, 255, 255, 0.08);
+
+    --vilo-text-primary: #e0e0f0;
+    --vilo-text-soft: #c0c0dd;
+    --vilo-text-secondary: #b0b0cc;
+    --vilo-text-muted: #8888aa;
+    --vilo-text-dim: #6e7592;
+    --vilo-text-disabled: #58607d;
+
+    --vilo-accent: #8b5cf6;
+    --vilo-accent-light: #c4b5fd;
+    --vilo-accent-hover: #7c3aed;
+    --vilo-accent-secondary: #d946ef;
+
+    --vilo-success: #22c55e;
+    --vilo-warning: #f59e0b;
+    --vilo-danger: #ef4444;
+
+    --vilo-tag-vip: #eab308;
+    --vilo-tag-loyal: #22d3ee;
+    --vilo-tag-vegan: #16a34a;
+    --vilo-tag-kids: #f97316;
+    --vilo-tag-access: #8b5cf6;
+    --vilo-tag-birthday: #ec4899;
+    --vilo-tag-business: #6366f1;
+    --vilo-tag-press: #a78bfa;
+
+    --bg-primary: var(--vilo-bg-base);
+    --bg-secondary: var(--vilo-bg-surface);
+    --bg-tertiary: var(--vilo-bg-panel);
+    --accent: var(--vilo-accent);
+    --accent-light: var(--vilo-accent-light);
+    --accent-hover: var(--vilo-accent-hover);
+    --text-primary: var(--vilo-text-primary);
+    --text-secondary: var(--vilo-text-secondary);
   }
   html, body {
     background-color: var(--bg-primary);
@@ -74,4 +146,3 @@
     transition-timing-function: ease-in-out;
   }
 }
-
