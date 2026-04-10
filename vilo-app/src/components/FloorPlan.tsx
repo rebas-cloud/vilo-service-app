@@ -1802,8 +1802,8 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     if (showReservations) {
       return (
         <div
-          className="flex flex-col h-full relative overflow-visible"
-          style={{ width: sidebarWidth, minWidth: sidebarWidth, background: '#1a1a2e', borderRight: '1px solid rgba(255,255,255,0.03)' }}
+          className="flex flex-col h-full relative overflow-hidden shrink-0"
+          style={{ width: sidebarWidth, maxWidth: '40vw', background: '#1a1a2e', borderRight: '1px solid rgba(255,255,255,0.03)' }}
         >
           <ReservationPanel
             embedded
@@ -1865,8 +1865,8 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     );
 
     return (
-      <div className="flex flex-col h-full" style={{ width: sidebarWidth, minWidth: sidebarWidth, background: '#1a1a2e', borderRight: '1px solid rgba(255,255,255,0.03)' }}>
-        <div className="flex-1 overflow-y-auto">
+      <div className="flex flex-col h-full shrink-0 overflow-hidden" style={{ width: sidebarWidth, maxWidth: '40vw', background: '#1a1a2e', borderRight: '1px solid rgba(255,255,255,0.03)' }}>
+        <div className="flex-1 overflow-y-auto overflow-x-hidden">
         {/* Reservations section */}
           <div className="border-b border-white/[0.03]">
             {renderSidebarHeader('Reservierungen', sidebarResParties, sidebarResCovers, sidebarResCollapsed, () => setSidebarResCollapsed(!sidebarResCollapsed), 'reservations')}
@@ -1996,7 +1996,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
         </div>
       )}
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden min-w-0">
         {/* OpenTable-style sidebar */}
         {renderSidebar()}
 
