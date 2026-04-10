@@ -27,7 +27,7 @@ export function TableOverview({ voiceMode, onStartVoice, onStopVoice }: TableOve
       case 'free': return 'bg-emerald-900/40 border-emerald-700/50 hover:border-emerald-500';
       case 'occupied': return 'bg-amber-900/40 border-amber-700/50 hover:border-amber-500';
       case 'billing': return 'bg-red-900/40 border-red-700/50 hover:border-red-500';
-      default: return 'bg-[#2a2a42] border-[#333355]';
+      default: return 'bg-vilo-surface border-vilo-border-subtle';
     }
   };
 
@@ -49,12 +49,12 @@ export function TableOverview({ voiceMode, onStartVoice, onStopVoice }: TableOve
   return (
     <div className="h-full bg-[#1a1a2e] flex flex-col">
       {/* Header */}
-      <header className="bg-[#2a2a42]/80 backdrop-blur border-b border-[#333355] px-4 py-3">
+      <header className="bg-vilo-surface/80 backdrop-blur border-b border-vilo-border-subtle px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <img src={viloLogo} alt="Vilo" className="h-5 w-auto flex-shrink-0" />
-            <span className="text-[#8888aa] text-xs">·</span>
-            <p className="text-[#b0b0cc] text-xs">{state.restaurant.name} · {state.currentUser?.name}</p>
+            <span className="text-vilo-text-muted text-xs">·</span>
+            <p className="text-vilo-text-secondary text-xs">{state.restaurant.name} · {state.currentUser?.name}</p>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -62,14 +62,14 @@ export function TableOverview({ voiceMode, onStartVoice, onStopVoice }: TableOve
               className={`p-2 rounded-lg transition-colors ${
                 voiceMode !== 'idle'
                   ? 'bg-[#7bb7ef] text-white'
-                  : 'bg-[#353558] text-[#c0c0dd] hover:bg-[#555]'
+                  : 'bg-vilo-elevated text-vilo-text-soft hover:bg-[#555]'
               }`}
             >
               {voiceMode !== 'idle' ? <IconMicrophone className="w-5 h-5" /> : <IconMicrophoneOff className="w-5 h-5" />}
             </button>
             <button
               onClick={() => dispatch({ type: 'LOGOUT' })}
-              className="p-2 rounded-lg bg-[#353558] text-[#c0c0dd] hover:bg-[#555] transition-colors"
+              className="p-2 rounded-lg bg-vilo-elevated text-vilo-text-soft hover:bg-[#555] transition-colors"
             >
               <IconLogout className="w-5 h-5" />
             </button>
@@ -84,7 +84,7 @@ export function TableOverview({ voiceMode, onStartVoice, onStopVoice }: TableOve
           className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
             activeZone === null
               ? 'bg-[#7bb7ef] text-white'
-              : 'bg-[#2a2a42] text-[#c0c0dd] hover:bg-[#353558]'
+              : 'bg-vilo-surface text-vilo-text-soft hover:bg-vilo-elevated'
           }`}
         >
           Alle ({state.tables.length})
@@ -98,7 +98,7 @@ export function TableOverview({ voiceMode, onStartVoice, onStopVoice }: TableOve
               className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                 activeZone === zone.id
                   ? 'bg-[#7bb7ef] text-white'
-                  : 'bg-[#2a2a42] text-[#c0c0dd] hover:bg-[#353558]'
+                  : 'bg-vilo-surface text-vilo-text-soft hover:bg-vilo-elevated'
               }`}
             >
               {zone.name} ({count})
@@ -119,13 +119,13 @@ export function TableOverview({ voiceMode, onStartVoice, onStopVoice }: TableOve
               <div className="flex items-start justify-between mb-2">
                 <div className={`w-2.5 h-2.5 rounded-full ${getStatusDot(table.status)}`} />
                 {getOrderCount(table.id) > 0 && (
-                  <span className="text-xs bg-[#353558] text-[#c0c0dd] px-1.5 py-0.5 rounded-full">
+                  <span className="text-xs bg-vilo-elevated text-vilo-text-soft px-1.5 py-0.5 rounded-full">
                     {getOrderCount(table.id)}
                   </span>
                 )}
               </div>
               <p className="text-white font-medium text-sm text-left">{table.name}</p>
-              <p className="text-[#b0b0cc] text-xs text-left mt-0.5 capitalize">
+              <p className="text-vilo-text-secondary text-xs text-left mt-0.5 capitalize">
                 {table.status === 'free' ? 'Frei' : table.status === 'occupied' ? 'Besetzt' : 'Rechnung'}
               </p>
             </button>
@@ -134,23 +134,23 @@ export function TableOverview({ voiceMode, onStartVoice, onStopVoice }: TableOve
       </div>
 
       {/* Stats Bar */}
-      <div className="bg-[#2a2a42]/90 backdrop-blur border-t border-[#333355] px-4 py-3">
+      <div className="bg-vilo-surface/90 backdrop-blur border-t border-vilo-border-subtle px-4 py-3">
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-400" />
-              <span className="text-[#c0c0dd]">
+              <span className="text-vilo-text-soft">
                 {state.tables.filter(t => t.status === 'free').length} frei
               </span>
             </span>
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-amber-400" />
-              <span className="text-[#c0c0dd]">
+              <span className="text-vilo-text-soft">
                 {state.tables.filter(t => t.status === 'occupied').length} besetzt
               </span>
             </span>
           </div>
-          <div className="flex items-center gap-1.5 text-[#b0b0cc]">
+          <div className="flex items-center gap-1.5 text-vilo-text-secondary">
             <IconUsers className="w-4 h-4" />
             <span>{Object.keys(state.sessions).length} aktiv</span>
           </div>

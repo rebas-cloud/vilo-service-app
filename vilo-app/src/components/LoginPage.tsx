@@ -88,7 +88,7 @@ export function LoginPage({ onLogout }: LoginPageProps) {
             <button
               key={key}
               onClick={() => handlePinEntry(key)}
-              className="h-16 rounded-xl bg-[#353558] text-white text-2xl font-medium
+              className="h-16 rounded-xl bg-vilo-elevated text-white text-2xl font-medium
                 active:bg-[#8b5cf6] transition-colors hover:bg-[#413d63]"
             >
               {key}

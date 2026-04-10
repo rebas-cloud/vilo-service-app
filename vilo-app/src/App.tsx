@@ -251,7 +251,7 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
 
             {/* Center: date with chevrons */}
             <div className="min-w-0 flex items-center justify-center gap-1">
-              <button onClick={() => changeDate(-1)} className="shrink-0 p-1 text-[#b0b0cc] hover:text-white transition-colors">
+              <button onClick={() => changeDate(-1)} className="shrink-0 p-1 text-vilo-text-secondary hover:text-white transition-colors">
                 <IconChevronLeft className="w-4 h-4" />
               </button>
               <button
@@ -259,12 +259,12 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
                 className="min-w-0 max-w-full flex items-center justify-center gap-2 hover:opacity-80 transition-opacity"
               >
                 <h1 className="truncate text-white font-bold text-[14px] sm:text-[15px] leading-none">{getDateHeader()}</h1>
-                <span className="truncate text-[#b0b0cc] text-[12px] sm:text-[13px] font-medium leading-none max-w-[92px] sm:max-w-none">
+                <span className="truncate text-vilo-text-secondary text-[12px] sm:text-[13px] font-medium leading-none max-w-[92px] sm:max-w-none">
                   {getShiftName()}
                 </span>
                 {!isToday() && <span className="hidden sm:inline text-[#cf45f3] text-[10px] leading-none">(nicht heute)</span>}
               </button>
-              <button onClick={() => changeDate(1)} className="shrink-0 p-1 text-[#b0b0cc] hover:text-white transition-colors">
+              <button onClick={() => changeDate(1)} className="shrink-0 p-1 text-vilo-text-secondary hover:text-white transition-colors">
                 <IconChevronRight className="w-4 h-4" />
               </button>
             </div>
@@ -282,21 +282,21 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
               <div className="relative">
                 <button
                   onClick={() => setShowMoreMenu(prev => !prev)}
-                  className="p-1.5 text-[#b0b0cc] hover:text-white hover:bg-[#2a2a42] transition-colors"
+                  className="p-1.5 text-vilo-text-secondary hover:text-white hover:bg-vilo-surface transition-colors"
                 >
                   <IconSettings className="w-4.5 h-4.5" />
                 </button>
                 {showMoreMenu && (
-                  <div className="absolute right-0 top-full mt-1 bg-[#2a2a42] border border-[#333355] rounded-xl shadow-xl z-50 min-w-[180px] overflow-hidden animate-fade-in">
+                  <div className="absolute right-0 top-full mt-1 bg-vilo-surface border border-vilo-border-subtle rounded-xl shadow-xl z-50 min-w-[180px] overflow-hidden animate-fade-in">
                     <button onClick={() => { setShowMoreMenu(false); setShowSettings(true); }}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-[#c0c0dd] text-sm hover:bg-[#353558] transition-colors">
+                      className="w-full flex items-center gap-3 px-4 py-3 text-vilo-text-soft text-sm hover:bg-vilo-elevated transition-colors">
                       <IconSettings className="w-4 h-4" /> Einstellungen
                     </button>
                     <button onClick={() => { setShowKitchenBar(true); setShowMoreMenu(false); }}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-[#c0c0dd] text-sm hover:bg-[#353558] transition-colors">
+                      className="w-full flex items-center gap-3 px-4 py-3 text-vilo-text-soft text-sm hover:bg-vilo-elevated transition-colors">
                       🍳 Küche / Bar
                     </button>
-                    <div className="border-t border-[#333355]" />
+                    <div className="border-t border-vilo-border-subtle" />
                     <button onClick={() => { setShowMoreMenu(false); onLogout(); }}
                       className="w-full flex items-center gap-3 px-4 py-3 text-red-400 text-sm hover:bg-red-900/20 transition-colors">
                       <IconLogout className="w-4 h-4" /> Abmelden
@@ -311,7 +311,7 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
           {showDatePicker && (
             <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setShowDatePicker(false)}>
               <div className="absolute inset-0 bg-black/50" />
-              <div className="relative w-full max-w-sm bg-[#2a2a42] rounded-t-2xl p-4 pb-8 animate-fade-in" onClick={e => e.stopPropagation()}>
+              <div className="relative w-full max-w-sm bg-vilo-surface rounded-t-2xl p-4 pb-8 animate-fade-in" onClick={e => e.stopPropagation()}>
                 <div className="w-10 h-1 bg-[#555] rounded-full mx-auto mb-4" />
                 <input
                   type="date"
@@ -323,7 +323,7 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
                       setShowDatePicker(false);
                     }
                   }}
-                  className="w-full bg-[#353558] text-white rounded-xl px-4 py-3 text-center text-lg border border-[#555] focus:border-[#7bb7ef] outline-none"
+                  className="w-full bg-vilo-elevated text-white rounded-xl px-4 py-3 text-center text-lg border border-[#555] focus:border-[#7bb7ef] outline-none"
                   style={{ colorScheme: 'dark' }}
                 />
                 <div className="flex gap-2 mt-3">
@@ -335,7 +335,7 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
                   </button>
                   <button
                     onClick={() => setShowDatePicker(false)}
-                    className="flex-1 py-2.5 rounded-xl bg-[#353558] text-[#b0b0cc] text-sm font-medium"
+                    className="flex-1 py-2.5 rounded-xl bg-vilo-elevated text-vilo-text-secondary text-sm font-medium"
                   >
                     Abbrechen
                   </button>
@@ -351,7 +351,7 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
       <div className="flex-1 overflow-hidden relative flex flex-col">
         {/* Scrollable Sub-Tabs */}
         {subTab !== 'reservierungen' && (
-          <div className="flex overflow-x-auto hide-scrollbar border-b border-[#333355] shrink-0" style={{ background: '#1a1a2e' }}>
+          <div className="flex overflow-x-auto hide-scrollbar border-b border-vilo-border-subtle shrink-0" style={{ background: '#1a1a2e' }}>
             {(isHomeSection
               ? [
                   { id: 'statistiken' as SubTab, label: 'Statistiken' },
@@ -374,7 +374,7 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
                 className={`px-4 py-2.5 text-sm font-semibold whitespace-nowrap transition-colors relative ${
                   subTab === tab.id
                     ? 'text-[#c4b5fd]'
-                    : 'text-[#8888aa] hover:text-[#c0c0dd]'
+                    : 'text-vilo-text-muted hover:text-vilo-text-soft'
                 }`}
               >
                 {tab.label}
@@ -392,10 +392,10 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
 
         {/* Voice feedback toast - stays visible for 4 seconds after command */}
         {voiceToastVisible && (state.lastCommand || state.lastConfirmation) && (
-          <div className="absolute top-2 left-4 right-4 bg-[#2a2a42]/95 backdrop-blur rounded-xl px-4 py-2.5 z-30 shadow-lg animate-fade-in"
+          <div className="absolute top-2 left-4 right-4 bg-vilo-surface/95 backdrop-blur rounded-xl px-4 py-2.5 z-30 shadow-lg animate-fade-in"
             onClick={() => setVoiceToastVisible(false)}>
             {state.lastCommand && (
-              <p className="text-[#b0b0cc] text-xs truncate">
+              <p className="text-vilo-text-secondary text-xs truncate">
                 Erkannt: <span className="text-[#ddd]">"{state.lastCommand}"</span>
               </p>
             )}
@@ -497,7 +497,7 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
         <div className="fixed inset-0 z-30" onClick={() => setShowDrawer(false)}>
           <div className="absolute inset-0 bg-black/50 transition-opacity" />
           <div
-            className="absolute bottom-14 left-0 right-0 bg-[#1a1a2e] rounded-t-2xl border-t border-[#333355] shadow-2xl"
+            className="absolute bottom-14 left-0 right-0 bg-[#1a1a2e] rounded-t-2xl border-t border-vilo-border-subtle shadow-2xl"
             style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)', animation: 'slideUp 0.25s ease-out' }}
             onClick={e => e.stopPropagation()}
           >
@@ -524,7 +524,7 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
                       className={`flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl transition-colors ${
                         isActive
                           ? 'bg-[#8b5cf6]/15 text-[#c4b5fd]'
-                          : 'text-[#8888aa] hover:bg-[#2a2a42] hover:text-[#c0c0dd]'
+                          : 'text-vilo-text-muted hover:bg-vilo-surface hover:text-vilo-text-soft'
                       }`}
                     >
                       <Icon className="w-5 h-5" />
@@ -544,14 +544,14 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
               <div className="grid grid-cols-4 gap-2">
                 <button
                   onClick={() => { setShowDrawer(false); setShowSettings(true); }}
-                  className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl text-[#8888aa] hover:bg-[#2a2a42] hover:text-[#c0c0dd] transition-colors"
+                  className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl text-vilo-text-muted hover:bg-vilo-surface hover:text-vilo-text-soft transition-colors"
                 >
                   <IconSettings className="w-5 h-5" />
                   <span className="text-[11px] font-medium">Einstell.</span>
                 </button>
                 <button
                   onClick={() => { setShowDrawer(false); setShowKitchenBar(true); }}
-                  className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl text-[#8888aa] hover:bg-[#2a2a42] hover:text-[#c0c0dd] transition-colors"
+                  className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl text-vilo-text-muted hover:bg-vilo-surface hover:text-vilo-text-soft transition-colors"
                 >
                   <IconChefHat className="w-5 h-5" />
                   <span className="text-[11px] font-medium">Küche</span>

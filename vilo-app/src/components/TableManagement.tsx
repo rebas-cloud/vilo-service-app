@@ -246,7 +246,7 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
   const panelSectionClass = 'border-b border-[#2c2947] px-5 py-4';
 
   const primaryActionClass = 'w-full flex items-center justify-center gap-2 py-4 px-4 rounded-none bg-[#8b5cf6] text-white font-semibold text-base hover:bg-[#7c3aed] transition-colors';
-  const secondaryActionClass = 'w-full flex items-center gap-3 py-4 px-4 rounded-none bg-[#26243f] text-[#d7d3ea] font-medium text-base hover:bg-[#312e52] active:bg-[#353558] transition-colors';
+  const secondaryActionClass = 'w-full flex items-center gap-3 py-4 px-4 rounded-none bg-vilo-card text-[#d7d3ea] font-medium text-base hover:bg-[#312e52] active:bg-vilo-elevated transition-colors';
   const dangerActionClass = 'w-full flex items-center justify-center gap-2 py-4 px-4 rounded-none bg-[#d946ef] text-white font-semibold text-base hover:bg-[#c026d3] transition-colors';
   const orangeActionClass = 'w-full flex items-center gap-3 py-4 px-4 rounded-none bg-[#ff7a18] text-white font-semibold text-base hover:bg-[#ea6b0f] transition-colors';
 
@@ -316,7 +316,7 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
       <div className="px-4 py-3" style={{ background: '#2a2a42' }}>
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs font-bold text-white tracking-wider">ZEITPLAN</span>
-          <button onClick={() => setTimelineExpanded(!timelineExpanded)} className="text-[#b0b0cc] hover:text-[#e0e0f0] transition-colors">
+          <button onClick={() => setTimelineExpanded(!timelineExpanded)} className="text-vilo-text-secondary hover:text-vilo-text-primary transition-colors">
             {timelineExpanded ? <IconChevronUp className="w-5 h-5" /> : <IconChevronDown className="w-5 h-5" />}
           </button>
         </div>
@@ -338,7 +338,7 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
                   opacity: isCurrent ? 1 : 0.6,
                   border: isCurrent ? '2px solid #fff' : '1px solid #6b7280',
                 }} />
-                <span className={'text-[10px] font-bold ' + (isCurrent ? 'text-white' : 'text-[#8888aa]')}>{hourStr}</span>
+                <span className={'text-[10px] font-bold ' + (isCurrent ? 'text-white' : 'text-vilo-text-muted')}>{hourStr}</span>
               </div>
             );
           })}
@@ -357,17 +357,17 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
       <div className="px-4 py-3" style={{ background: '#2a2a42' }}>
         <div className="flex items-center justify-between mb-3">
           <span className="text-xs font-bold text-white tracking-wider">ZEITPLAN</span>
-          <button onClick={() => setTimelineExpanded(false)} className="text-[#b0b0cc] hover:text-[#e0e0f0] transition-colors">
+          <button onClick={() => setTimelineExpanded(false)} className="text-vilo-text-secondary hover:text-vilo-text-primary transition-colors">
             <IconChevronUp className="w-5 h-5" />
           </button>
         </div>
         <div className="relative" style={{ minHeight: hours.length * 48 }}>
           {hours.map((h, i) => (
             <div key={i} className="flex items-start" style={{ height: 48 }}>
-              <span className="text-sm font-bold text-[#b0b0cc] w-8 shrink-0">{String(h).padStart(2, '0')}</span>
-              <div className="flex-1 border-t border-[#3d3d5c] relative" style={{ height: 48 }}>
+              <span className="text-sm font-bold text-vilo-text-secondary w-8 shrink-0">{String(h).padStart(2, '0')}</span>
+              <div className="flex-1 border-t border-vilo-border-strong relative" style={{ height: 48 }}>
                 {/* Half hour line */}
-                <div className="absolute left-0 right-0 border-t border-[#333355]" style={{ top: 24 }} />
+                <div className="absolute left-0 right-0 border-t border-vilo-border-subtle" style={{ top: 24 }} />
               </div>
             </div>
           ))}
@@ -427,30 +427,30 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
         <div className={panelShellClass} onClick={e => e.stopPropagation()}>
           <div className={panelHeaderClass}>
             <h2 className="text-lg font-bold text-white">Walk-In · {table.name}</h2>
-            <button onClick={() => setSubView('main')} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0]"><IconX className="w-6 h-6" /></button>
+            <button onClick={() => setSubView('main')} className="p-1 text-vilo-text-secondary hover:text-vilo-text-primary"><IconX className="w-6 h-6" /></button>
           </div>
 
           <div className="px-5 py-5 space-y-5">
             <div>
-              <p className="text-[#b0b0cc] text-xs font-semibold uppercase tracking-wider mb-2">Gastname (optional)</p>
+              <p className="text-vilo-text-secondary text-xs font-semibold uppercase tracking-wider mb-2">Gastname (optional)</p>
               <input
                 type="text"
                 placeholder="Name eingeben..."
                 value={walkinGuestName}
                 onChange={e => setWalkinGuestName(e.target.value)}
-                className="w-full h-14 px-4 text-left text-white text-base outline-none rounded-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#26243f] placeholder:text-[#8e8aa8]"
+                className="w-full h-14 px-4 text-left text-white text-base outline-none rounded-none focus:ring-2 focus:ring-[#8b5cf6] bg-vilo-card placeholder:text-[#8e8aa8]"
               />
             </div>
 
             <div>
-              <p className="text-[#b0b0cc] text-xs font-semibold uppercase tracking-wider mb-3">Anzahl Gäste wählen</p>
+              <p className="text-vilo-text-secondary text-xs font-semibold uppercase tracking-wider mb-3">Anzahl Gäste wählen</p>
                 <div className="grid grid-cols-4 gap-3">
                   {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
                   <button key={n} onClick={() => setWalkinGuestCount(n)}
                     className={'h-16 text-xl font-bold transition-colors rounded-none ' +
                       (walkinGuestCount === n
                         ? 'bg-[#d946ef] text-white'
-                        : 'bg-[#26243f] text-[#d7d3ea] hover:bg-[#312e52]')}>
+                        : 'bg-vilo-card text-[#d7d3ea] hover:bg-[#312e52]')}>
                     {n}
                   </button>
                 ))}
@@ -459,7 +459,7 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
                 type="number"
                 placeholder="Andere Anzahl..."
                 min={1}
-                className="w-full mt-3 h-14 px-4 text-left text-white outline-none rounded-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#26243f] placeholder:text-[#8e8aa8] text-base"
+                className="w-full mt-3 h-14 px-4 text-left text-white outline-none rounded-none focus:ring-2 focus:ring-[#8b5cf6] bg-vilo-card placeholder:text-[#8e8aa8] text-base"
                 value={walkinGuestCount > 8 ? walkinGuestCount : ''}
                 onChange={e => {
                   const val = parseInt(e.target.value);
@@ -502,15 +502,15 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
             <button onClick={() => {
               if (reserveStep === 'guests') { resetResForm(); setSubView('main'); }
               else { setReserveStep('guests'); }
-            }} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0]"><IconX className="w-5 h-5" /></button>
+            }} className="p-1 text-vilo-text-secondary hover:text-vilo-text-primary"><IconX className="w-5 h-5" /></button>
 
             <div className="flex-1 mx-3">
               <div className="flex items-center justify-center gap-2 px-4 py-2">
                 {reserveStep === 'guests' && (
-                  <><IconUsers className="w-4 h-4 text-[#b0b0cc]" /><span className="text-white font-semibold text-sm">{resFormData.partySize} {resFormData.partySize === 1 ? 'Gast' : 'Gäste'} · {table.name}</span></>
+                  <><IconUsers className="w-4 h-4 text-vilo-text-secondary" /><span className="text-white font-semibold text-sm">{resFormData.partySize} {resFormData.partySize === 1 ? 'Gast' : 'Gäste'} · {table.name}</span></>
                 )}
                 {reserveStep === 'guest_info' && (
-                  <><IconUser className="w-4 h-4 text-[#b0b0cc]" /><span className="text-white font-semibold text-sm truncate">{resFormData.guestName || 'Gast'}</span></>
+                  <><IconUser className="w-4 h-4 text-vilo-text-secondary" /><span className="text-white font-semibold text-sm truncate">{resFormData.guestName || 'Gast'}</span></>
                 )}
               </div>
             </div>
@@ -531,7 +531,7 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
             {reserveStep === 'guests' && (
               <div className="p-4 space-y-4">
                 <div className="text-center">
-                  <p className="text-xs text-[#b0b0cc] mb-0.5">{table.name} · Heute</p>
+                  <p className="text-xs text-vilo-text-secondary mb-0.5">{table.name} · Heute</p>
                   <h3 className="text-base font-bold text-white">Wie viele Gäste?</h3>
                 </div>
                 <div>
@@ -539,7 +539,7 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
                     {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
                       <button key={n} onClick={() => setResFormData(prev => ({ ...prev, partySize: n }))}
                         className={'w-12 h-12 rounded-xl border-2 text-base font-bold transition-colors ' +
-                          (resFormData.partySize === n ? 'border-[#7bb7ef] bg-[#7bb7ef] text-white' : 'border-[#3d3d5c] text-[#c0c0dd] hover:border-[#7bb7ef]')}>
+                          (resFormData.partySize === n ? 'border-[#7bb7ef] bg-[#7bb7ef] text-white' : 'border-vilo-border-strong text-vilo-text-soft hover:border-[#7bb7ef]')}>
                         {n}
                       </button>
                     ))}
@@ -547,22 +547,22 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
                   <input type="number" min={1} placeholder="Andere Anzahl..."
                     value={resFormData.partySize > 8 ? resFormData.partySize : ''}
                     onChange={e => { const v = parseInt(e.target.value); if (v > 0) setResFormData(prev => ({ ...prev, partySize: v })); }}
-                    className="w-full mt-2 border border-[#3d3d5c] rounded-xl py-2.5 px-4 text-center text-white outline-none focus:border-[#7bb7ef] bg-[#2a2a42] placeholder:text-[#8888aa] text-sm" />
+                    className="w-full mt-2 border border-vilo-border-strong rounded-xl py-2.5 px-4 text-center text-white outline-none focus:border-[#7bb7ef] bg-vilo-surface placeholder:text-vilo-text-muted text-sm" />
                 </div>
 
                 {/* Time + Duration compact row */}
                 <div>
                   <div className="flex items-center gap-3 mb-2">
-                    <h4 className="text-xs font-semibold text-[#b0b0cc] uppercase tracking-wider">Uhrzeit</h4>
+                    <h4 className="text-xs font-semibold text-vilo-text-secondary uppercase tracking-wider">Uhrzeit</h4>
                     <input type="time" value={resFormData.time}
                       onChange={e => setResFormData(prev => ({ ...prev, time: e.target.value }))}
-                      className="border border-[#3d3d5c] rounded-lg py-1.5 px-3 text-center text-white outline-none focus:border-[#7bb7ef] text-xs bg-[#2a2a42] w-24" />
+                      className="border border-vilo-border-strong rounded-lg py-1.5 px-3 text-center text-white outline-none focus:border-[#7bb7ef] text-xs bg-vilo-surface w-24" />
                   </div>
                   <div className="flex gap-1 overflow-x-auto pb-1">
                     {['17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00', '21:30'].map(t => (
                       <button key={t} onClick={() => setResFormData(prev => ({ ...prev, time: t }))}
                         className={'shrink-0 px-2.5 py-1.5 rounded-lg text-[11px] font-medium border transition-colors ' +
-                          (resFormData.time === t ? 'border-[#7bb7ef] bg-[#7bb7ef]/20 text-[#7bb7ef]' : 'border-[#3d3d5c] text-[#b0b0cc] hover:bg-[#2a2a42]')}>
+                          (resFormData.time === t ? 'border-[#7bb7ef] bg-[#7bb7ef]/20 text-[#7bb7ef]' : 'border-vilo-border-strong text-vilo-text-secondary hover:bg-vilo-surface')}>
                         {t}
                       </button>
                     ))}
@@ -570,12 +570,12 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <h4 className="text-xs font-semibold text-[#b0b0cc] uppercase tracking-wider shrink-0">Dauer</h4>
+                  <h4 className="text-xs font-semibold text-vilo-text-secondary uppercase tracking-wider shrink-0">Dauer</h4>
                   <div className="flex gap-1.5 flex-1">
                     {[60, 90, 120].map(d => (
                       <button key={d} onClick={() => setResFormData(prev => ({ ...prev, duration: d }))}
                         className={'flex-1 py-1.5 rounded-lg text-[11px] font-medium border transition-colors ' +
-                          (resFormData.duration === d ? 'border-[#7bb7ef] bg-[#7bb7ef]/20 text-[#7bb7ef]' : 'border-[#3d3d5c] text-[#b0b0cc] hover:bg-[#2a2a42]')}>
+                          (resFormData.duration === d ? 'border-[#7bb7ef] bg-[#7bb7ef]/20 text-[#7bb7ef]' : 'border-vilo-border-strong text-vilo-text-secondary hover:bg-vilo-surface')}>
                         {d}m
                       </button>
                     ))}
@@ -593,25 +593,25 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
             {reserveStep === 'guest_info' && (
               <div className="pb-4">
                 {/* Search */}
-                <div className="px-4 py-3 border-b border-[#333355]">
+                <div className="px-4 py-3 border-b border-vilo-border-subtle">
                   <div className="relative">
-                    <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8888aa]" />
+                    <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-vilo-text-muted" />
                     <input type="text" value={resGuestSearch}
                       onChange={e => handleResGuestSearch(e.target.value)}
                       placeholder="Nach Telefonnummer oder Namen suchen"
-                      className="w-full pl-9 pr-3 py-2.5 border border-[#3d3d5c] rounded-lg text-sm text-white outline-none focus:border-[#7bb7ef] bg-[#2a2a42] placeholder:text-[#8888aa]" />
+                      className="w-full pl-9 pr-3 py-2.5 border border-vilo-border-strong rounded-lg text-sm text-white outline-none focus:border-[#7bb7ef] bg-vilo-surface placeholder:text-vilo-text-muted" />
                   </div>
                   {resSearchResults.length > 0 && (
-                    <div className="mt-1 border border-[#3d3d5c] rounded-lg overflow-hidden shadow-lg">
+                    <div className="mt-1 border border-vilo-border-strong rounded-lg overflow-hidden shadow-lg">
                       {resSearchResults.slice(0, 5).map(g => (
                         <button key={g.id} onClick={() => handleResSelectGuest(g)}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-[#353558] text-left border-b border-[#333355] last:border-0 bg-[#2a2a42]">
+                          className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-vilo-elevated text-left border-b border-vilo-border-subtle last:border-0 bg-vilo-surface">
                           <div className="w-8 h-8 rounded-full bg-purple-900/40 flex items-center justify-center">
                             <IconUser className="w-4 h-4 text-[#7bb7ef]" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-white truncate">{g.name}</p>
-                            {g.phone && <p className="text-xs text-[#b0b0cc]">{g.phone}</p>}
+                            {g.phone && <p className="text-xs text-vilo-text-secondary">{g.phone}</p>}
                           </div>
                         </button>
                       ))}
@@ -631,41 +631,41 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
                     </div>
                   )}
 
-                  <div className="space-y-0 border border-[#3d3d5c] rounded-lg overflow-hidden">
-                    <div className="flex items-center border-b border-[#3d3d5c] px-3 py-2.5 bg-[#2a2a42]">
-                      <span className="text-sm text-[#b0b0cc] w-24 shrink-0">Vorname</span>
+                  <div className="space-y-0 border border-vilo-border-strong rounded-lg overflow-hidden">
+                    <div className="flex items-center border-b border-vilo-border-strong px-3 py-2.5 bg-vilo-surface">
+                      <span className="text-sm text-vilo-text-secondary w-24 shrink-0">Vorname</span>
                       <input type="text" value={resFormData.guestName.split(' ')[0] || ''}
                         onChange={e => {
                           const ln = resFormData.guestName.split(' ').slice(1).join(' ');
                           setResFormData(prev => ({ ...prev, guestName: e.target.value + (ln ? ' ' + ln : '') }));
                         }}
-                        placeholder="Vorname" className="flex-1 text-sm text-white outline-none bg-transparent placeholder:text-[#8888aa]" />
+                        placeholder="Vorname" className="flex-1 text-sm text-white outline-none bg-transparent placeholder:text-vilo-text-muted" />
                     </div>
-                    <div className="flex items-center border-b border-[#3d3d5c] px-3 py-2.5 bg-[#2a2a42]">
-                      <span className="text-sm text-[#b0b0cc] w-24 shrink-0">Nachname</span>
+                    <div className="flex items-center border-b border-vilo-border-strong px-3 py-2.5 bg-vilo-surface">
+                      <span className="text-sm text-vilo-text-secondary w-24 shrink-0">Nachname</span>
                       <input type="text" value={resFormData.guestName.split(' ').slice(1).join(' ')}
                         onChange={e => {
                           const fn = resFormData.guestName.split(' ')[0] || '';
                           setResFormData(prev => ({ ...prev, guestName: fn + (e.target.value ? ' ' + e.target.value : '') }));
                         }}
-                        placeholder="Nachname" className="flex-1 text-sm text-white outline-none bg-transparent placeholder:text-[#8888aa]" />
+                        placeholder="Nachname" className="flex-1 text-sm text-white outline-none bg-transparent placeholder:text-vilo-text-muted" />
                     </div>
-                    <div className="flex items-center px-3 py-2.5 bg-[#2a2a42]">
-                      <span className="text-sm text-[#b0b0cc] w-24 shrink-0">Telefon</span>
+                    <div className="flex items-center px-3 py-2.5 bg-vilo-surface">
+                      <span className="text-sm text-vilo-text-secondary w-24 shrink-0">Telefon</span>
                       <input type="tel" value={resFormData.guestPhone}
                         onChange={e => handleResPhoneChange(e.target.value)}
-                        placeholder="Telefonnummer" className="flex-1 text-sm text-white outline-none bg-transparent placeholder:text-[#8888aa]" />
+                        placeholder="Telefonnummer" className="flex-1 text-sm text-white outline-none bg-transparent placeholder:text-vilo-text-muted" />
                     </div>
                   </div>
 
                   {/* Source selector */}
                   <div>
-                    <p className="text-xs text-[#b0b0cc] font-semibold uppercase tracking-wider mb-2">QUELLE</p>
+                    <p className="text-xs text-vilo-text-secondary font-semibold uppercase tracking-wider mb-2">QUELLE</p>
                     <div className="grid grid-cols-3 gap-2">
                       {([['phone', 'Telefon'], ['online', 'Online'], ['walk_in', 'Walk-In']] as const).map(([key, label]) => (
                         <button key={key} onClick={() => setResFormData(prev => ({ ...prev, source: key }))}
                           className={'py-2 rounded-lg text-sm font-medium border transition-colors ' +
-                            (resFormData.source === key ? 'border-[#7bb7ef] bg-[#7bb7ef]/20 text-[#7bb7ef]' : 'border-[#3d3d5c] text-[#b0b0cc] hover:bg-[#2a2a42]')}>
+                            (resFormData.source === key ? 'border-[#7bb7ef] bg-[#7bb7ef]/20 text-[#7bb7ef]' : 'border-vilo-border-strong text-vilo-text-secondary hover:bg-vilo-surface')}>
                           {label}
                         </button>
                       ))}
@@ -677,7 +677,7 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
                     onChange={e => setResFormData(prev => ({ ...prev, notes: e.target.value }))}
                     placeholder="z.B. Allergien, Kinderstuhl, Geburtstag..."
                     rows={2}
-                    className="w-full rounded-lg px-3 py-2.5 border border-[#3d3d5c] text-white text-sm outline-none focus:border-[#7bb7ef] resize-none bg-[#2a2a42] placeholder:text-[#8888aa]" />
+                    className="w-full rounded-lg px-3 py-2.5 border border-vilo-border-strong text-white text-sm outline-none focus:border-[#7bb7ef] resize-none bg-vilo-surface placeholder:text-vilo-text-muted" />
 
                   {/* Save */}
                   <button onClick={handleResSave}
@@ -703,27 +703,27 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
         <div className={panelShellClass} onClick={e => e.stopPropagation()}>
           <div className={panelHeaderClass}>
             <h2 className="text-xl font-bold text-white">Umsetzen - Tisch waehlen</h2>
-            <button onClick={() => setSubView('main')} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0]"><IconX className="w-6 h-6" /></button>
+            <button onClick={() => setSubView('main')} className="p-1 text-vilo-text-secondary hover:text-vilo-text-primary"><IconX className="w-6 h-6" /></button>
           </div>
 
           <div className="px-5 py-4">
             {freeTables.length === 0 ? (
-              <p className="text-[#8888aa] text-center py-8">Keine freien Tische verfuegbar</p>
+              <p className="text-vilo-text-muted text-center py-8">Keine freien Tische verfuegbar</p>
             ) : (
               <div className="space-y-2">
                 {freeTables.map(t => (
                   <button key={t.id} onClick={() => handleMoveToTable(t.id)}
-                    className="w-full flex items-center justify-between py-3.5 px-4 rounded-xl border border-[#3d3d5c] hover:bg-[#2a2a42] active:bg-[#353558] transition-colors">
+                    className="w-full flex items-center justify-between py-3.5 px-4 rounded-xl border border-vilo-border-strong hover:bg-vilo-surface active:bg-vilo-elevated transition-colors">
                     <span className="text-white text-base font-semibold">{t.name}</span>
-                    <span className="text-sm text-[#b0b0cc]">{t.seats || 4} Plaetze</span>
+                    <span className="text-sm text-vilo-text-secondary">{t.seats || 4} Plaetze</span>
                   </button>
                 ))}
               </div>
             )}
           </div>
 
-          <div className="px-5 py-3 pb-20 border-t border-[#333355]">
-            <button onClick={() => setSubView('main')} className="w-full py-2.5 text-sm text-[#b0b0cc] hover:text-[#e0e0f0]">
+          <div className="px-5 py-3 pb-20 border-t border-vilo-border-subtle">
+            <button onClick={() => setSubView('main')} className="w-full py-2.5 text-sm text-vilo-text-secondary hover:text-vilo-text-primary">
               Zurück
             </button>
           </div>
@@ -751,7 +751,7 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
         {/* Header */}
         <div className={panelHeaderClass}>
           <h2 className="text-2xl font-bold text-white">{table.name}</h2>
-          <button onClick={onClose} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0]"><IconX className="w-6 h-6" /></button>
+          <button onClick={onClose} className="p-1 text-vilo-text-secondary hover:text-vilo-text-primary"><IconX className="w-6 h-6" /></button>
         </div>
 
         <div className="flex items-center justify-between px-5 py-4 text-white" style={{ background: statusBackground }}>
@@ -770,17 +770,17 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
         {/* Current Guest Info (if occupied) */}
         {isOccupied && session && (
           <div className={panelSectionClass}>
-            <p className="text-xs font-bold text-[#b0b0cc] tracking-wider mb-2">ZUR ZEIT PLATZIERT</p>
-            <button onClick={handleOpenOrders} className="w-full flex items-center justify-between border border-[#3d3d5c] bg-[#26243f] px-4 py-3 text-left hover:bg-[#2a2a42] active:bg-[#353558] transition-colors">
+            <p className="text-xs font-bold text-vilo-text-secondary tracking-wider mb-2">ZUR ZEIT PLATZIERT</p>
+            <button onClick={handleOpenOrders} className="w-full flex items-center justify-between border border-vilo-border-strong bg-vilo-card px-4 py-3 text-left hover:bg-vilo-surface active:bg-vilo-elevated transition-colors">
               <div>
                 <p className="text-base font-bold text-white">
                   {seatedReservation?.guestName
                     || session.guestName?.trim()
                     || (session.guestSource === 'walk_in' ? 'Walk-In' : session.guestSource === 'phone' ? 'Telefon' : 'Online') + ' ' + table.name.replace(/^[A-Za-z]+\s*/, '')}
                 </p>
-                <p className="text-sm text-[#b0b0cc]">{seatedReservation ? getSeatedDuration(seatedReservation) : getElapsedStr()}</p>
+                <p className="text-sm text-vilo-text-secondary">{seatedReservation ? getSeatedDuration(seatedReservation) : getElapsedStr()}</p>
               </div>
-              <span className="text-lg font-bold text-[#c0c0dd]">{seatedReservation ? seatedReservation.partySize : (session.guestCount || '?')}</span>
+              <span className="text-lg font-bold text-vilo-text-soft">{seatedReservation ? seatedReservation.partySize : (session.guestCount || '?')}</span>
             </button>
           </div>
         )}
@@ -972,13 +972,13 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
         {/* Next Reservation */}
         {nextReservation && (
           <div className={panelSectionClass}>
-            <p className="text-xs font-bold text-[#b0b0cc] tracking-wider mb-2">NAECHSTE GRUPPE</p>
-            <div className="flex items-center justify-between border border-[#3d3d5c] bg-[#26243f] px-4 py-3">
+            <p className="text-xs font-bold text-vilo-text-secondary tracking-wider mb-2">NAECHSTE GRUPPE</p>
+            <div className="flex items-center justify-between border border-vilo-border-strong bg-vilo-card px-4 py-3">
               <div>
                 <p className="text-base font-bold text-white">{nextReservation.guestName}</p>
-                <p className="text-sm text-[#b0b0cc]">{nextReservation.time}</p>
+                <p className="text-sm text-vilo-text-secondary">{nextReservation.time}</p>
               </div>
-              <span className="text-lg font-bold text-[#c0c0dd]">{nextReservation.partySize}</span>
+              <span className="text-lg font-bold text-vilo-text-soft">{nextReservation.partySize}</span>
             </div>
           </div>
         )}

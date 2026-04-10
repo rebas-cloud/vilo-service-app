@@ -1830,7 +1830,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
       <div className="flex items-center justify-between gap-2 px-3 py-2">
         <div className="min-w-0 flex items-center gap-2">
           <span className="text-[12px] font-semibold text-white whitespace-nowrap">{label}</span>
-          <span className="text-[11px] text-[#8888aa] whitespace-nowrap">
+          <span className="text-[11px] text-vilo-text-muted whitespace-nowrap">
             <IconUsers className="w-3 h-3 inline" /> {parties} <IconUser className="w-3 h-3 inline ml-0.5" /> {covers}
           </span>
         </div>
@@ -1971,7 +1971,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
             <IconPlus className="w-3.5 h-3.5" /> Tisch
           </button>
           <button onClick={() => setShowShapePicker(!showShapePicker)}
-            className="flex items-center gap-1.5 bg-[#353558] text-[#c0c0dd] rounded-lg px-3 py-1.5 text-xs font-medium hover:bg-[#555] transition-colors">
+            className="flex items-center gap-1.5 bg-vilo-elevated text-vilo-text-soft rounded-lg px-3 py-1.5 text-xs font-medium hover:bg-[#555] transition-colors">
             Form: {SHAPE_OPTIONS.find(s => s.value === (selectedTable ? (state.tables.find(t => t.id === selectedTable)?.shape || 'rect') : newTableShape))?.label}
           </button>
           {selectedTable && (
@@ -1980,14 +1980,14 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
               <IconTrash className="w-3.5 h-3.5" /> Loeschen
             </button>
           )}
-          <span className="text-[#8888aa] text-[10px] ml-auto">Drag zum Verschieben</span>
+          <span className="text-vilo-text-muted text-[10px] ml-auto">Drag zum Verschieben</span>
           {showShapePicker && (
-            <div className="absolute top-full left-16 z-50 bg-[#2a2a42] rounded-xl border border-[#333355] p-2 shadow-2xl mt-1">
+            <div className="absolute top-full left-16 z-50 bg-vilo-surface rounded-xl border border-vilo-border-subtle p-2 shadow-2xl mt-1">
               {SHAPE_OPTIONS.map(opt => (
                 <button key={opt.value} onClick={() => handleChangeShape(opt.value)}
                   className={'w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ' +
                     ((selectedTable ? state.tables.find(t => t.id === selectedTable)?.shape === opt.value : newTableShape === opt.value)
-                      ? 'bg-[#7bb7ef] text-white' : 'text-[#c0c0dd] hover:bg-[#353558]')}>
+                      ? 'bg-[#7bb7ef] text-white' : 'text-vilo-text-soft hover:bg-vilo-elevated')}>
                   {opt.label}
                 </button>
               ))}
@@ -2005,7 +2005,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
           <button onClick={() => setShowSidebar(!showSidebar)}
             className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-[#1a1a2e] border border-white/[0.03] rounded-r-lg p-1"
             style={{ left: showSidebar ? sidebarWidth : 0 }}>
-            {showSidebar ? <IconLayoutSidebarLeftCollapse className="w-4 h-4 text-[#8888aa]" /> : <IconLayoutSidebarLeftExpand className="w-4 h-4 text-[#8888aa]" />}
+            {showSidebar ? <IconLayoutSidebarLeftCollapse className="w-4 h-4 text-vilo-text-muted" /> : <IconLayoutSidebarLeftExpand className="w-4 h-4 text-vilo-text-muted" />}
           </button>
         )}
 
@@ -2040,7 +2040,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
               <button
                 onClick={() => { setEditMode(!editMode); setSelectedTable(null); setShowShapePicker(false); }}
                 className={'px-3 py-2.5 rounded-lg text-[14px] font-medium transition-colors flex items-center gap-1.5 ' +
-                  (editMode ? 'bg-[#8b5cf6] text-white' : 'bg-[#2a2a42] text-[#c4b5fd] hover:bg-[#353558]')}>
+                  (editMode ? 'bg-[#8b5cf6] text-white' : 'bg-vilo-surface text-[#c4b5fd] hover:bg-vilo-elevated')}>
                 {editMode ? <><IconCheck className="w-4 h-4" />Fertig</> : <><IconEdit className="w-4 h-4" />Edit</>}
               </button>
               <button
@@ -2048,7 +2048,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
                 className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-white text-[14px] font-medium"
                 style={{ background: '#2a2a42' }}>
                 {currentZone?.name || 'Hauptetage'}
-                <IconChevronUp className="w-4 h-4 text-[#8888aa]" />
+                <IconChevronUp className="w-4 h-4 text-vilo-text-muted" />
               </button>
             </div>
           )}
@@ -2127,7 +2127,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
                       key={size}
                       onClick={() => applyPartySize(size)}
                       className={'w-full px-8 py-5 text-left text-[18px] border-b border-white/[0.05] transition-colors last:border-b-0 ' +
-                        (r.partySize === size ? 'bg-[#2b2944] text-[#d8c7ff] font-semibold' : 'text-[#eef1fb] hover:bg-[#26243f]')}
+                        (r.partySize === size ? 'bg-[#2b2944] text-[#d8c7ff] font-semibold' : 'text-[#eef1fb] hover:bg-vilo-card')}
                     >
                       {size} Gäste
                     </button>
@@ -2185,7 +2185,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
                       key={option}
                       onClick={() => applyDuration(option)}
                       className={'w-full px-8 py-5 text-left text-[18px] border-b border-white/[0.05] transition-colors last:border-b-0 flex items-center justify-between ' +
-                        (r.duration === option ? 'bg-[#2b2944] text-[#d8c7ff] font-semibold' : 'text-[#eef1fb] hover:bg-[#26243f]')}
+                        (r.duration === option ? 'bg-[#2b2944] text-[#d8c7ff] font-semibold' : 'text-[#eef1fb] hover:bg-vilo-card')}
                     >
                       <span>{formatDuration(option)}</span>
                       {r.duration === option && <IconCheck className="w-5 h-5 text-[#c4b5fd]" />}
@@ -2253,7 +2253,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
               </div>
               <div className="flex-1 overflow-y-auto px-4 py-3">
                 {assignedNames ? (
-                  <div className="flex items-center gap-2 mb-3 px-3 py-3 bg-[#26243f]">
+                  <div className="flex items-center gap-2 mb-3 px-3 py-3 bg-vilo-card">
                     <IconArmchair className="w-4 h-4 text-[#cfc5ff]" />
                     <span className="text-[#f3ecff] text-[13px] font-medium">Tisch {assignedNames}</span>
                   </div>
@@ -2268,7 +2268,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
                   {seatOverlayTab === 'seat' ? 'Jetzt platzieren' : 'Tisch vorschlagen'}
                 </button>
                 {/* Seating Preferences */}
-                <div className="flex items-center gap-2 text-[13px] px-3 py-3 bg-[#26243f]">
+                <div className="flex items-center gap-2 text-[13px] px-3 py-3 bg-vilo-card">
                   <IconArmchair className="w-4 h-4 text-[#cfc5ff]" />
                   <div>
                     <div className="text-[#f3ecff] font-medium">Sitzplatzpräferenzen</div>

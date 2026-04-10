@@ -83,7 +83,7 @@ export function OrderHistory({ onSelectTable: _onSelectTable }: OrderHistoryProp
 
     return (
       <div className="h-full bg-[#1a1a2e] flex flex-col">
-        <header className="bg-[#2a2a42]/80 backdrop-blur border-b border-[#333355] px-4 py-3">
+        <header className="bg-vilo-surface/80 backdrop-blur border-b border-vilo-border-subtle px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <IconFileDownload className="w-5 h-5 text-[#b1d9ff]" />
@@ -91,7 +91,7 @@ export function OrderHistory({ onSelectTable: _onSelectTable }: OrderHistoryProp
             </div>
             <button
               onClick={() => { setShowTagesabschluss(false); setConfirmClear(false); }}
-              className="px-3 py-1.5 rounded-lg bg-[#353558] text-[#c0c0dd] text-sm hover:bg-[#555] transition-colors"
+              className="px-3 py-1.5 rounded-lg bg-vilo-elevated text-vilo-text-soft text-sm hover:bg-[#555] transition-colors"
             >
               Zurück
             </button>
@@ -100,55 +100,55 @@ export function OrderHistory({ onSelectTable: _onSelectTable }: OrderHistoryProp
 
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
           {/* Shift summary */}
-          <div className="bg-[#2a2a42]/60 rounded-xl border border-[#333355]/50 p-4">
+          <div className="bg-vilo-surface/60 rounded-xl border border-vilo-border-subtle/50 p-4">
             <h2 className="text-white font-semibold mb-1">Schicht-Zusammenfassung</h2>
-            <p className="text-[#8888aa] text-xs mb-4">
+            <p className="text-vilo-text-muted text-xs mb-4">
               {formatTime(state.shiftStart)} - {formatTime(Date.now())} ({shiftHours}h {shiftMinutes}m)
             </p>
 
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-[#b0b0cc] text-sm">Tische bedient</span>
+                <span className="text-vilo-text-secondary text-sm">Tische bedient</span>
                 <span className="text-white font-medium">{closedTables.length}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-[#b0b0cc] text-sm">Positionen gesamt</span>
+                <span className="text-vilo-text-secondary text-sm">Positionen gesamt</span>
                 <span className="text-white font-medium">{totalOrders}</span>
               </div>
-              <div className="border-t border-[#333355]/50 pt-3 flex justify-between items-center">
-                <span className="text-[#b0b0cc] text-sm">Brutto-Umsatz</span>
+              <div className="border-t border-vilo-border-subtle/50 pt-3 flex justify-between items-center">
+                <span className="text-vilo-text-secondary text-sm">Brutto-Umsatz</span>
                 <span className="text-white font-bold text-lg">{totalClosedRevenue.toFixed(2)} {state.restaurant.currency}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-[#b0b0cc] text-sm">Netto</span>
-                <span className="text-[#c0c0dd] text-sm">{netRevenue.toFixed(2)} {state.restaurant.currency}</span>
+                <span className="text-vilo-text-secondary text-sm">Netto</span>
+                <span className="text-vilo-text-soft text-sm">{netRevenue.toFixed(2)} {state.restaurant.currency}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-[#b0b0cc] text-sm">MwSt. ({taxRate}%)</span>
-                <span className="text-[#c0c0dd] text-sm">{taxAmount.toFixed(2)} {state.restaurant.currency}</span>
+                <span className="text-vilo-text-secondary text-sm">MwSt. ({taxRate}%)</span>
+                <span className="text-vilo-text-soft text-sm">{taxAmount.toFixed(2)} {state.restaurant.currency}</span>
               </div>
-              <div className="border-t border-[#333355]/50 pt-3 flex justify-between items-center">
-                <span className="text-[#b0b0cc] text-sm">Trinkgeld gesamt</span>
+              <div className="border-t border-vilo-border-subtle/50 pt-3 flex justify-between items-center">
+                <span className="text-vilo-text-secondary text-sm">Trinkgeld gesamt</span>
                 <span className="text-emerald-400 font-bold">{totalTips.toFixed(2)} {state.restaurant.currency}</span>
               </div>
             </div>
           </div>
 
           {/* Payment breakdown */}
-          <div className="bg-[#2a2a42]/60 rounded-xl border border-[#333355]/50 p-4">
+          <div className="bg-vilo-surface/60 rounded-xl border border-vilo-border-subtle/50 p-4">
             <h3 className="text-white font-semibold mb-3">Zahlungsarten</h3>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <IconCreditCard className="w-4 h-4 text-blue-400" />
-                  <span className="text-[#c0c0dd] text-sm">Karte</span>
+                  <span className="text-vilo-text-soft text-sm">Karte</span>
                 </div>
                 <span className="text-white text-sm font-medium">{cardRevenue.toFixed(2)} {state.restaurant.currency}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <IconCash className="w-4 h-4 text-emerald-400" />
-                  <span className="text-[#c0c0dd] text-sm">Bar</span>
+                  <span className="text-vilo-text-soft text-sm">Bar</span>
                 </div>
                 <span className="text-white text-sm font-medium">{cashRevenue.toFixed(2)} {state.restaurant.currency}</span>
               </div>
@@ -156,7 +156,7 @@ export function OrderHistory({ onSelectTable: _onSelectTable }: OrderHistoryProp
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <IconArrowsShuffle className="w-4 h-4 text-amber-400" />
-                    <span className="text-[#c0c0dd] text-sm">Gemischt</span>
+                    <span className="text-vilo-text-soft text-sm">Gemischt</span>
                   </div>
                   <span className="text-white text-sm font-medium">{mixedRevenue.toFixed(2)} {state.restaurant.currency}</span>
                 </div>
@@ -165,15 +165,15 @@ export function OrderHistory({ onSelectTable: _onSelectTable }: OrderHistoryProp
           </div>
 
           {/* Avg stats */}
-          <div className="bg-[#2a2a42]/60 rounded-xl border border-[#333355]/50 p-4">
+          <div className="bg-vilo-surface/60 rounded-xl border border-vilo-border-subtle/50 p-4">
             <h3 className="text-white font-semibold mb-3">Durchschnitte</h3>
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-[#353558]/30 rounded-lg p-3 text-center">
-                <p className="text-[#b0b0cc] text-xs mb-1">Pro Tisch</p>
+              <div className="bg-vilo-elevated/30 rounded-lg p-3 text-center">
+                <p className="text-vilo-text-secondary text-xs mb-1">Pro Tisch</p>
                 <p className="text-white font-bold">{avgPerTable.toFixed(2)} {state.restaurant.currency}</p>
               </div>
-              <div className="bg-[#353558]/30 rounded-lg p-3 text-center">
-                <p className="text-[#b0b0cc] text-xs mb-1">Trinkgeld/Tisch</p>
+              <div className="bg-vilo-elevated/30 rounded-lg p-3 text-center">
+                <p className="text-vilo-text-secondary text-xs mb-1">Trinkgeld/Tisch</p>
                 <p className="text-white font-bold">
                   {closedTables.length > 0 ? (totalTips / closedTables.length).toFixed(2) : '0.00'} {state.restaurant.currency}
                 </p>
@@ -198,7 +198,7 @@ export function OrderHistory({ onSelectTable: _onSelectTable }: OrderHistoryProp
             className={`w-full py-3.5 rounded-xl font-medium transition-colors ${
               confirmClear
                 ? 'bg-red-600 text-white hover:bg-red-500'
-                : 'bg-[#353558] text-[#c0c0dd] hover:bg-[#555]'
+                : 'bg-vilo-elevated text-vilo-text-soft hover:bg-[#555]'
             }`}
           >
             {confirmClear ? (
@@ -224,13 +224,13 @@ export function OrderHistory({ onSelectTable: _onSelectTable }: OrderHistoryProp
   // === Main History View ===
   return (
     <div className="h-full bg-[#1a1a2e] flex flex-col">
-      <header className="bg-[#2a2a42]/80 backdrop-blur border-b border-[#333355] px-4 py-3">
+      <header className="bg-vilo-surface/80 backdrop-blur border-b border-vilo-border-subtle px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <IconReceipt className="w-5 h-5 text-[#b1d9ff]" />
             <div>
               <h1 className="text-white font-semibold text-lg">Bestellhistorie</h1>
-              <p className="text-[#8888aa] text-xs">Schicht seit {formatTime(state.shiftStart)}</p>
+              <p className="text-vilo-text-muted text-xs">Schicht seit {formatTime(state.shiftStart)}</p>
             </div>
           </div>
           <button
@@ -245,33 +245,33 @@ export function OrderHistory({ onSelectTable: _onSelectTable }: OrderHistoryProp
       <div className="flex-1 overflow-y-auto">
         {/* Quick stats */}
         <div className="px-4 py-3 grid grid-cols-4 gap-2">
-          <div className="bg-[#2a2a42]/60 rounded-lg p-2.5 text-center border border-[#333355]/50">
+          <div className="bg-vilo-surface/60 rounded-lg p-2.5 text-center border border-vilo-border-subtle/50">
             <div className="flex items-center justify-center gap-1 mb-1">
-              <IconCurrencyEuro className="w-3 h-3 text-[#b0b0cc]" />
+              <IconCurrencyEuro className="w-3 h-3 text-vilo-text-secondary" />
             </div>
             <p className="text-white text-sm font-bold">{totalRevenue.toFixed(0)}</p>
-            <p className="text-[#8888aa] text-[10px]">Umsatz</p>
+            <p className="text-vilo-text-muted text-[10px]">Umsatz</p>
           </div>
-          <div className="bg-[#2a2a42]/60 rounded-lg p-2.5 text-center border border-[#333355]/50">
+          <div className="bg-vilo-surface/60 rounded-lg p-2.5 text-center border border-vilo-border-subtle/50">
             <div className="flex items-center justify-center gap-1 mb-1">
-              <IconCoins className="w-3 h-3 text-[#b0b0cc]" />
+              <IconCoins className="w-3 h-3 text-vilo-text-secondary" />
             </div>
             <p className="text-white text-sm font-bold">{totalTips.toFixed(2)}</p>
-            <p className="text-[#8888aa] text-[10px]">Trinkgeld</p>
+            <p className="text-vilo-text-muted text-[10px]">Trinkgeld</p>
           </div>
-          <div className="bg-[#2a2a42]/60 rounded-lg p-2.5 text-center border border-[#333355]/50">
+          <div className="bg-vilo-surface/60 rounded-lg p-2.5 text-center border border-vilo-border-subtle/50">
             <div className="flex items-center justify-center gap-1 mb-1">
-              <IconUsers className="w-3 h-3 text-[#b0b0cc]" />
+              <IconUsers className="w-3 h-3 text-vilo-text-secondary" />
             </div>
             <p className="text-white text-sm font-bold">{closedTables.length}</p>
-            <p className="text-[#8888aa] text-[10px]">Tische</p>
+            <p className="text-vilo-text-muted text-[10px]">Tische</p>
           </div>
-          <div className="bg-[#2a2a42]/60 rounded-lg p-2.5 text-center border border-[#333355]/50">
+          <div className="bg-vilo-surface/60 rounded-lg p-2.5 text-center border border-vilo-border-subtle/50">
             <div className="flex items-center justify-center gap-1 mb-1">
-              <IconClock className="w-3 h-3 text-[#b0b0cc]" />
+              <IconClock className="w-3 h-3 text-vilo-text-secondary" />
             </div>
             <p className="text-white text-sm font-bold">{shiftHours}:{shiftMinutes.toString().padStart(2, '0')}</p>
-            <p className="text-[#8888aa] text-[10px]">Dauer</p>
+            <p className="text-vilo-text-muted text-[10px]">Dauer</p>
           </div>
         </div>
 
@@ -287,14 +287,14 @@ export function OrderHistory({ onSelectTable: _onSelectTable }: OrderHistoryProp
 
         {/* Closed tables list */}
         <div className="px-4 space-y-2 pb-4">
-          <h2 className="text-[#b0b0cc] text-xs font-medium uppercase tracking-wider mb-2">
+          <h2 className="text-vilo-text-secondary text-xs font-medium uppercase tracking-wider mb-2">
             Abgeschlossene Tische ({closedTables.length})
           </h2>
 
           {closedTables.length === 0 ? (
             <div className="text-center py-12">
               <IconReceipt className="w-10 h-10 text-slate-700 mx-auto mb-3" />
-              <p className="text-[#8888aa] text-sm">Noch keine abgeschlossenen Tische</p>
+              <p className="text-vilo-text-muted text-sm">Noch keine abgeschlossenen Tische</p>
               <p className="text-[#777] text-xs mt-1">Tische erscheinen hier nach dem Bezahlen</p>
             </div>
           ) : (
@@ -302,19 +302,19 @@ export function OrderHistory({ onSelectTable: _onSelectTable }: OrderHistoryProp
               const realIdx = closedTables.length - 1 - idx;
               const isExpanded = expandedTable === realIdx;
               return (
-                <div key={realIdx} className="rounded-xl bg-[#2a2a42]/60 border border-[#333355]/50 overflow-hidden">
+                <div key={realIdx} className="rounded-xl bg-vilo-surface/60 border border-vilo-border-subtle/50 overflow-hidden">
                   {/* Table header */}
                   <button
                     onClick={() => setExpandedTable(isExpanded ? null : realIdx)}
                     className="w-full flex items-center justify-between p-3"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-[#353558] flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-lg bg-vilo-elevated flex items-center justify-center">
                         {paymentIcon(table.paymentMethod)}
                       </div>
                       <div className="text-left">
                         <p className="text-white text-sm font-medium">{table.tableName}</p>
-                        <p className="text-[#8888aa] text-xs">
+                        <p className="text-vilo-text-muted text-xs">
                           {formatTime(table.startTime)} - {formatTime(table.closedTime)} &middot; {formatDuration(table.startTime, table.closedTime)}
                         </p>
                       </div>
@@ -326,27 +326,27 @@ export function OrderHistory({ onSelectTable: _onSelectTable }: OrderHistoryProp
                           <p className="text-emerald-400 text-xs">+{table.tips.toFixed(2)} Tip</p>
                         )}
                       </div>
-                      {isExpanded ? <IconChevronUp className="w-4 h-4 text-[#b0b0cc]" /> : <IconChevronDown className="w-4 h-4 text-[#b0b0cc]" />}
+                      {isExpanded ? <IconChevronUp className="w-4 h-4 text-vilo-text-secondary" /> : <IconChevronDown className="w-4 h-4 text-vilo-text-secondary" />}
                     </div>
                   </button>
 
                   {/* Expanded order details */}
                   {isExpanded && (
-                    <div className="border-t border-[#333355]/50 p-3 space-y-1.5">
+                    <div className="border-t border-vilo-border-subtle/50 p-3 space-y-1.5">
                       {table.orders.map((order, oi) => (
                         <div key={oi} className="flex items-center justify-between py-1 px-2">
                           <div className="flex items-center gap-2">
                             <span className="text-[#b1d9ff] text-xs font-medium">{order.quantity}x</span>
-                            <span className="text-[#c0c0dd] text-sm">{order.name}</span>
+                            <span className="text-vilo-text-soft text-sm">{order.name}</span>
                             {order.modifiers.length > 0 && (
                               <span className="text-amber-400/60 text-xs">({order.modifiers.join(', ')})</span>
                             )}
                           </div>
-                          <span className="text-[#b0b0cc] text-sm">{(order.price * order.quantity).toFixed(2)}</span>
+                          <span className="text-vilo-text-secondary text-sm">{(order.price * order.quantity).toFixed(2)}</span>
                         </div>
                       ))}
-                      <div className="border-t border-[#333355]/30 pt-2 mt-2 flex justify-between px-2">
-                        <span className="text-[#b0b0cc] text-xs">
+                      <div className="border-t border-vilo-border-subtle/30 pt-2 mt-2 flex justify-between px-2">
+                        <span className="text-vilo-text-secondary text-xs">
                           {table.orders.length} Position{table.orders.length !== 1 ? 'en' : ''} &middot; {
                             table.paymentMethod === 'card' ? 'Karte' :
                             table.paymentMethod === 'cash' ? 'Bar' : 'Gemischt'

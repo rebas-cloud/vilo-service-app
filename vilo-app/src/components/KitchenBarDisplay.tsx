@@ -91,7 +91,7 @@ export function KitchenBarDisplay({ onBack: _onBack }: { onBack: () => void }) {
     const diff = (Date.now() - timestamp) / 1000 / 60;
     if (diff > 20) return 'text-red-400';
     if (diff > 10) return 'text-amber-400';
-    return 'text-[#b0b0cc]';
+    return 'text-vilo-text-secondary';
   };
 
   const handleMarkReady = (orderId: string) => {
@@ -191,7 +191,7 @@ export function KitchenBarDisplay({ onBack: _onBack }: { onBack: () => void }) {
   return (
     <div className="flex flex-col h-full bg-[#1a1a2e]">
       {/* Mode Toggle Bar */}
-      <div className="flex items-center justify-between px-3 py-2 border-b border-[#333355]" style={{ background: '#1a1a2e' }}>
+      <div className="flex items-center justify-between px-3 py-2 border-b border-vilo-border-subtle" style={{ background: '#1a1a2e' }}>
         <div className="flex items-center gap-2">
           {mode === 'kitchen' ? (
             <IconChefHat className="w-5 h-5 text-orange-400" />
@@ -210,13 +210,13 @@ export function KitchenBarDisplay({ onBack: _onBack }: { onBack: () => void }) {
           )}
         </div>
         {/* Mode Toggle */}
-        <div className="flex bg-[#353558]/60 rounded-lg p-0.5">
+        <div className="flex bg-vilo-elevated/60 rounded-lg p-0.5">
           <button
             onClick={() => setMode('kitchen')}
             className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
               mode === 'kitchen'
                 ? 'bg-orange-500/20 text-orange-400'
-                : 'text-[#b0b0cc] hover:text-[#ddd]'
+                : 'text-vilo-text-secondary hover:text-[#ddd]'
             }`}
           >
             <IconChefHat className="w-3.5 h-3.5" />
@@ -227,7 +227,7 @@ export function KitchenBarDisplay({ onBack: _onBack }: { onBack: () => void }) {
             className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
               mode === 'bar'
                 ? 'bg-blue-500/20 text-blue-400'
-                : 'text-[#b0b0cc] hover:text-[#ddd]'
+                : 'text-vilo-text-secondary hover:text-[#ddd]'
             }`}
           >
             <IconGlass className="w-3.5 h-3.5" />
@@ -239,7 +239,7 @@ export function KitchenBarDisplay({ onBack: _onBack }: { onBack: () => void }) {
       {/* Orders */}
       <div className="flex-1 overflow-y-auto p-3 space-y-3" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         {orderGroups.length === 0 && readyOrders.length === 0 && problemOrders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-[#8888aa]">
+          <div className="flex flex-col items-center justify-center h-full text-vilo-text-muted">
             {mode === 'kitchen' ? (
               <IconChefHat className="w-16 h-16 mb-4 opacity-30" />
             ) : (
@@ -256,8 +256,8 @@ export function KitchenBarDisplay({ onBack: _onBack }: { onBack: () => void }) {
                 key={group.tableId}
                 className={`rounded-xl border overflow-hidden ${
                   mode === 'kitchen'
-                    ? 'bg-[#2a2a42]/80 border-orange-500/30'
-                    : 'bg-[#2a2a42]/80 border-blue-500/30'
+                    ? 'bg-vilo-surface/80 border-orange-500/30'
+                    : 'bg-vilo-surface/80 border-blue-500/30'
                 }`}
               >
                 {/* Table Header */}
@@ -287,7 +287,7 @@ export function KitchenBarDisplay({ onBack: _onBack }: { onBack: () => void }) {
                       className={`flex items-center justify-between px-4 py-3 transition-all duration-300 ${
                         completedIds.has(order.id)
                           ? 'bg-green-500/10 opacity-50 scale-95'
-                          : 'hover:bg-[#353558]/30'
+                          : 'hover:bg-vilo-elevated/30'
                       }`}
                     >
                       <div className="flex-1">
@@ -308,12 +308,12 @@ export function KitchenBarDisplay({ onBack: _onBack }: { onBack: () => void }) {
                           <p className="text-xs text-amber-400 mt-0.5">{order.notes}</p>
                         )}
                         {order.course && (
-                          <span className="text-xs text-[#8888aa]">
+                          <span className="text-xs text-vilo-text-muted">
                             {order.course === 'starter' ? 'Vorspeise' : order.course === 'main' ? 'Hauptgang' : 'Dessert'}
                           </span>
                         )}
                         {order.seatId && (
-                          <span className="text-xs text-[#8888aa] ml-2">Gast {order.seatId}</span>
+                          <span className="text-xs text-vilo-text-muted ml-2">Gast {order.seatId}</span>
                         )}
                       </div>
                       <div className="ml-3 flex items-center gap-2">
@@ -407,8 +407,8 @@ export function KitchenBarDisplay({ onBack: _onBack }: { onBack: () => void }) {
       </div>
 
       {/* Footer Stats */}
-      <div className="border-t border-[#333355] px-4 py-1.5" style={{ background: '#1a1a2e' }}>
-        <div className="flex items-center justify-between text-xs text-[#8888aa]">
+      <div className="border-t border-vilo-border-subtle px-4 py-1.5" style={{ background: '#1a1a2e' }}>
+        <div className="flex items-center justify-between text-xs text-vilo-text-muted">
           <span>{totalOrders} offen</span>
           <span>{problemOrders.reduce((s, g) => s + g.orders.length, 0)} problem</span>
           <span>{readyOrders.reduce((s, g) => s + g.orders.length, 0)} fertig</span>

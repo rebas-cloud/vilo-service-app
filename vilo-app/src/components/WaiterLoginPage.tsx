@@ -108,9 +108,9 @@ export function WaiterLoginPage({ onBack, onLogin }: WaiterLoginPageProps) {
               onBack();
             }
           }}
-          className="p-2 rounded-lg hover:bg-[#353558]/50 transition-colors"
+          className="p-2 rounded-lg hover:bg-vilo-elevated/50 transition-colors"
         >
-          <IconArrowLeft className="w-5 h-5 text-[#b0b0cc]" />
+          <IconArrowLeft className="w-5 h-5 text-vilo-text-secondary" />
         </button>
         <h2 className="text-lg font-semibold text-white">
           {phase === 'code' ? 'Restaurant finden' : restaurantName}
@@ -120,7 +120,7 @@ export function WaiterLoginPage({ onBack, onLogin }: WaiterLoginPageProps) {
       {/* Logo */}
       <div className="mb-8 text-center">
         <img src={viloLogo} alt="Vilo" className="mx-auto mb-2 h-12 w-auto" />
-        <p className="text-[#b0b0cc] text-sm">
+        <p className="text-vilo-text-secondary text-sm">
           {phase === 'code' ? 'Restaurant-Code eingeben' : 'PIN eingeben'}
         </p>
         {phase === 'pin' && (
@@ -142,14 +142,14 @@ export function WaiterLoginPage({ onBack, onLogin }: WaiterLoginPageProps) {
                       ? error
                         ? 'border-red-500 bg-red-500/10 text-red-400'
                         : 'border-violet-500 bg-[#7bb7ef]/10 text-[#b1d9ff]'
-                      : 'border-[#3d3d5c] bg-[#353558]/50 text-[#8888aa]'
+                      : 'border-vilo-border-strong bg-vilo-elevated/50 text-vilo-text-muted'
                   }`}
                 >
                   {code[i] || ''}
                 </div>
               ))}
             </div>
-            <div className="flex items-center justify-center gap-1.5 text-[#8888aa] text-xs">
+            <div className="flex items-center justify-center gap-1.5 text-vilo-text-muted text-xs">
               <IconHash className="w-3 h-3" />
               6-stelliger Restaurant-Code
             </div>
@@ -162,7 +162,7 @@ export function WaiterLoginPage({ onBack, onLogin }: WaiterLoginPageProps) {
               <button
                 key={char}
                 onClick={() => handleCodeInput(char)}
-                className="h-11 rounded-lg bg-[#353558]/80 text-white text-sm font-medium active:bg-[#7bb7ef] transition-colors hover:bg-[#555]"
+                className="h-11 rounded-lg bg-vilo-elevated/80 text-white text-sm font-medium active:bg-[#7bb7ef] transition-colors hover:bg-[#555]"
               >
                 {char}
               </button>
@@ -171,7 +171,7 @@ export function WaiterLoginPage({ onBack, onLogin }: WaiterLoginPageProps) {
           <div className="flex gap-2 mt-2 w-72">
             <button
               onClick={handleCodeDelete}
-              className="flex-1 h-11 rounded-lg bg-[#353558]/50 text-[#c0c0dd] text-sm font-medium active:bg-[#555] transition-colors"
+              className="flex-1 h-11 rounded-lg bg-vilo-elevated/50 text-vilo-text-soft text-sm font-medium active:bg-[#555] transition-colors"
             >
               Loeschen
             </button>
@@ -218,7 +218,7 @@ export function WaiterLoginPage({ onBack, onLogin }: WaiterLoginPageProps) {
                   <button
                     key="del"
                     onClick={handlePinDelete}
-                    className="h-16 rounded-xl bg-[#353558]/50 text-[#c0c0dd] text-lg font-medium active:bg-[#555] transition-colors flex items-center justify-center"
+                    className="h-16 rounded-xl bg-vilo-elevated/50 text-vilo-text-soft text-lg font-medium active:bg-[#555] transition-colors flex items-center justify-center"
                   >
                     &#8592;
                   </button>
@@ -228,7 +228,7 @@ export function WaiterLoginPage({ onBack, onLogin }: WaiterLoginPageProps) {
                 <button
                   key={key}
                   onClick={() => handlePinEntry(key)}
-                  className="h-16 rounded-xl bg-[#353558]/80 text-white text-2xl font-medium active:bg-[#7bb7ef] transition-colors hover:bg-[#555]"
+                  className="h-16 rounded-xl bg-vilo-elevated/80 text-white text-2xl font-medium active:bg-[#7bb7ef] transition-colors hover:bg-[#555]"
                 >
                   {key}
                 </button>
@@ -236,7 +236,7 @@ export function WaiterLoginPage({ onBack, onLogin }: WaiterLoginPageProps) {
             })}
           </div>
 
-          <p className="text-[#8888aa] text-xs mt-6">Deine persoenliche PIN eingeben</p>
+          <p className="text-vilo-text-muted text-xs mt-6">Deine persoenliche PIN eingeben</p>
         </>
       )}
     </div>

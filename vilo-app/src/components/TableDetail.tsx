@@ -146,7 +146,7 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
       case 'sent_to_bar': return <IconGlass className="w-3.5 h-3.5 text-purple-400" />;
       case 'problem': return <IconAlertTriangle className="w-3.5 h-3.5 text-[#ec4899]" />;
       case 'ready': return <IconCoffee className="w-3.5 h-3.5 text-emerald-400" />;
-      case 'served': return <IconChevronRight className="w-3.5 h-3.5 text-[#8888aa]" />;
+      case 'served': return <IconChevronRight className="w-3.5 h-3.5 text-vilo-text-muted" />;
       default: return null;
     }
   };
@@ -265,19 +265,19 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
   return (
     <div className="h-full bg-[#1a1a2e] flex flex-col">
       {/* Header */}
-      <header className="bg-[#2a2a42]/80 backdrop-blur border-b border-[#333355]">
+      <header className="bg-vilo-surface/80 backdrop-blur border-b border-vilo-border-subtle">
         <div className="flex">
-          <div className={`px-4 py-3 border-r border-[#333355] ${showMenu ? 'w-full lg:basis-[28%] lg:max-w-[28%]' : 'flex-1'}`}>
+          <div className={`px-4 py-3 border-r border-vilo-border-subtle ${showMenu ? 'w-full lg:basis-[28%] lg:max-w-[28%]' : 'flex-1'}`}>
             <div className="flex items-center justify-between gap-3">
               <button
                 onClick={onBack}
-                className="p-1.5 rounded-lg bg-[#353558] text-[#c0c0dd] hover:bg-[#555] transition-colors"
+                className="p-1.5 rounded-lg bg-vilo-elevated text-vilo-text-soft hover:bg-[#555] transition-colors"
               >
                 <IconArrowLeft className="w-5 h-5" />
               </button>
               <div className="min-w-0 flex-1">
                 <h2 className="text-white font-semibold text-lg leading-tight">{table.name}</h2>
-                <div className="flex items-center gap-3 text-[#b0b0cc] text-xs">
+                <div className="flex items-center gap-3 text-vilo-text-secondary text-xs">
                   <span className="truncate">Seit {formatTime(session.startTime)} · {session.orders.length} Positionen</span>
                 </div>
               </div>
@@ -381,22 +381,22 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
 
             <div className="grid grid-cols-3 gap-px bg-[#2c2e49]">
               <button className="bg-[#23253a] px-3 py-3 text-left hover:bg-[#282b45] transition-colors">
-                <span className="block text-[10px] uppercase tracking-[0.18em] text-[#8888aa]">Partei</span>
+                <span className="block text-[10px] uppercase tracking-[0.18em] text-vilo-text-muted">Partei</span>
                 <span className="mt-1.5 block text-sm font-semibold text-white">{guestSourceLabel}</span>
               </button>
               <button className="bg-[#23253a] px-3 py-3 text-left hover:bg-[#282b45] transition-colors">
-                <span className="block text-[10px] uppercase tracking-[0.18em] text-[#8888aa]">Umbuchen</span>
+                <span className="block text-[10px] uppercase tracking-[0.18em] text-vilo-text-muted">Umbuchen</span>
                 <span className="mt-1.5 block text-sm font-semibold text-white">Später</span>
               </button>
               <button className="bg-[#23253a] px-3 py-3 text-left hover:bg-[#282b45] transition-colors">
-                <span className="block text-[10px] uppercase tracking-[0.18em] text-[#8888aa]">Gäste</span>
+                <span className="block text-[10px] uppercase tracking-[0.18em] text-vilo-text-muted">Gäste</span>
                 <span className="mt-1.5 block text-sm font-semibold text-white">{session.guestCount || 0}</span>
               </button>
             </div>
 
             {session.notes.length > 0 && (
               <div className="border-t border-[#2c2e49] px-4 py-2.5">
-                <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8888aa]">Notizen</p>
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-vilo-text-muted">Notizen</p>
                 <div className="flex flex-wrap gap-2">
                   {session.notes.map((note, i) => (
                     <span key={i} className="rounded-full bg-amber-800/30 px-2 py-0.5 text-xs text-amber-200">
@@ -410,7 +410,7 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
 
           <div className="flex-1 overflow-y-auto bg-[#1a1b2d]">
             {session.orders.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-[#8888aa]">
+              <div className="flex flex-col items-center justify-center py-16 text-vilo-text-muted">
                 <IconToolsKitchen className="w-12 h-12 mb-3 opacity-50" />
                 <p className="text-sm">Noch keine Bestellungen</p>
               </div>
@@ -494,14 +494,14 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
                 <span className="rounded-full bg-[#23253a] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white">
                   Hier
                 </span>
-                <span className="rounded-full bg-[#23253a] px-2.5 py-1 text-[10px] font-semibold text-[#c0c0dd]">
+                <span className="rounded-full bg-[#23253a] px-2.5 py-1 text-[10px] font-semibold text-vilo-text-soft">
                   {activePositionCount} offen
                 </span>
               </div>
               <div className={`grid gap-2 ${ordersByState.ordered.length > 0 ? 'grid-cols-[minmax(0,1fr)_auto]' : 'grid-cols-1'}`}>
               <button
                 onClick={() => dispatch({ type: 'SHOW_BILLING' })}
-                className={`border border-[#333355]/40 bg-[#26243f] px-3 py-2.5 text-white min-w-0 transition-colors hover:bg-[#2d2a49] ${ordersByState.ordered.length > 0 ? 'text-left' : 'text-center'}`}
+                className={`border border-vilo-border-subtle/40 bg-vilo-card px-3 py-2.5 text-white min-w-0 transition-colors hover:bg-[#2d2a49] ${ordersByState.ordered.length > 0 ? 'text-left' : 'text-center'}`}
               >
                 <span className="block text-[9px] uppercase tracking-[0.18em] text-[#9f9aba]">Gesamt</span>
                 <span className={`mt-1 flex items-center gap-1.5 text-[16px] leading-none font-bold whitespace-nowrap ${ordersByState.ordered.length > 0 ? 'justify-start text-white' : 'justify-center text-white'}`}>
@@ -524,7 +524,7 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
               <button
                 onClick={() => setShowMenu(!showMenu)}
                 className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors ${
-                  showMenu ? 'bg-[#353558] text-white hover:bg-[#404064]' : 'bg-[#8b5cf6] text-white hover:bg-[#7c3aed]'
+                  showMenu ? 'bg-vilo-elevated text-white hover:bg-[#404064]' : 'bg-[#8b5cf6] text-white hover:bg-[#7c3aed]'
                 }`}
               >
                 {showMenu ? 'Menü ausblenden' : 'POS-Menü öffnen'}
@@ -541,7 +541,7 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
 
         {showMenu && (
           <aside className="w-full lg:flex-1 bg-[#1d1c32] flex flex-col min-h-[48vh]">
-            <div className="border-b border-[#333355] bg-[#24223c] lg:hidden">
+            <div className="border-b border-vilo-border-subtle bg-[#24223c] lg:hidden">
               <div className="flex items-center justify-between gap-3 px-4 py-2.5">
                 <div />
                 <div className="flex items-center gap-3">
@@ -767,13 +767,13 @@ function OrderRow({ order, getStateIcon, getStateLabel, getCourseLabel, formatTi
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className="flex-shrink-0">{getStateIcon(order.state)}</span>
-            <span className="text-[#b0b0cc] text-xs">{formatTime(order.timestamp)}</span>
+            <span className="text-vilo-text-secondary text-xs">{formatTime(order.timestamp)}</span>
             <span className="text-[#777] text-xs">·</span>
-            <span className="text-[#b0b0cc] text-xs">{getStateLabel(order.state)}</span>
+            <span className="text-vilo-text-secondary text-xs">{getStateLabel(order.state)}</span>
             {getCourseLabel(order.course) && (
               <>
                 <span className="text-[#777] text-xs">·</span>
-                <span className="text-[#b0b0cc] text-xs">{getCourseLabel(order.course)}</span>
+                <span className="text-vilo-text-secondary text-xs">{getCourseLabel(order.course)}</span>
               </>
             )}
             {order.modifiers.length > 0 && (
@@ -791,12 +791,12 @@ function OrderRow({ order, getStateIcon, getStateLabel, getCourseLabel, formatTi
           </div>
         </div>
         <div className="flex flex-col items-end gap-2 text-right">
-          <span className="text-[#c0c0dd] text-sm font-medium">{(order.price * order.quantity).toFixed(2)} €</span>
+          <span className="text-vilo-text-soft text-sm font-medium">{(order.price * order.quantity).toFixed(2)} €</span>
           <div className="flex items-center gap-2">
             {onAction && (
               <button
                 onClick={onAction}
-                className="rounded-md bg-[#353558] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#c0c0dd] hover:bg-[#555] transition-colors"
+                className="rounded-md bg-vilo-elevated px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-vilo-text-soft hover:bg-[#555] transition-colors"
               >
                 {actionLabel}
               </button>

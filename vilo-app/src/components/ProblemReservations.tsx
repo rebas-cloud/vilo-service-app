@@ -152,7 +152,7 @@ export function ProblemReservations({ onSelectTable }: ProblemReservationsProps)
             <IconAlertTriangle className="w-4 h-4 text-red-400" />
             Probleme
           </h2>
-          <p className="text-[#8888aa] text-[10px]">
+          <p className="text-vilo-text-muted text-[10px]">
             {problems.length} Problem{problems.length !== 1 ? 'e' : ''}
             {highCount > 0 && <span className="text-red-400 ml-1">{highCount} kritisch</span>}
             {mediumCount > 0 && <span className="text-amber-400 ml-1">{mediumCount} mittel</span>}
@@ -160,7 +160,7 @@ export function ProblemReservations({ onSelectTable }: ProblemReservationsProps)
         </div>
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="p-0.5 text-[#8888aa] hover:text-white transition-colors"
+          className="p-0.5 text-vilo-text-muted hover:text-white transition-colors"
         >
           {collapsed ? <IconChevronDown className="w-4 h-4" /> : <IconChevronUp className="w-4 h-4" />}
         </button>

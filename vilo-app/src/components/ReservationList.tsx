@@ -139,18 +139,18 @@ export function ReservationList({ onSelectTable }: ReservationListProps) {
         <div className="flex items-center justify-between px-3 py-2.5">
           <div>
             <h2 className="text-white font-bold text-[15px]">Reservierungen</h2>
-            <p className="text-[#8888aa] text-[10px]">{totalGuests} Covers &middot; {totalGroups} Parties &middot; {walkInCount} Walk-Ins &middot; {onlineCount} Online</p>
+            <p className="text-vilo-text-muted text-[10px]">{totalGuests} Covers &middot; {totalGroups} Parties &middot; {walkInCount} Walk-Ins &middot; {onlineCount} Online</p>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={handleExportCSV} className="p-0.5 text-[#8888aa] hover:text-[#7bb7ef] transition-colors" title="CSV Export">
+            <button onClick={handleExportCSV} className="p-0.5 text-vilo-text-muted hover:text-[#7bb7ef] transition-colors" title="CSV Export">
               <IconDownload className="w-4 h-4" />
             </button>
-            <button onClick={handlePrint} className="p-0.5 text-[#8888aa] hover:text-[#7bb7ef] transition-colors" title="Drucken">
+            <button onClick={handlePrint} className="p-0.5 text-vilo-text-muted hover:text-[#7bb7ef] transition-colors" title="Drucken">
               <IconPrinter className="w-4 h-4" />
             </button>
             <button
               onClick={() => setCollapsed(!collapsed)}
-              className="p-0.5 text-[#8888aa] hover:text-white transition-colors"
+              className="p-0.5 text-vilo-text-muted hover:text-white transition-colors"
             >
               {collapsed ? <IconChevronDown className="w-4 h-4" /> : <IconChevronUp className="w-4 h-4" />}
             </button>

@@ -48,8 +48,8 @@ export function RegistrationPage({ onBack, onRegister }: RegistrationPageProps) 
     >
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-4">
-        <button onClick={onBack} className="p-2 rounded-lg hover:bg-[#353558]/50 transition-colors">
-          <IconArrowLeft className="w-5 h-5 text-[#b0b0cc]" />
+        <button onClick={onBack} className="p-2 rounded-lg hover:bg-vilo-elevated/50 transition-colors">
+          <IconArrowLeft className="w-5 h-5 text-vilo-text-secondary" />
         </button>
         <h2 className="text-lg font-semibold text-white">Konto erstellen</h2>
       </div>
@@ -58,20 +58,20 @@ export function RegistrationPage({ onBack, onRegister }: RegistrationPageProps) 
         {/* Logo */}
         <div className="mb-8 text-center">
           <img src={viloLogo} alt="Vilo" className="mx-auto mb-2 h-10 w-auto" />
-          <p className="text-[#b0b0cc] text-sm">Erstelle dein Owner-Konto</p>
+          <p className="text-vilo-text-secondary text-sm">Erstelle dein Owner-Konto</p>
         </div>
 
         <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-[#c0c0dd] mb-1.5">Dein Name</label>
+            <label className="block text-sm font-medium text-vilo-text-soft mb-1.5">Dein Name</label>
             <input
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="z.B. Marco Rossi"
-              className={`w-full px-4 py-3 rounded-xl bg-[#353558]/80 text-white placeholder-[#888] border transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 ${
-                errors.name ? 'border-red-500' : 'border-[#3d3d5c]'
+              className={`w-full px-4 py-3 rounded-xl bg-vilo-elevated/80 text-white placeholder-[#888] border transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 ${
+                errors.name ? 'border-red-500' : 'border-vilo-border-strong'
               }`}
               autoFocus
             />
@@ -80,14 +80,14 @@ export function RegistrationPage({ onBack, onRegister }: RegistrationPageProps) 
 
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-[#c0c0dd] mb-1.5">E-Mail</label>
+            <label className="block text-sm font-medium text-vilo-text-soft mb-1.5">E-Mail</label>
             <input
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder="marco@restaurant.de"
-              className={`w-full px-4 py-3 rounded-xl bg-[#353558]/80 text-white placeholder-[#888] border transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 ${
-                errors.email ? 'border-red-500' : 'border-[#3d3d5c]'
+              className={`w-full px-4 py-3 rounded-xl bg-vilo-elevated/80 text-white placeholder-[#888] border transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 ${
+                errors.email ? 'border-red-500' : 'border-vilo-border-strong'
               }`}
             />
             {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
@@ -95,21 +95,21 @@ export function RegistrationPage({ onBack, onRegister }: RegistrationPageProps) 
 
           {/* Password */}
           <div>
-            <label className="block text-sm font-medium text-[#c0c0dd] mb-1.5">Passwort</label>
+            <label className="block text-sm font-medium text-vilo-text-soft mb-1.5">Passwort</label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="Mindestens 6 Zeichen"
-                className={`w-full px-4 py-3 pr-12 rounded-xl bg-[#353558]/80 text-white placeholder-[#888] border transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 ${
-                  errors.password ? 'border-red-500' : 'border-[#3d3d5c]'
+                className={`w-full px-4 py-3 pr-12 rounded-xl bg-vilo-elevated/80 text-white placeholder-[#888] border transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 ${
+                  errors.password ? 'border-red-500' : 'border-vilo-border-strong'
                 }`}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#b0b0cc] hover:text-[#c0c0dd]"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-vilo-text-secondary hover:text-vilo-text-soft"
               >
                 {showPassword ? <IconEyeOff className="w-5 h-5" /> : <IconEye className="w-5 h-5" />}
               </button>

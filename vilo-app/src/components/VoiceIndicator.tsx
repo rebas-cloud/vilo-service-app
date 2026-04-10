@@ -71,10 +71,10 @@ export function VoiceIndicator({
     <div className={`transition-colors ${getModeColor()}`}>
       {/* Last command & confirmation */}
       {(lastCommand || lastConfirmation) && (
-        <div className="px-4 py-2 bg-[#2a2a42]/50 flex items-center justify-between">
+        <div className="px-4 py-2 bg-vilo-surface/50 flex items-center justify-between">
           <div className="flex-1 min-w-0">
             {lastCommand && (
-              <p className="text-[#b0b0cc] text-xs truncate">
+              <p className="text-vilo-text-secondary text-xs truncate">
                 Erkannt: <span className="text-[#ddd]">"{lastCommand}"</span>
               </p>
             )}

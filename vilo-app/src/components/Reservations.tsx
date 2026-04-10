@@ -627,7 +627,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                 onClose();
               }
             }}
-            className="absolute right-0 top-1/2 -translate-y-1/2 p-1.5 text-[#b0b0cc] hover:text-[#e0e0f0] transition-colors"
+            className="absolute right-0 top-1/2 -translate-y-1/2 p-1.5 text-vilo-text-secondary hover:text-vilo-text-primary transition-colors"
           >
             <IconX className="w-5 h-5" />
           </button>
@@ -730,7 +730,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
           <div className={'flex items-center gap-2 ' + (embedded ? 'flex-wrap' : '')}>
             <button
               onClick={() => setShowGuestList(true)}
-              className={'flex items-center gap-1.5 text-[#c0c0dd] font-medium border border-[#3d3d5c] hover:bg-[#2a2a42] transition-colors ' + (embedded ? 'px-2.5 py-2 rounded-lg text-[13px]' : 'px-3 py-2 rounded-xl text-sm')}
+              className={'flex items-center gap-1.5 text-vilo-text-soft font-medium border border-vilo-border-strong hover:bg-vilo-surface transition-colors ' + (embedded ? 'px-2.5 py-2 rounded-lg text-[13px]' : 'px-3 py-2 rounded-xl text-sm')}
             >
               <IconUsers className="w-4 h-4" />
               Gästeliste
@@ -743,14 +743,14 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
               <IconPlus className="w-4 h-4" />
               Hinzufügen
             </button>
-            <button onClick={onClose} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0] transition-colors">
+            <button onClick={onClose} className="p-1 text-vilo-text-secondary hover:text-vilo-text-primary transition-colors">
               <IconX className="w-6 h-6" />
             </button>
           </div>
         </div>
 
         {/* Summary bar */}
-        <div className={'text-[#b0b0cc] ' + (embedded ? 'space-y-2 text-[13px]' : 'flex items-center justify-between gap-4 text-sm')}>
+        <div className={'text-vilo-text-secondary ' + (embedded ? 'space-y-2 text-[13px]' : 'flex items-center justify-between gap-4 text-sm')}>
           <div className={'min-w-0 ' + (embedded ? 'space-y-2' : 'flex items-center gap-4')}>
             <div className="flex items-center gap-1.5">
               <button onClick={() => navigateDate(-1)} className="p-1 -ml-1 text-[#555577] hover:text-white transition-colors">
@@ -764,13 +764,13 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
               </button>
             </div>
             <div className={'gap-3 ' + (embedded ? 'grid grid-cols-2' : 'flex items-center')}>
-              <span className="flex items-center gap-1.5 whitespace-nowrap"><IconArmchair className="w-4 h-4 text-[#8888aa]" /> {dayReservations.length} Gruppen</span>
-              <span className="flex items-center gap-1.5 whitespace-nowrap"><IconUsers className="w-4 h-4 text-[#8888aa]" /> {totalGuests} Gäste</span>
+              <span className="flex items-center gap-1.5 whitespace-nowrap"><IconArmchair className="w-4 h-4 text-vilo-text-muted" /> {dayReservations.length} Gruppen</span>
+              <span className="flex items-center gap-1.5 whitespace-nowrap"><IconUsers className="w-4 h-4 text-vilo-text-muted" /> {totalGuests} Gäste</span>
             </div>
           </div>
           <div className={'flex items-center gap-3 shrink-0 ' + (embedded ? 'justify-between' : '')}>
             <button onClick={() => setShowShiftOverview(!showShiftOverview)}
-              className={'p-1 rounded transition-colors ' + (showShiftOverview ? 'text-[#7bb7ef] bg-[#7bb7ef]/10' : 'text-[#8888aa] hover:text-white')}>
+              className={'p-1 rounded transition-colors ' + (showShiftOverview ? 'text-[#7bb7ef] bg-[#7bb7ef]/10' : 'text-vilo-text-muted hover:text-white')}>
               <IconChartBar className="w-4 h-4" />
             </button>
             <div className="flex items-center gap-1.5">
@@ -790,19 +790,19 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
             <div className="grid grid-cols-4 gap-2 mb-3">
               <div className="rounded-[4px] p-2 text-center" style={{ background: '#181830' }}>
                 <div className="text-white font-bold text-[16px]">{shiftStats.totalParties}</div>
-                <div className="text-[#8888aa] text-[9px] uppercase font-semibold">Gruppen</div>
+                <div className="text-vilo-text-muted text-[9px] uppercase font-semibold">Gruppen</div>
               </div>
               <div className="rounded-[4px] p-2 text-center" style={{ background: '#181830' }}>
                 <div className="text-white font-bold text-[16px]">{shiftStats.totalCovers}</div>
-                <div className="text-[#8888aa] text-[9px] uppercase font-semibold">Gäste</div>
+                <div className="text-vilo-text-muted text-[9px] uppercase font-semibold">Gäste</div>
               </div>
               <div className="rounded-[4px] p-2 text-center" style={{ background: '#181830' }}>
                 <div className="text-white font-bold text-[16px]">{shiftStats.seated}</div>
-                <div className="text-[#8888aa] text-[9px] uppercase font-semibold">Platziert</div>
+                <div className="text-vilo-text-muted text-[9px] uppercase font-semibold">Platziert</div>
               </div>
               <div className="rounded-[4px] p-2 text-center" style={{ background: '#181830' }}>
                 <div className="text-white font-bold text-[16px]">{shiftStats.walkIns}</div>
-                <div className="text-[#8888aa] text-[9px] uppercase font-semibold">Walk-Ins</div>
+                <div className="text-vilo-text-muted text-[9px] uppercase font-semibold">Walk-Ins</div>
               </div>
             </div>
 
@@ -810,26 +810,26 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
             <div className="flex items-center gap-3 mb-3 px-1">
               <div className="flex items-center gap-1.5">
                 <div className="w-2 h-2 rounded-full" style={{ background: '#3b82f6' }} />
-                <span className="text-[#b0b0cc] text-[10px]">Telefon {shiftStats.phoneBookings}</span>
+                <span className="text-vilo-text-secondary text-[10px]">Telefon {shiftStats.phoneBookings}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <div className="w-2 h-2 rounded-full" style={{ background: '#ec4899' }} />
-                <span className="text-[#b0b0cc] text-[10px]">Online {shiftStats.onlineBookings}</span>
+                <span className="text-vilo-text-secondary text-[10px]">Online {shiftStats.onlineBookings}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <div className="w-2 h-2 rounded-full" style={{ background: '#22c55e' }} />
-                <span className="text-[#b0b0cc] text-[10px]">Walk-In {shiftStats.walkIns}</span>
+                <span className="text-vilo-text-secondary text-[10px]">Walk-In {shiftStats.walkIns}</span>
               </div>
               {shiftStats.cancelled > 0 && (
                 <div className="flex items-center gap-1.5">
                   <div className="w-2 h-2 rounded-full" style={{ background: '#ef4444' }} />
-                  <span className="text-[#b0b0cc] text-[10px]">Storniert {shiftStats.cancelled}</span>
+                  <span className="text-vilo-text-secondary text-[10px]">Storniert {shiftStats.cancelled}</span>
                 </div>
               )}
               {shiftStats.noShows > 0 && (
                 <div className="flex items-center gap-1.5">
                   <div className="w-2 h-2 rounded-full" style={{ background: '#f59e0b' }} />
-                  <span className="text-[#b0b0cc] text-[10px]">No-Show {shiftStats.noShows}</span>
+                  <span className="text-vilo-text-secondary text-[10px]">No-Show {shiftStats.noShows}</span>
                 </div>
               )}
             </div>
@@ -843,13 +843,13 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                 {shiftStats.largeParties.length > 0 && (
                   <div className="mb-2">
                     <div className="flex items-center gap-1.5 mb-1">
-                      <IconUsers className="w-3 h-3 text-[#8888aa]" />
-                      <span className="text-[#b0b0cc] text-[10px] font-semibold">Große Gruppen ({shiftStats.largeParties.length})</span>
+                      <IconUsers className="w-3 h-3 text-vilo-text-muted" />
+                      <span className="text-vilo-text-secondary text-[10px] font-semibold">Große Gruppen ({shiftStats.largeParties.length})</span>
                     </div>
                     {shiftStats.largeParties.map(r => (
                       <div key={r.id} className="flex items-center gap-2 pl-5 py-0.5">
                         <span className="text-white text-[11px]">{r.time}</span>
-                        <span className="text-[#c0c0dd] text-[11px] font-medium">{r.guestName}</span>
+                        <span className="text-vilo-text-soft text-[11px] font-medium">{r.guestName}</span>
                         <span className="text-[#7bb7ef] text-[11px] font-bold">{r.partySize} Pers.</span>
                       </div>
                     ))}
@@ -860,13 +860,13 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                 {shiftStats.guestRequests.length > 0 && (
                   <div className="mb-2">
                     <div className="flex items-center gap-1.5 mb-1">
-                      <IconMessage className="w-3 h-3 text-[#8888aa]" />
-                      <span className="text-[#b0b0cc] text-[10px] font-semibold">Gästewünsche ({shiftStats.guestRequests.length})</span>
+                      <IconMessage className="w-3 h-3 text-vilo-text-muted" />
+                      <span className="text-vilo-text-secondary text-[10px] font-semibold">Gästewünsche ({shiftStats.guestRequests.length})</span>
                     </div>
                     {shiftStats.guestRequests.map(r => (
                       <div key={r.id} className="flex items-start gap-2 pl-5 py-0.5">
                         <span className="text-white text-[11px] shrink-0">{r.time}</span>
-                        <span className="text-[#c0c0dd] text-[11px] font-medium shrink-0">{r.guestName}</span>
+                        <span className="text-vilo-text-soft text-[11px] font-medium shrink-0">{r.guestName}</span>
                         <span className="text-[#999] text-[10px] truncate">{r.notes}</span>
                       </div>
                     ))}
@@ -877,14 +877,14 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                 {shiftStats.specialEvents.length > 0 && (
                   <div className="mb-2">
                     <div className="flex items-center gap-1.5 mb-1">
-                      <IconSparkles className="w-3 h-3 text-[#8888aa]" />
-                      <span className="text-[#b0b0cc] text-[10px] font-semibold">Besondere Anlässe ({shiftStats.specialEvents.length})</span>
+                      <IconSparkles className="w-3 h-3 text-vilo-text-muted" />
+                      <span className="text-vilo-text-secondary text-[10px] font-semibold">Besondere Anlässe ({shiftStats.specialEvents.length})</span>
                     </div>
                     {shiftStats.specialEvents.map(r => (
                       <div key={r.id} className="flex items-center gap-2 pl-5 py-0.5">
                         <span className="text-white text-[11px]">{r.time}</span>
-                        <span className="text-[#c0c0dd] text-[11px] font-medium">{r.guestName}</span>
-                        <span className="text-[#b0b0cc] text-[11px]">{r.partySize} Pers.</span>
+                        <span className="text-vilo-text-soft text-[11px] font-medium">{r.guestName}</span>
+                        <span className="text-vilo-text-secondary text-[11px]">{r.partySize} Pers.</span>
                         {(r.occasionLabels || []).map(oc => {
                           const info = OCCASION_LABELS_MAP[oc];
                           return info ? (
@@ -902,13 +902,13 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                 {shiftStats.seatingPrefs.length > 0 && (
                   <div className="mb-2">
                     <div className="flex items-center gap-1.5 mb-1">
-                      <IconArmchair className="w-3 h-3 text-[#8888aa]" />
-                      <span className="text-[#b0b0cc] text-[10px] font-semibold">Sitzplatzwünsche ({shiftStats.seatingPrefs.length})</span>
+                      <IconArmchair className="w-3 h-3 text-vilo-text-muted" />
+                      <span className="text-vilo-text-secondary text-[10px] font-semibold">Sitzplatzwünsche ({shiftStats.seatingPrefs.length})</span>
                     </div>
                     {shiftStats.seatingPrefs.map(r => (
                       <div key={r.id} className="flex items-center gap-2 pl-5 py-0.5">
                         <span className="text-white text-[11px]">{r.time}</span>
-                        <span className="text-[#c0c0dd] text-[11px] font-medium">{r.guestName}</span>
+                        <span className="text-vilo-text-soft text-[11px] font-medium">{r.guestName}</span>
                         {(r.seatLabels || []).map(sl => {
                           const info = SEAT_LABELS_MAP[sl];
                           return info ? (
@@ -924,8 +924,8 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                 {shiftStats.referrals.length > 0 && (
                   <div className="mb-2">
                     <div className="flex items-center gap-1.5 mb-1">
-                      <IconStar className="w-3 h-3 text-[#8888aa]" />
-                      <span className="text-[#b0b0cc] text-[10px] font-semibold">Empfehlungen ({shiftStats.referrals.length})</span>
+                      <IconStar className="w-3 h-3 text-vilo-text-muted" />
+                      <span className="text-vilo-text-secondary text-[10px] font-semibold">Empfehlungen ({shiftStats.referrals.length})</span>
                     </div>
                     <div className="flex flex-wrap gap-1 pl-5 mb-1">
                       {shiftStats.referralSources.map(src => (
@@ -980,9 +980,9 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                     <span className="text-[#7bb7ef] text-xs underline">nach Uhrzeit</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-[#8888aa] text-[11px]"><span className="text-white font-bold">{upcomingReservations.length}</span> Gruppen</span>
-                    <span className="text-[#8888aa] text-[11px]"><span className="text-white font-bold">{upcomingGuests}</span> Gäste</span>
-                    {showUpcoming ? <IconChevronUp className="w-4 h-4 text-[#8888aa]" /> : <IconChevronDown className="w-4 h-4 text-[#8888aa]" />}
+                    <span className="text-vilo-text-muted text-[11px]"><span className="text-white font-bold">{upcomingReservations.length}</span> Gruppen</span>
+                    <span className="text-vilo-text-muted text-[11px]"><span className="text-white font-bold">{upcomingGuests}</span> Gäste</span>
+                    {showUpcoming ? <IconChevronUp className="w-4 h-4 text-vilo-text-muted" /> : <IconChevronDown className="w-4 h-4 text-vilo-text-muted" />}
                   </div>
                 </button>
                 {showUpcoming && upcomingReservations.map((r) => {
@@ -1012,7 +1012,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                                                                                                   {/* Line 1: time + duration */}
                           <div className="flex items-center gap-[6px]">
                             <span className="text-white font-normal text-[12px]">{r.time} Uhr</span>
-                            <span className="text-[#8888aa] font-normal text-[10px]">{formatDuration(r.duration)}</span>
+                            <span className="text-vilo-text-muted font-normal text-[10px]">{formatDuration(r.duration)}</span>
                           </div>
                           {/* Line 2: star + guest name */}
                           <div className="flex items-center gap-[4px] mt-[1px]">
@@ -1087,7 +1087,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                   <div className="mt-auto w-full rounded-t-2xl overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto" style={{ background: '#1a1a2e' }} onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-between px-5 py-4">
                       <span className="text-2xl font-bold text-white">{r.guestName}</span>
-                      <button onClick={() => setOpenMenuId(null)} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0]"><IconX className="w-6 h-6" /></button>
+                      <button onClick={() => setOpenMenuId(null)} className="p-1 text-vilo-text-secondary hover:text-vilo-text-primary"><IconX className="w-6 h-6" /></button>
                     </div>
                     <div className="px-5 py-2 space-y-2">
                       <button onClick={() => { handleStatusChange(r.id, 'seated'); setOpenMenuId(null); }}
@@ -1095,18 +1095,18 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                         <IconCheck className="w-5 h-5" /> Platzieren
                       </button>
                       <button onClick={() => { handleEditReservation(r); setOpenMenuId(null); }}
-                        className="w-full flex items-center gap-3 py-4 px-4 rounded-xl border border-[#3d3d5c] text-[#c0c0dd] font-medium text-base hover:bg-[#2a2a42] active:bg-[#353558] transition-colors">
-                        <IconEdit className="w-5 h-5 text-[#b0b0cc]" /> Bearbeiten
+                        className="w-full flex items-center gap-3 py-4 px-4 rounded-xl border border-vilo-border-strong text-vilo-text-soft font-medium text-base hover:bg-vilo-surface active:bg-vilo-elevated transition-colors">
+                        <IconEdit className="w-5 h-5 text-vilo-text-secondary" /> Bearbeiten
                       </button>
                       {guestProfile && (
                         <button onClick={() => { setShowGuestProfile(guestProfile); setOpenMenuId(null); }}
-                          className="w-full flex items-center gap-3 py-4 px-4 rounded-xl border border-[#3d3d5c] text-[#c0c0dd] font-medium text-base hover:bg-[#2a2a42] active:bg-[#353558] transition-colors">
-                          <IconUser className="w-5 h-5 text-[#b0b0cc]" /> Gast-Profil
+                          className="w-full flex items-center gap-3 py-4 px-4 rounded-xl border border-vilo-border-strong text-vilo-text-soft font-medium text-base hover:bg-vilo-surface active:bg-vilo-elevated transition-colors">
+                          <IconUser className="w-5 h-5 text-vilo-text-secondary" /> Gast-Profil
                         </button>
                       )}
                     </div>
                     <div className="px-5 py-3">
-                      <p className="text-sm font-bold text-[#b0b0cc] tracking-wider mb-3">Tische zuweisen</p>
+                      <p className="text-sm font-bold text-vilo-text-secondary tracking-wider mb-3">Tische zuweisen</p>
                       <div className="max-h-[160px] overflow-y-auto pr-1">
                         <div className="flex flex-wrap gap-2">
                           {state.tables.map(t => {
@@ -1117,9 +1117,9 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                               <button key={t.id} disabled={!isFree}
                                 onClick={() => handleToggleMultiTable(r.id, t.id)}
                                 className={'px-3 py-2 rounded-lg text-sm font-medium transition-all ' +
-                                  (isSelected ? 'border-2 border-[#7bb7ef] text-white bg-[#2a2a42]' :
-                                    isFree ? 'border border-[#3d3d5c] text-[#c0c0dd] bg-[#2d2d50] hover:bg-[#444] cursor-pointer' :
-                                      'border border-[#333355] text-[#555577] bg-[#222238] cursor-not-allowed')}>
+                                  (isSelected ? 'border-2 border-[#7bb7ef] text-white bg-vilo-surface' :
+                                    isFree ? 'border border-vilo-border-strong text-vilo-text-soft bg-[#2d2d50] hover:bg-[#444] cursor-pointer' :
+                                      'border border-vilo-border-subtle text-[#555577] bg-[#222238] cursor-not-allowed')}>
                                 {t.name}
                               </button>
                             );
@@ -1128,15 +1128,15 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                       </div>
                     </div>
                     <div className="px-5 py-3">
-                      <p className="text-sm font-bold text-[#b0b0cc] tracking-wider mb-3">Zahlungsstatus</p>
+                      <p className="text-sm font-bold text-vilo-text-secondary tracking-wider mb-3">Zahlungsstatus</p>
                       <div className="flex gap-2">
                         {([['open', 'OFFEN'], ['partial', 'ANZAHLUNG'], ['paid', 'BEZAHLT']] as const).map(([val, label]) => {
                           const isActive = (r.paymentStatus || 'open') === val;
                           return (
                             <button key={val} onClick={() => handlePaymentStatus(r.id, val)}
                               className={'px-4 py-2.5 rounded-lg text-sm font-bold tracking-wider transition-all ' +
-                                (isActive ? 'border-2 border-[#7bb7ef] text-white bg-[#2a2a42]' :
-                                  'border border-[#3d3d5c] text-[#c0c0dd] bg-[#2d2d50] hover:bg-[#444]')}>
+                                (isActive ? 'border-2 border-[#7bb7ef] text-white bg-vilo-surface' :
+                                  'border border-vilo-border-strong text-vilo-text-soft bg-[#2d2d50] hover:bg-[#444]')}>
                               {label}
                             </button>
                           );
@@ -1171,9 +1171,9 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                     <span className="text-[#7bb7ef] text-xs underline">nach Sitzzeit</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-[#8888aa] text-[11px]"><span className="text-white font-bold">{seatedReservations.length}</span> Gruppen</span>
-                    <span className="text-[#8888aa] text-[11px]"><span className="text-white font-bold">{seatedGuests}</span> Gäste</span>
-                    {showSeated ? <IconChevronUp className="w-4 h-4 text-[#8888aa]" /> : <IconChevronDown className="w-4 h-4 text-[#8888aa]" />}
+                    <span className="text-vilo-text-muted text-[11px]"><span className="text-white font-bold">{seatedReservations.length}</span> Gruppen</span>
+                    <span className="text-vilo-text-muted text-[11px]"><span className="text-white font-bold">{seatedGuests}</span> Gäste</span>
+                    {showSeated ? <IconChevronUp className="w-4 h-4 text-vilo-text-muted" /> : <IconChevronDown className="w-4 h-4 text-vilo-text-muted" />}
                   </div>
                 </button>
                 {showSeated && seatedReservations.map((r) => {
@@ -1280,17 +1280,17 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                   <div className="mt-auto w-full rounded-t-2xl overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto" style={{ background: '#1a1a2e' }} onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-between px-5 py-4">
                       <span className="text-2xl font-bold text-white">{r.guestName}</span>
-                      <button onClick={() => setOpenMenuId(null)} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0]"><IconX className="w-6 h-6" /></button>
+                      <button onClick={() => setOpenMenuId(null)} className="p-1 text-vilo-text-secondary hover:text-vilo-text-primary"><IconX className="w-6 h-6" /></button>
                     </div>
                     <div className="px-5 py-2 space-y-2">
                       <button onClick={() => { handleEditReservation(r); setOpenMenuId(null); }}
-                        className="w-full flex items-center gap-3 py-4 px-4 rounded-xl border border-[#3d3d5c] text-[#c0c0dd] font-medium text-base hover:bg-[#2a2a42] active:bg-[#353558] transition-colors">
-                        <IconEdit className="w-5 h-5 text-[#b0b0cc]" /> Bearbeiten
+                        className="w-full flex items-center gap-3 py-4 px-4 rounded-xl border border-vilo-border-strong text-vilo-text-soft font-medium text-base hover:bg-vilo-surface active:bg-vilo-elevated transition-colors">
+                        <IconEdit className="w-5 h-5 text-vilo-text-secondary" /> Bearbeiten
                       </button>
                       {guestProfile && (
                         <button onClick={() => { setShowGuestProfile(guestProfile); setOpenMenuId(null); }}
-                          className="w-full flex items-center gap-3 py-4 px-4 rounded-xl border border-[#3d3d5c] text-[#c0c0dd] font-medium text-base hover:bg-[#2a2a42] active:bg-[#353558] transition-colors">
-                          <IconUser className="w-5 h-5 text-[#b0b0cc]" /> Gast-Profil
+                          className="w-full flex items-center gap-3 py-4 px-4 rounded-xl border border-vilo-border-strong text-vilo-text-soft font-medium text-base hover:bg-vilo-surface active:bg-vilo-elevated transition-colors">
+                          <IconUser className="w-5 h-5 text-vilo-text-secondary" /> Gast-Profil
                         </button>
                       )}
                       {assignedTable && onSeatReservation && (
@@ -1338,7 +1338,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                 setWizardStep('guests');
               }
             }}
-              className="p-1.5 text-[#b0b0cc] hover:text-[#e0e0f0] transition-colors">
+              className="p-1.5 text-vilo-text-secondary hover:text-vilo-text-primary transition-colors">
               {wizardStep === 'date' || editingId ? <IconX className="w-5 h-5" /> : <IconChevronLeft className="w-5 h-5" />}
             </button>
 
@@ -1348,10 +1348,10 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                   <span className="text-white font-semibold text-sm">Datum</span>
                 )}
                 {wizardStep === 'guests' && (
-                  <><IconUsers className="w-4 h-4 text-[#b0b0cc]" /><span className="text-white font-semibold text-sm">{formData.partySize} {formData.partySize === 1 ? 'Gast' : 'Gäste'}</span></>
+                  <><IconUsers className="w-4 h-4 text-vilo-text-secondary" /><span className="text-white font-semibold text-sm">{formData.partySize} {formData.partySize === 1 ? 'Gast' : 'Gäste'}</span></>
                 )}
                 {wizardStep === 'guest_info' && (
-                  <><IconUser className="w-4 h-4 text-[#b0b0cc]" /><span className="text-white font-semibold text-sm truncate">{formData.guestName || 'Gast'}</span></>
+                  <><IconUser className="w-4 h-4 text-vilo-text-secondary" /><span className="text-white font-semibold text-sm truncate">{formData.guestName || 'Gast'}</span></>
                 )}
               </div>
             </div>
@@ -1364,7 +1364,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                   onClose();
                 }
               }}
-              className="p-1.5 text-[#b0b0cc] hover:text-[#e0e0f0] transition-colors"
+              className="p-1.5 text-vilo-text-secondary hover:text-vilo-text-primary transition-colors"
             >
               <IconX className="w-5 h-5" />
             </button>
@@ -1487,14 +1487,14 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                     {[1, 2, 3, 4, 5, 6, 7].map(n => (
                       <button key={n} onClick={() => setFormData(prev => ({ ...prev, partySize: n }))}
                         className={'w-full aspect-square text-[18px] font-bold transition-colors ' +
-                          (formData.partySize === n ? 'bg-[#d946ef] text-white' : 'bg-[#26243f] text-[#d7d3e8] hover:bg-[#302d4a]')}
+                          (formData.partySize === n ? 'bg-[#d946ef] text-white' : 'bg-vilo-card text-[#d7d3e8] hover:bg-[#302d4a]')}
                         style={{ borderRadius: 0 }}>
                         {n}
                       </button>
                     ))}
                     <div
                       className={'relative w-full aspect-square transition-colors ' +
-                        (formData.partySize > 7 ? 'bg-[#d946ef] text-white' : 'bg-[#26243f] text-[#d7d3e8] hover:bg-[#302d4a]')}
+                        (formData.partySize > 7 ? 'bg-[#d946ef] text-white' : 'bg-vilo-card text-[#d7d3e8] hover:bg-[#302d4a]')}
                       style={{ borderRadius: 0 }}
                     >
                       <input
@@ -1521,12 +1521,12 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                 {/* Time picker - compact */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between gap-3">
-                    <h4 className="text-[11px] font-semibold text-[#b0b0cc] uppercase tracking-[0.14em]">Uhrzeit</h4>
+                    <h4 className="text-[11px] font-semibold text-vilo-text-secondary uppercase tracking-[0.14em]">Uhrzeit</h4>
                     <input
                       type="time"
                       value={formData.time}
                       onChange={e => setFormData(prev => ({ ...prev, time: e.target.value }))}
-                      className="py-1 w-[36px] text-transparent caret-transparent outline-none text-[11px] bg-[#26243f] cursor-pointer"
+                      className="py-1 w-[36px] text-transparent caret-transparent outline-none text-[11px] bg-vilo-card cursor-pointer"
                       style={{ borderRadius: 10 }}
                     />
                   </div>
@@ -1534,7 +1534,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                     {['17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00', '21:30', '22:00', '22:30'].map(t => (
                       <button key={t} onClick={() => setFormData(prev => ({ ...prev, time: t }))}
                         className={'px-0 py-2 text-[11px] font-medium transition-colors ' +
-                          (formData.time === t ? 'bg-[#8b5cf6] text-white' : 'bg-[#26243f] text-[#b0b0cc] hover:bg-[#302d4a]')}
+                          (formData.time === t ? 'bg-[#8b5cf6] text-white' : 'bg-vilo-card text-vilo-text-secondary hover:bg-[#302d4a]')}
                         style={{ borderRadius: 0 }}>
                         {t}
                       </button>
@@ -1552,12 +1552,12 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
 
                 {/* Duration - compact inline */}
                 <div className="space-y-1.5">
-                  <h4 className="text-[11px] font-semibold text-[#b0b0cc] uppercase tracking-[0.14em]">Dauer</h4>
+                  <h4 className="text-[11px] font-semibold text-vilo-text-secondary uppercase tracking-[0.14em]">Dauer</h4>
                   <div className="grid grid-cols-5 gap-1.5">
                     {[60, 90, 120, 150, 180].map(d => (
                       <button key={d} onClick={() => setFormData(prev => ({ ...prev, duration: d }))}
                         className={'py-2 text-[11px] font-medium transition-colors ' +
-                          (formData.duration === d ? 'bg-[#8b5cf6] text-white' : 'bg-[#26243f] text-[#b0b0cc] hover:bg-[#302d4a]')}
+                          (formData.duration === d ? 'bg-[#8b5cf6] text-white' : 'bg-vilo-card text-vilo-text-secondary hover:bg-[#302d4a]')}
                         style={{ borderRadius: 0 }}>
                         {d}m
                       </button>
@@ -1567,11 +1567,11 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
 
                 {/* Table assignment */}
                 <div>
-                  <h4 className="text-xs font-semibold text-[#b0b0cc] uppercase tracking-wider mb-1.5">Tisch (optional)</h4>
+                  <h4 className="text-xs font-semibold text-vilo-text-secondary uppercase tracking-wider mb-1.5">Tisch (optional)</h4>
                   <div className="relative">
                     <div
                       className={'flex items-center gap-3 px-4 py-3 ' +
-                        (formData.tableId ? 'bg-[#26243f]' : 'border border-dashed border-[#6f5c9a] bg-transparent')}
+                        (formData.tableId ? 'bg-vilo-card' : 'border border-dashed border-[#6f5c9a] bg-transparent')}
                       style={{ borderRadius: 0 }}
                     >
                       <IconArmchair className="w-5 h-5 text-[#c7c0e8] shrink-0" />
@@ -1624,13 +1624,13 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                 {/* Search bar */}
                 <div className="px-4 py-2">
                   <div className="relative">
-                    <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8888aa]" />
+                    <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-vilo-text-muted" />
                     <input
                       type="text"
                       value={guestSearch}
                       onChange={e => handleGuestSearch(e.target.value)}
                       placeholder="Nach Telefonnummer oder Namen suchen"
-                      className="w-full pl-3 pr-9 py-2.5 text-sm text-white outline-none bg-[#211f36] placeholder:text-[#8888aa] border border-transparent focus:border-[#8b5cf6] focus:ring-0"
+                      className="w-full pl-3 pr-9 py-2.5 text-sm text-white outline-none bg-[#211f36] placeholder:text-vilo-text-muted border border-transparent focus:border-[#8b5cf6] focus:ring-0"
                       style={{ borderRadius: 10 }}
                     />
                   </div>
@@ -1639,13 +1639,13 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                     <div className="mt-1 overflow-hidden shadow-lg" style={{ borderRadius: 0 }}>
                       {searchResults.slice(0, 5).map(g => (
                         <button key={g.id} onClick={() => handleSelectSearchGuest(g)}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-[#302d4a] text-left border-b border-[#26243f] last:border-0 bg-[#26243f]">
+                          className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-[#302d4a] text-left border-b border-[#26243f] last:border-0 bg-vilo-card">
                           <div className="w-8 h-8 bg-[#31224d] flex items-center justify-center" style={{ borderRadius: 0 }}>
                             <IconUser className="w-4 h-4 text-[#d8c7ff]" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-white truncate">{g.name}</p>
-                            {g.phone && <p className="text-xs text-[#b0b0cc]">{g.phone}</p>}
+                            {g.phone && <p className="text-xs text-vilo-text-secondary">{g.phone}</p>}
                           </div>
                           {g.totalVisits > 0 && (
                             <span className="text-xs text-[#d8c7ff] font-medium">{g.totalVisits}x</span>
@@ -1660,7 +1660,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                 <div className="px-4 py-3 space-y-4">
                   {/* Matched guest banner */}
                   {matchedGuest && (
-                    <div className="bg-[#26243f] px-3 py-2.5 flex items-center gap-3" style={{ borderRadius: 12 }}>
+                    <div className="bg-vilo-card px-3 py-2.5 flex items-center gap-3" style={{ borderRadius: 12 }}>
                       <div className="w-10 h-10 bg-[#8b5cf6] flex items-center justify-center shrink-0 text-white font-semibold text-sm" style={{ borderRadius: 0 }}>
                         {(matchedGuest.name || 'G').charAt(0).toUpperCase()}
                       </div>
@@ -1696,7 +1696,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                           setFormData(prev => ({ ...prev, guestName: e.target.value + (lastName ? ' ' + lastName : '') }));
                         }}
                         placeholder="Vorname"
-                        className="w-full px-3 py-3 text-[15px] text-white outline-none bg-[#26243f] placeholder:text-[#8888aa] border border-transparent focus:border-[#8b5cf6]"
+                        className="w-full px-3 py-3 text-[15px] text-white outline-none bg-vilo-card placeholder:text-vilo-text-muted border border-transparent focus:border-[#8b5cf6]"
                         style={{ borderRadius: 12 }}
                       />
                     </div>
@@ -1707,7 +1707,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                           setFormData(prev => ({ ...prev, guestName: firstName + (e.target.value ? ' ' + e.target.value : '') }));
                         }}
                         placeholder="Nachname"
-                        className="w-full px-3 py-3 text-[15px] text-white outline-none bg-[#26243f] placeholder:text-[#8888aa] border border-transparent focus:border-[#8b5cf6]"
+                        className="w-full px-3 py-3 text-[15px] text-white outline-none bg-vilo-card placeholder:text-vilo-text-muted border border-transparent focus:border-[#8b5cf6]"
                         style={{ borderRadius: 12 }}
                       />
                     </div>
@@ -1715,7 +1715,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                       <input type="tel" value={maskPhoneValue(formData.guestPhone)}
                         onChange={e => handlePhoneChange(e.target.value)}
                         placeholder="Telefonnummer"
-                        className="w-full px-3 py-3 text-[15px] text-white outline-none bg-[#26243f] placeholder:text-[#8888aa] border border-transparent focus:border-[#8b5cf6]"
+                        className="w-full px-3 py-3 text-[15px] text-white outline-none bg-vilo-card placeholder:text-vilo-text-muted border border-transparent focus:border-[#8b5cf6]"
                         style={{ borderRadius: 12 }}
                       />
                     </div>
@@ -1725,7 +1725,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                         value={formData.guestEmail}
                         onChange={e => setFormData(prev => ({ ...prev, guestEmail: e.target.value }))}
                         placeholder="E-Mail"
-                        className="w-full px-3 py-3 text-[15px] text-white outline-none bg-[#26243f] placeholder:text-[#8888aa] border border-transparent focus:border-[#8b5cf6]"
+                        className="w-full px-3 py-3 text-[15px] text-white outline-none bg-vilo-card placeholder:text-vilo-text-muted border border-transparent focus:border-[#8b5cf6]"
                         style={{ borderRadius: 12 }}
                       />
                     </div>
@@ -1733,13 +1733,13 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
 
                   {/* Source */}
                   <div>
-                    <p className="text-xs text-[#b0b0cc] font-semibold uppercase tracking-wider mb-2">Quelle</p>
+                    <p className="text-xs text-vilo-text-secondary font-semibold uppercase tracking-wider mb-2">Quelle</p>
                     <div className="flex gap-2">
                       {([['phone', 'Telefon'], ['online', 'Online'], ['walk_in', 'Walk-In']] as const).map(([val, label]) => (
                         <button key={val}
                           onClick={() => setFormData(prev => ({ ...prev, source: val }))}
                           className={'flex-1 py-2 text-xs font-medium transition-colors ' +
-                            (formData.source === val ? 'bg-[#8b5cf6] text-white' : 'bg-[#26243f] text-[#b0b0cc] hover:bg-[#302d4a]')}
+                            (formData.source === val ? 'bg-[#8b5cf6] text-white' : 'bg-vilo-card text-vilo-text-secondary hover:bg-[#302d4a]')}
                           style={{ borderRadius: 0 }}>
                           {label}
                         </button>
@@ -1749,11 +1749,11 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
 
                   {/* Vermittler/Referral */}
                   <div>
-                    <p className="text-xs text-[#b0b0cc] font-semibold uppercase tracking-wider mb-2">Vermittler / Empfehlung</p>
+                    <p className="text-xs text-vilo-text-secondary font-semibold uppercase tracking-wider mb-2">Vermittler / Empfehlung</p>
                     <input type="text" value={formData.referralSource}
                       onChange={e => setFormData(prev => ({ ...prev, referralSource: e.target.value }))}
                       placeholder="z.B. Hotel Adlon, Google, Freund Max M."
-                      className="w-full px-3 py-3 text-sm text-white outline-none bg-[#26243f] placeholder:text-[#8888aa] border border-transparent focus:border-[#8b5cf6]"
+                      className="w-full px-3 py-3 text-sm text-white outline-none bg-vilo-card placeholder:text-vilo-text-muted border border-transparent focus:border-[#8b5cf6]"
                       style={{ borderRadius: 12 }}
                     />
                   </div>
@@ -1762,19 +1762,19 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                   {matchedGuest && (
                     <div className="grid grid-cols-4 gap-2 py-2">
                       <div className="text-center">
-                        <p className="text-xs text-[#8888aa]">Akzeptiert</p>
+                        <p className="text-xs text-vilo-text-muted">Akzeptiert</p>
                         <p className="text-base font-bold text-white">{matchedGuest.totalVisits || 0}</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-xs text-[#8888aa]">Besuche</p>
+                        <p className="text-xs text-vilo-text-muted">Besuche</p>
                         <p className="text-base font-bold text-white">{matchedGuest.totalVisits || 0}</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-xs text-[#8888aa]">Stornierung</p>
+                        <p className="text-xs text-vilo-text-muted">Stornierung</p>
                         <p className="text-base font-bold text-white">0</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-xs text-[#8888aa]">No-Shows</p>
+                        <p className="text-xs text-vilo-text-muted">No-Shows</p>
                         <p className="text-base font-bold text-white">0</p>
                       </div>
                     </div>
@@ -1782,10 +1782,10 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
 
                   {/* Etiketten */}
                   <div>
-                    <p className="text-xs text-[#b0b0cc] font-semibold uppercase tracking-wider mb-2">ETIKETTEN</p>
+                    <p className="text-xs text-vilo-text-secondary font-semibold uppercase tracking-wider mb-2">ETIKETTEN</p>
                     <button
                       onClick={() => setShowLabelPicker(!showLabelPicker)}
-                      className="px-3 py-2 text-[#d8c7ff] text-xs font-medium transition-colors bg-[#26243f] hover:bg-[#302d4a]"
+                      className="px-3 py-2 text-[#d8c7ff] text-xs font-medium transition-colors bg-vilo-card hover:bg-[#302d4a]"
                       style={{ borderRadius: 16 }}>
                       + Etiketten hinzufügen
                       {(formData.seatLabels.length + formData.occasionLabels.length) > 0 && (
@@ -1812,9 +1812,9 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                     )}
 
                     {showLabelPicker && (
-                      <div className="mt-3 space-y-3 p-3 bg-[#26243f]" style={{ borderRadius: 0 }}>
+                      <div className="mt-3 space-y-3 p-3 bg-vilo-card" style={{ borderRadius: 0 }}>
                         <div>
-                          <p className="text-[10px] text-[#b0b0cc] font-semibold uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                          <p className="text-[10px] text-vilo-text-secondary font-semibold uppercase tracking-wider mb-1.5 flex items-center gap-1">
                             <IconArmchair className="w-3 h-3" /> Sitzplatz-Präferenzen
                           </p>
                           <div className="flex flex-wrap gap-1.5">
@@ -1827,7 +1827,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                                     seatLabels: isActive ? prev.seatLabels.filter(s => s !== key) : [...prev.seatLabels, key],
                                   }))}
                                   className={'px-2 py-1 text-[10px] font-medium transition-colors ' +
-                                    (isActive ? 'bg-[#8b5cf6] text-white' : 'bg-[#312e4f] text-[#b0b0cc] hover:bg-[#3a365c]')}
+                                    (isActive ? 'bg-[#8b5cf6] text-white' : 'bg-[#312e4f] text-vilo-text-secondary hover:bg-[#3a365c]')}
                                   style={{ borderRadius: 0 }}>
                                   {val.label}
                                 </button>
@@ -1836,7 +1836,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                           </div>
                         </div>
                         <div>
-                          <p className="text-[10px] text-[#b0b0cc] font-semibold uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                          <p className="text-[10px] text-vilo-text-secondary font-semibold uppercase tracking-wider mb-1.5 flex items-center gap-1">
                             <IconSparkles className="w-3 h-3" /> Anlass
                           </p>
                           <div className="flex flex-wrap gap-1.5">
@@ -1849,7 +1849,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                                     occasionLabels: isActive ? prev.occasionLabels.filter(o => o !== key) : [...prev.occasionLabels, key],
                                   }))}
                                   className={'px-2 py-1 text-[10px] font-medium transition-colors ' +
-                                    (isActive ? 'bg-[#d946ef] text-white' : 'bg-[#312e4f] text-[#b0b0cc] hover:bg-[#3a365c]')}
+                                    (isActive ? 'bg-[#d946ef] text-white' : 'bg-[#312e4f] text-vilo-text-secondary hover:bg-[#3a365c]')}
                                   style={{ borderRadius: 0 }}>
                                   {val.label}
                                 </button>
@@ -1863,43 +1863,43 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
 
                   {/* Notes */}
                   <div>
-                    <p className="text-xs text-[#b0b0cc] font-semibold uppercase tracking-wider mb-2">BESUCHSNOTIZEN</p>
+                    <p className="text-xs text-vilo-text-secondary font-semibold uppercase tracking-wider mb-2">BESUCHSNOTIZEN</p>
                     <textarea value={formData.notes}
                       onChange={e => setFormData(prev => ({ ...prev, notes: e.target.value }))}
                       placeholder="z.B. Allergien, Kinderstuhl, Geburtstag..."
                       rows={2}
-                      className="w-full px-3 py-3 text-white text-sm outline-none resize-none bg-[#26243f] placeholder:text-[#8888aa] border border-transparent focus:border-[#8b5cf6]"
+                      className="w-full px-3 py-3 text-white text-sm outline-none resize-none bg-vilo-card placeholder:text-vilo-text-muted border border-transparent focus:border-[#8b5cf6]"
                       style={{ borderRadius: 12 }}
                     />
                   </div>
 
                   {/* Edit mode: compact iOS-style inline rows */}
 	                  {editingId && (
-	                    <div className="border border-[#3d3d5c] rounded-lg overflow-hidden bg-[#2a2a42]">
-                      <div className="flex items-center justify-between px-3 py-2.5 border-b border-[#333355]">
-                        <span className="text-xs text-[#b0b0cc]">Datum</span>
+	                    <div className="border border-vilo-border-strong rounded-lg overflow-hidden bg-vilo-surface">
+                      <div className="flex items-center justify-between px-3 py-2.5 border-b border-vilo-border-subtle">
+                        <span className="text-xs text-vilo-text-secondary">Datum</span>
                         <input type="date" value={formData.date}
                           onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))}
                           className="text-sm text-white outline-none bg-transparent text-right" />
                       </div>
-                      <div className="flex items-center justify-between px-3 py-2.5 border-b border-[#333355]">
-                        <span className="text-xs text-[#b0b0cc]">Uhrzeit</span>
+                      <div className="flex items-center justify-between px-3 py-2.5 border-b border-vilo-border-subtle">
+                        <span className="text-xs text-vilo-text-secondary">Uhrzeit</span>
                         <input type="time" value={formData.time}
                           onChange={e => setFormData(prev => ({ ...prev, time: e.target.value }))}
                           className="text-sm text-white outline-none bg-transparent text-right" />
                       </div>
-                      <div className="flex items-center justify-between px-3 py-2.5 border-b border-[#333355]">
-                        <span className="text-xs text-[#b0b0cc]">Personen</span>
+                      <div className="flex items-center justify-between px-3 py-2.5 border-b border-vilo-border-subtle">
+                        <span className="text-xs text-vilo-text-secondary">Personen</span>
                         <div className="flex items-center gap-2">
                           <button onClick={() => setFormData(prev => ({ ...prev, partySize: Math.max(1, prev.partySize - 1) }))}
-                            className="w-6 h-6 rounded-md border border-[#3d3d5c] text-[#c0c0dd] flex items-center justify-center hover:bg-[#353558] text-sm font-bold">-</button>
+                            className="w-6 h-6 rounded-md border border-vilo-border-strong text-vilo-text-soft flex items-center justify-center hover:bg-vilo-elevated text-sm font-bold">-</button>
                           <span className="text-white font-semibold text-sm w-5 text-center">{formData.partySize}</span>
                           <button onClick={() => setFormData(prev => ({ ...prev, partySize: Math.min(20, prev.partySize + 1) }))}
-                            className="w-6 h-6 rounded-md border border-[#3d3d5c] text-[#c0c0dd] flex items-center justify-center hover:bg-[#353558] text-sm font-bold">+</button>
+                            className="w-6 h-6 rounded-md border border-vilo-border-strong text-vilo-text-soft flex items-center justify-center hover:bg-vilo-elevated text-sm font-bold">+</button>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between px-3 py-2.5 border-b border-[#333355]">
-                        <span className="text-xs text-[#b0b0cc]">Dauer</span>
+                      <div className="flex items-center justify-between px-3 py-2.5 border-b border-vilo-border-subtle">
+                        <span className="text-xs text-vilo-text-secondary">Dauer</span>
                         <select value={formData.duration}
                           onChange={e => setFormData(prev => ({ ...prev, duration: Number(e.target.value) }))}
                           className="text-sm text-white outline-none bg-transparent text-right">
@@ -1907,7 +1907,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                         </select>
                       </div>
                       <div className="flex items-center justify-between px-3 py-2.5">
-                        <span className="text-xs text-[#b0b0cc]">Tisch</span>
+                        <span className="text-xs text-vilo-text-secondary">Tisch</span>
                         <select value={formData.tableId}
                           onChange={e => setFormData(prev => ({ ...prev, tableId: e.target.value }))}
                           className="text-sm text-white outline-none bg-transparent text-right">

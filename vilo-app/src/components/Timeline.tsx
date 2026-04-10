@@ -117,7 +117,7 @@ export function Timeline({ onSelectTable }: TimelineProps) {
       {/* Stats bar */}
       <div className="flex items-center gap-4 px-3 py-2 border-b border-[#2d2d50] shrink-0" style={{ background: '#1a1a2e' }}>
         <span className="text-white text-xs font-bold">{totalParties} Gruppen</span>
-        <span className="text-[#b0b0cc] text-xs">{totalCovers} Gäste</span>
+        <span className="text-vilo-text-secondary text-xs">{totalCovers} Gäste</span>
         {todayReservations.filter(r => r.status === 'no_show').length > 0 && (
           <span className="flex items-center gap-1 text-[#f59e0b] text-xs">
             <IconAlertTriangle className="w-3 h-3" />
@@ -133,8 +133,8 @@ export function Timeline({ onSelectTable }: TimelineProps) {
           {/* Header spacer */}
           <div className="sticky top-0 z-10 border-b border-[#2d2d50]" style={{ height: HEADER_HEIGHT, background: '#1a1a2e' }}>
             <div className="flex items-center justify-center h-full">
-              <span className="text-[#8888aa] text-[9px] font-bold uppercase">Tbl</span>
-              <span className="text-[#8888aa] text-[9px] font-bold uppercase ml-2">Max</span>
+              <span className="text-vilo-text-muted text-[9px] font-bold uppercase">Tbl</span>
+              <span className="text-vilo-text-muted text-[9px] font-bold uppercase ml-2">Max</span>
             </div>
           </div>
           {zoneGroups.map(({ zone, tables }) => (
@@ -145,7 +145,7 @@ export function Timeline({ onSelectTable }: TimelineProps) {
                 className="w-full flex items-center gap-1 px-2 py-1.5 text-left hover:bg-[#2d2d50]/30 transition-colors border-b border-[#1e1e38]"
                 style={{ background: '#1e1e35' }}
               >
-                <span className="text-[#b0b0cc] text-[10px] font-bold truncate flex-1">{zone.name}</span>
+                <span className="text-vilo-text-secondary text-[10px] font-bold truncate flex-1">{zone.name}</span>
                 {collapsedZones.has(zone.id) ? (
                   <IconChevronDown className="w-3 h-3 text-[#666688] shrink-0" />
                 ) : (
@@ -179,7 +179,7 @@ export function Timeline({ onSelectTable }: TimelineProps) {
                   style={{ left: th.x, height: HEADER_HEIGHT }}
                 >
                   {th.label ? (
-                    <span className="text-[#8888aa] text-[10px] font-medium" style={{ transform: 'translateX(-50%)' }}>{th.label}</span>
+                    <span className="text-vilo-text-muted text-[10px] font-medium" style={{ transform: 'translateX(-50%)' }}>{th.label}</span>
                   ) : (
                     <div className="w-px h-2" style={{ background: '#333' }} />
                   )}

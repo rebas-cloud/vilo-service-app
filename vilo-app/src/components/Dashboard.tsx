@@ -117,13 +117,13 @@ function ComparisonBar({ current, comparison, color, currentLabel, compLabel }: 
         <div className="flex-1 h-3 rounded-full overflow-hidden" style={{ backgroundColor: `${color}30`, width: `${currentPct}%`, minWidth: '8px' }}>
           <div className="h-full rounded-full" style={{ backgroundColor: color, width: '100%' }} />
         </div>
-        {currentLabel && <span className="text-[#b0b0cc] text-[10px] whitespace-nowrap">{currentLabel}</span>}
+        {currentLabel && <span className="text-vilo-text-secondary text-[10px] whitespace-nowrap">{currentLabel}</span>}
       </div>
       <div className="flex items-center gap-2">
         <div className="flex-1 h-3 rounded-full overflow-hidden bg-[#555]/40" style={{ width: `${compPct}%`, minWidth: '8px' }}>
           <div className="h-full rounded-full bg-slate-500/60" style={{ width: '100%' }} />
         </div>
-        {compLabel && <span className="text-[#b0b0cc] text-[10px] whitespace-nowrap">{compLabel}</span>}
+        {compLabel && <span className="text-vilo-text-secondary text-[10px] whitespace-nowrap">{compLabel}</span>}
       </div>
     </div>
   );
@@ -150,7 +150,7 @@ function HourlyBarChart({ data, accentColor }: { data: { hour: string; count: nu
                 />
               )}
             </div>
-            <span className="text-[#8888aa] text-[9px]">{d.hour}</span>
+            <span className="text-vilo-text-muted text-[9px]">{d.hour}</span>
           </div>
         );
       })}
@@ -279,7 +279,7 @@ function UebersichtTab({ occupiedTables: _occupiedTables, freeTables: _freeTable
           { value: seatedCount, label: 'PLATZIERT' },
           { value: walkInCount, label: 'WALK-INS' },
         ].map(stat => (
-          <div key={stat.label} className="rounded-none px-2.5 md:px-3 py-2.5 md:py-3 text-center border border-[#333355]/40" style={{ background: '#26243f' }}>
+          <div key={stat.label} className="rounded-none px-2.5 md:px-3 py-2.5 md:py-3 text-center border border-vilo-border-subtle/40" style={{ background: '#26243f' }}>
             <p className="text-white text-[26px] md:text-[28px] font-bold leading-none">{stat.value}</p>
             <p className="text-[#9f9aba] text-[10px] md:text-[11px] font-semibold tracking-[0.18em] mt-1.5">{stat.label}</p>
           </div>
@@ -308,7 +308,7 @@ function UebersichtTab({ occupiedTables: _occupiedTables, freeTables: _freeTable
         <div className="rounded-none overflow-hidden" style={{ background: '#252540' }}>
           <div className="flex items-center justify-between px-2.5 md:px-4 pt-2.5 md:pt-3 pb-2">
             <div className="flex items-center gap-2">
-              <IconUsers className="w-4 h-4 text-[#8888aa]" />
+              <IconUsers className="w-4 h-4 text-vilo-text-muted" />
               <span className="text-[#9f9aba] text-[11px] font-semibold uppercase tracking-[0.18em]">Grosse Gruppen</span>
             </div>
             <span className="min-w-6 h-6 px-1 bg-[#312e52] text-white text-[11px] font-bold flex items-center justify-center">{bigGroups.length}</span>
@@ -321,7 +321,7 @@ function UebersichtTab({ occupiedTables: _occupiedTables, freeTables: _freeTable
                 {bigGroups.map(r => (
                   <div key={r.id} className="flex items-center justify-between py-2 gap-3">
                     <div className="flex items-center gap-3">
-                      <span className="text-[#8888aa] text-[12px] shrink-0">{r.time}</span>
+                      <span className="text-vilo-text-muted text-[12px] shrink-0">{r.time}</span>
                       <span className="text-white text-[14px] font-semibold truncate">{r.guestName}</span>
                     </div>
                     <span className="text-[#cf8cff] text-[13px] font-bold shrink-0">{r.partySize} Pers.</span>
@@ -338,7 +338,7 @@ function UebersichtTab({ occupiedTables: _occupiedTables, freeTables: _freeTable
           <div className="rounded-none overflow-hidden" style={{ background: '#252540' }}>
             <div className="flex items-center justify-between px-2.5 md:px-4 pt-2.5 md:pt-3 pb-2">
               <div className="flex items-center gap-2">
-                <IconSparkles className="w-4 h-4 text-[#8888aa]" />
+                <IconSparkles className="w-4 h-4 text-vilo-text-muted" />
                 <span className="text-[#9f9aba] text-[11px] font-semibold uppercase tracking-[0.18em]">Besondere Anlässe</span>
               </div>
               <span className="min-w-6 h-6 px-1 bg-[#312e52] text-white text-[11px] font-bold flex items-center justify-center">{specialEvents.length}</span>
@@ -352,7 +352,7 @@ function UebersichtTab({ occupiedTables: _occupiedTables, freeTables: _freeTable
                     <div key={r.id}>
                       <div className="flex items-center justify-between mb-1.5">
                         <div className="flex items-center gap-3">
-                          <span className="text-[#8888aa] text-[12px] shrink-0">{r.time}</span>
+                          <span className="text-vilo-text-muted text-[12px] shrink-0">{r.time}</span>
                           <span className="text-white text-[14px] font-semibold truncate">{r.guestName}</span>
                         </div>
                         <span className="text-[#cf8cff] text-[13px] font-bold shrink-0">{r.partySize} Pers.</span>
@@ -378,7 +378,7 @@ function UebersichtTab({ occupiedTables: _occupiedTables, freeTables: _freeTable
           <div className="rounded-none overflow-hidden" style={{ background: '#252540' }}>
             <div className="flex items-center justify-between px-2.5 md:px-4 pt-2.5 md:pt-3 pb-2">
               <div className="flex items-center gap-2">
-                <IconCalendar className="w-4 h-4 text-[#8888aa]" />
+                <IconCalendar className="w-4 h-4 text-vilo-text-muted" />
                 <span className="text-[#9f9aba] text-[11px] font-semibold uppercase tracking-[0.18em]">Sitzplatzwünsche</span>
               </div>
               <span className="min-w-6 h-6 px-1 bg-[#312e52] text-white text-[11px] font-bold flex items-center justify-center">{seatRequests.length}</span>
@@ -391,7 +391,7 @@ function UebersichtTab({ occupiedTables: _occupiedTables, freeTables: _freeTable
                   {seatRequests.map(r => (
                     <div key={r.id} className="flex items-center justify-between py-2 gap-3">
                       <div className="flex items-center gap-3">
-                        <span className="text-[#8888aa] text-[12px] shrink-0">{r.time}</span>
+                        <span className="text-vilo-text-muted text-[12px] shrink-0">{r.time}</span>
                         <span className="text-white text-[14px] font-semibold truncate">{r.guestName}</span>
                       </div>
                       <span className="text-[#9f9aba] text-[11px] text-right max-w-[48%]">
@@ -410,12 +410,12 @@ function UebersichtTab({ occupiedTables: _occupiedTables, freeTables: _freeTable
       {(paidCount > 0 || partialCount > 0) && (
         <div className="flex flex-wrap gap-2 mt-2.5 md:mt-3">
           {paidCount > 0 && (
-            <span className="px-3 py-1.5 text-[12px] font-semibold bg-[#26243f] text-amber-400">
+            <span className="px-3 py-1.5 text-[12px] font-semibold bg-vilo-card text-amber-400">
               {paidCount}× Bezahlt
             </span>
           )}
           {partialCount > 0 && (
-            <span className="px-3 py-1.5 text-[12px] font-semibold bg-[#26243f] text-amber-500">
+            <span className="px-3 py-1.5 text-[12px] font-semibold bg-vilo-card text-amber-500">
               {partialCount}× Anzahlung
             </span>
           )}
@@ -427,7 +427,7 @@ function UebersichtTab({ occupiedTables: _occupiedTables, freeTables: _freeTable
         <div className="rounded-none overflow-hidden mt-3 md:mt-4" style={{ background: '#252540' }}>
           <div className="flex items-center justify-between px-2.5 md:px-4 pt-2.5 md:pt-3 pb-2">
             <div className="flex items-center gap-2">
-              <IconClock className="w-4 h-4 text-[#8888aa]" />
+              <IconClock className="w-4 h-4 text-vilo-text-muted" />
               <span className="text-[#9f9aba] text-[11px] font-semibold uppercase tracking-[0.18em]">Warteliste</span>
             </div>
             <span className="min-w-6 h-6 px-1 bg-[#312e52] text-white text-[11px] font-bold flex items-center justify-center">{waitlist.length}</span>
@@ -437,7 +437,7 @@ function UebersichtTab({ occupiedTables: _occupiedTables, freeTables: _freeTable
               {waitlist.map(w => (
                 <div key={w.id} className="flex items-center justify-between py-2 gap-3">
                   <div className="flex items-center gap-3">
-                    <span className="text-[#8888aa] text-[12px] shrink-0">#{w.position}</span>
+                    <span className="text-vilo-text-muted text-[12px] shrink-0">#{w.position}</span>
                     <div className="min-w-0">
                       <p className="text-white text-[14px] font-semibold truncate">{w.guestName}</p>
                       {w.seatPreference && <p className="text-[#64748b] text-[11px] truncate">{w.seatPreference}</p>}
@@ -455,7 +455,7 @@ function UebersichtTab({ occupiedTables: _occupiedTables, freeTables: _freeTable
       <div className="rounded-none overflow-hidden mt-3 md:mt-4" style={{ background: '#252540' }}>
         <div className="flex items-center justify-between px-2.5 md:px-4 pt-2.5 md:pt-3 pb-2">
           <div className="flex items-center gap-2">
-            <IconPencil className="w-4 h-4 text-[#8888aa]" />
+            <IconPencil className="w-4 h-4 text-vilo-text-muted" />
             <span className="text-[#9f9aba] text-[11px] font-semibold uppercase tracking-[0.18em]">Schichtnotizen</span>
           </div>
           <span className="min-w-6 h-6 px-1 bg-[#312e52] text-white text-[11px] font-bold flex items-center justify-center">{shiftNotes.length}</span>
@@ -473,7 +473,7 @@ function UebersichtTab({ occupiedTables: _occupiedTables, freeTables: _freeTable
             />
             <button
               onClick={addShiftNote}
-              className="h-10 w-10 shrink-0 flex items-center justify-center bg-[#26243f] text-white text-sm font-medium hover:bg-[#312e52] transition-all"
+              className="h-10 w-10 shrink-0 flex items-center justify-center bg-vilo-card text-white text-sm font-medium hover:bg-[#312e52] transition-all"
             >
               <IconPencil className="w-4 h-4" />
             </button>
@@ -807,7 +807,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
     { value: 'alle', label: 'Alle Daten' },
   ];
   const sourceOptions: { value: SourceFilter; label: string; color: string }[] = [
-    { value: 'alle', label: 'Alle Quellen', color: 'text-[#c0c0dd]' },
+    { value: 'alle', label: 'Alle Quellen', color: 'text-vilo-text-soft' },
     { value: 'walk_in', label: 'Walk-In', color: 'text-amber-400' },
     { value: 'phone', label: 'Telefon / Im Haus', color: 'text-emerald-400' },
     { value: 'online', label: 'Online', color: 'text-blue-400' },
@@ -830,43 +830,43 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
                 </header>
                 <div className="flex-1 overflow-y-auto px-4 py-6">
                   <h1 className="text-white text-3xl font-bold mb-6">Einnahmen</h1>
-          <p className="text-white text-2xl font-bold">{totalRevenue.toFixed(2)} <span className="text-[#b0b0cc] text-lg font-normal">&euro; Diese Schicht</span></p>
+          <p className="text-white text-2xl font-bold">{totalRevenue.toFixed(2)} <span className="text-vilo-text-secondary text-lg font-normal">&euro; Diese Schicht</span></p>
           <ComparisonBar current={totalRevenue} comparison={comp.avgRevenue} color="#8b5cf6" currentLabel="Aktuell" compLabel="Vergleich" />
-          <p className="text-[#b0b0cc] text-sm mt-3"><span className="text-white font-bold">{comp.avgRevenue.toFixed(2)} &euro;</span> in den {comp.comparisonLabel}</p>
+          <p className="text-vilo-text-secondary text-sm mt-3"><span className="text-white font-bold">{comp.avgRevenue.toFixed(2)} &euro;</span> in den {comp.comparisonLabel}</p>
 
-          <div className="border-t border-[#333355]/50 my-6" />
+          <div className="border-t border-vilo-border-subtle/50 my-6" />
           <h2 className="text-white text-2xl font-bold mb-4">Durchschnitt</h2>
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-3">
+            <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-3">
               <p className="text-white text-[28px] font-bold leading-none">{avgPerGuest.toFixed(2)} &euro;</p>
               <p className="text-[#9f9aba] text-[13px] mt-2">pro Gast</p>
             </div>
-            <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-3">
+            <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-3">
               <p className="text-white text-[28px] font-bold leading-none">{avgPerGroup.toFixed(2)} &euro;</p>
               <p className="text-[#9f9aba] text-[13px] mt-2">pro Gruppe</p>
             </div>
           </div>
 
-          <div className="border-t border-[#333355]/50 my-6" />
+          <div className="border-t border-vilo-border-subtle/50 my-6" />
           <h2 className="text-white text-2xl font-bold mb-4">Trinkgeld</h2>
-          <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-3">
+          <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-3">
             <p className="text-white text-[28px] font-bold leading-none">{realTips.toFixed(2)} &euro;</p>
             <p className="text-[#9f9aba] text-[13px] mt-2">{tipCount} Zahlung{tipCount !== 1 ? 'en' : ''} &middot; {tipCount > 0 ? (realTips / tipCount).toFixed(2) : '0.00'} &euro; pro Zahlung</p>
           </div>
 
-          <div className="border-t border-[#333355]/50 my-6" />
+          <div className="border-t border-vilo-border-subtle/50 my-6" />
           <h2 className="text-white text-2xl font-bold mb-4">Aufschlüsselung</h2>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-[#b0b0cc]">Aktive Tische</span>
+              <span className="text-vilo-text-secondary">Aktive Tische</span>
               <span className="text-white font-medium">{activeRevenue.toFixed(2)} &euro;</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-[#b0b0cc]">Abgeschlossene Tische</span>
+              <span className="text-vilo-text-secondary">Abgeschlossene Tische</span>
               <span className="text-white font-medium">{state.closedTableRevenue.toFixed(2)} &euro;</span>
             </div>
-            <div className="border-t border-[#333355]/50 pt-3 flex justify-between items-center">
-              <span className="text-[#c0c0dd] font-medium">Gesamt</span>
+            <div className="border-t border-vilo-border-subtle/50 pt-3 flex justify-between items-center">
+              <span className="text-vilo-text-soft font-medium">Gesamt</span>
               <span className="text-white font-bold">{totalRevenue.toFixed(2)} &euro;</span>
             </div>
           </div>
@@ -888,26 +888,26 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
                 <div className="flex-1 overflow-y-auto px-4 py-6">
                   <h1 className="text-white text-[32px] leading-none font-bold mb-5">Schichtstatistiken</h1>
           {activeFilterCount > 0 && <p className="text-[#b1d9ff] text-xs mb-2">{activeFilterCount} Filter aktiv</p>}
-          <p className="text-white text-2xl font-bold">{filteredTotalGuests} <span className="text-[#b0b0cc] text-lg font-normal">          Gäste{statFilters.source !== 'alle' ? ` (${sourceOptions.find(s => s.value === statFilters.source)?.label})` : ''}</span></p>
+          <p className="text-white text-2xl font-bold">{filteredTotalGuests} <span className="text-vilo-text-secondary text-lg font-normal">          Gäste{statFilters.source !== 'alle' ? ` (${sourceOptions.find(s => s.value === statFilters.source)?.label})` : ''}</span></p>
                     <ComparisonBar current={filteredTotalGuests} comparison={comp.avgGuests} color="#8b5cf6" currentLabel="Aktuell" compLabel="Vergleich" />
-                    <p className="text-[#b0b0cc] text-sm mt-3"><span className="text-white font-bold">{comp.avgGuests}</span> platzierte Gäste an den {comp.comparisonLabel}</p>
+                    <p className="text-vilo-text-secondary text-sm mt-3"><span className="text-white font-bold">{comp.avgGuests}</span> platzierte Gäste an den {comp.comparisonLabel}</p>
 
-                    <div className="border-t border-[#333355]/50 my-6" />
+                    <div className="border-t border-vilo-border-subtle/50 my-6" />
                     <h2 className="text-white text-xl font-bold mb-4">Platzierte Gäste nach Quelle</h2>
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <div className="w-3 h-3 rounded-full bg-emerald-400" />
-              <span className="text-[#c0c0dd] flex-1">Telefon/Im Haus</span>
+              <span className="text-vilo-text-soft flex-1">Telefon/Im Haus</span>
               <span className="text-white font-bold">{sourcePhone}</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="w-3 h-3 rounded-full bg-amber-400" />
-              <span className="text-[#c0c0dd] flex-1">Walk-In</span>
+              <span className="text-vilo-text-soft flex-1">Walk-In</span>
               <span className="text-white font-bold">{sourceWalkIn}</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="w-3 h-3 rounded-full bg-blue-400" />
-              <span className="text-[#c0c0dd] flex-1">Online</span>
+              <span className="text-vilo-text-soft flex-1">Online</span>
               <span className="text-white font-bold">{sourceOnline}</span>
             </div>
           </div>
@@ -919,18 +919,18 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
             </div>
           )}
 
-          <div className="border-t border-[#333355]/50 my-6" />
+          <div className="border-t border-vilo-border-subtle/50 my-6" />
           <h2 className="text-white text-xl font-bold mb-4">Tisch-Übersicht</h2>
           <div className="grid grid-cols-3 gap-3">
-            <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-3 text-center">
+            <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-3 text-center">
               <p className="text-white text-[28px] font-bold leading-none">{totalTablesServed}</p>
               <p className="text-[#9f9aba] text-[12px] mt-2">Tische gesamt</p>
             </div>
-            <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-3 text-center">
+            <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-3 text-center">
               <p className="text-[#cf45f3] text-[28px] font-bold leading-none">{freeTables.length}</p>
               <p className="text-[#9f9aba] text-[12px] mt-2">Frei</p>
             </div>
-            <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-3 text-center">
+            <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-3 text-center">
               <p className="text-[#d8c7ff] text-[28px] font-bold leading-none">{occupiedTables.length}</p>
               <p className="text-[#9f9aba] text-[12px] mt-2">Besetzt</p>
             </div>
@@ -956,27 +956,27 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
                 <div className="flex-1 overflow-y-auto px-4 py-6">
                   <h1 className="text-white text-3xl font-bold mb-6">Schichtfluss</h1>
           <div className="flex justify-between items-start mb-2">
-            <p className="text-[#b0b0cc] text-sm"><span className="text-white font-bold">{currentHourGuests}</span>             platzierte Gäste um {currentHourTime}</p>
-                        <p className="text-white font-bold text-sm">{totalGroups} <span className="text-[#b0b0cc] font-normal">Gruppen ({bigGroups} groß)</span></p>
+            <p className="text-vilo-text-secondary text-sm"><span className="text-white font-bold">{currentHourGuests}</span>             platzierte Gäste um {currentHourTime}</p>
+                        <p className="text-white font-bold text-sm">{totalGroups} <span className="text-vilo-text-secondary font-normal">Gruppen ({bigGroups} groß)</span></p>
           </div>
           <HourlyBarChart data={hourlyData} accentColor="#8b5cf6" />
 
-          <div className="border-t border-[#333355]/50 my-6" />
+          <div className="border-t border-vilo-border-subtle/50 my-6" />
           <h2 className="text-white text-[22px] font-bold mb-3">Gäste-Anzahlbericht</h2>
           <div className="space-y-3">
             {peakHour && (
-              <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-3">
+              <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-3">
                 <p className="text-[#9f9aba] text-[12px]">Spitzenzeit</p>
                 <p className="text-white font-bold text-[24px] mt-2 leading-none">{peakHour.hour} &middot; {peakHour.count} Gäste</p>
               </div>
             )}
-            <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-3">
+            <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-3">
               <p className="text-[#9f9aba] text-[12px]">Durchschnitt pro Stunde</p>
               <p className="text-white font-bold text-[24px] mt-2 leading-none">{hourlyData.length > 0 ? (totalGuests / hourlyData.length).toFixed(1) : '0'} Gäste</p>
             </div>
           </div>
-          <div className="border-t border-[#333355]/50 my-6" />
-          <p className="text-[#8888aa] text-xs text-center">{bigGroups} große Gruppen in dieser Schicht</p>
+          <div className="border-t border-vilo-border-subtle/50 my-6" />
+          <p className="text-vilo-text-muted text-xs text-center">{bigGroups} große Gruppen in dieser Schicht</p>
         </div>
       </div>
     );
@@ -997,7 +997,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
           {/* Schicht */}
           <div>
-            <h3 className="text-[#b0b0cc] text-xs font-semibold uppercase tracking-wider mb-3">Schicht</h3>
+            <h3 className="text-vilo-text-secondary text-xs font-semibold uppercase tracking-wider mb-3">Schicht</h3>
             <div className="grid grid-cols-2 gap-2">
               {shiftOptions.map(opt => (
                 <button
@@ -1006,7 +1006,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
                   className={`flex items-center gap-2 px-3 py-3 rounded-xl border transition-all ${
                     statFilters.shift === opt.value
                       ? 'bg-[#7bb7ef]/20 border-violet-500/50 text-[#b1d9ff]'
-                      : 'bg-[#2a2a42]/60 border-[#333355]/50 text-[#b0b0cc]'
+                      : 'bg-vilo-surface/60 border-vilo-border-subtle/50 text-vilo-text-secondary'
                   }`}
                 >
                   {opt.icon}
@@ -1018,7 +1018,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
 
           {/* Zeitraum */}
           <div>
-            <h3 className="text-[#b0b0cc] text-xs font-semibold uppercase tracking-wider mb-3">Zeitraum</h3>
+            <h3 className="text-vilo-text-secondary text-xs font-semibold uppercase tracking-wider mb-3">Zeitraum</h3>
             <div className="grid grid-cols-2 gap-2">
               {timeOptions.map(opt => (
                 <button
@@ -1027,7 +1027,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
                   className={`flex items-center gap-2 px-3 py-3 rounded-xl border transition-all ${
                     statFilters.timeRange === opt.value
                       ? 'bg-[#7bb7ef]/20 border-violet-500/50 text-[#b1d9ff]'
-                      : 'bg-[#2a2a42]/60 border-[#333355]/50 text-[#b0b0cc]'
+                      : 'bg-vilo-surface/60 border-vilo-border-subtle/50 text-vilo-text-secondary'
                   }`}
                 >
                   <IconCalendar className="w-4 h-4" />
@@ -1039,7 +1039,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
 
                     {/* Gäste-Quelle */}
                     <div>
-                      <h3 className="text-[#b0b0cc] text-xs font-semibold uppercase tracking-wider mb-3">Gäste-Quelle</h3>
+                      <h3 className="text-vilo-text-secondary text-xs font-semibold uppercase tracking-wider mb-3">Gäste-Quelle</h3>
             <div className="grid grid-cols-2 gap-2">
               {sourceOptions.map(opt => (
                 <button
@@ -1048,7 +1048,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
                   className={`flex items-center gap-2 px-3 py-3 rounded-xl border transition-all ${
                     statFilters.source === opt.value
                       ? 'bg-[#7bb7ef]/20 border-violet-500/50 text-[#b1d9ff]'
-                      : 'bg-[#2a2a42]/60 border-[#333355]/50 text-[#b0b0cc]'
+                      : 'bg-vilo-surface/60 border-vilo-border-subtle/50 text-vilo-text-secondary'
                   }`}
                 >
                   <IconUsers className="w-4 h-4" />
@@ -1060,7 +1060,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
 
           {/* Sortierung */}
           <div>
-            <h3 className="text-[#b0b0cc] text-xs font-semibold uppercase tracking-wider mb-3">Sortierung</h3>
+            <h3 className="text-vilo-text-secondary text-xs font-semibold uppercase tracking-wider mb-3">Sortierung</h3>
             <div className="grid grid-cols-3 gap-2">
               {sortOptions.map(opt => (
                 <button
@@ -1069,7 +1069,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
                   className={`px-3 py-3 rounded-xl border transition-all text-center ${
                     statFilters.sort === opt.value
                       ? 'bg-[#7bb7ef]/20 border-violet-500/50 text-[#b1d9ff]'
-                      : 'bg-[#2a2a42]/60 border-[#333355]/50 text-[#b0b0cc]'
+                      : 'bg-vilo-surface/60 border-vilo-border-subtle/50 text-vilo-text-secondary'
                   }`}
                 >
                   <span className="text-sm font-medium">{opt.label}</span>
@@ -1080,7 +1080,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
         </div>
 
         {/* Apply Button */}
-        <div className="px-4 py-4 border-t border-[#333355]">
+        <div className="px-4 py-4 border-t border-vilo-border-subtle">
           <button
             onClick={() => setShowFilter(false)}
             className="w-full py-3 rounded-xl bg-[#7bb7ef] text-white font-semibold transition-all active:bg-violet-700"
@@ -1114,11 +1114,11 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
                 <div className="flex-1 overflow-y-auto px-4 py-6">
                   <h1 className="text-white text-[32px] leading-none font-bold mb-5">Warteliste</h1>
           <div className="grid grid-cols-2 gap-3 mb-5">
-            <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-3">
+            <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-3">
               <p className="text-[#9f9aba] text-[12px] mb-1">Aktuell wartend</p>
               <p className="text-white text-[24px] font-bold leading-none">{wEntries.length}</p>
             </div>
-            <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-3">
+            <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-3">
               <p className="text-[#9f9aba] text-[12px] mb-1">⌀ Wartezeit</p>
               <p className="text-white text-[24px] font-bold leading-none">{wEntries.length > 0 ? Math.round(wEntries.reduce((s, e) => s + e.estimatedWaitMinutes, 0) / wEntries.length) : 0} Min</p>
             </div>
@@ -1130,7 +1130,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
                 {Object.entries(waitByHour).sort(([a], [b]) => Number(a) - Number(b)).map(([hour, data]) => (
                   <div key={hour} className="flex items-center gap-3">
                     <span className="text-[#9f9aba] text-[12px] w-12">{hour}:00</span>
-                    <div className="flex-1 bg-[#26243f] h-6 overflow-hidden">
+                    <div className="flex-1 bg-vilo-card h-6 overflow-hidden">
                       <div className="bg-gradient-to-r from-[#8d53ff] to-[#cf45f3] h-full flex items-center px-2" style={{ width: `${Math.min((data.count / Math.max(...Object.values(waitByHour).map(d => d.count))) * 100, 100)}%` }}>
                         <span className="text-white text-xs font-medium">{data.count} Gäste</span>
                       </div>
@@ -1148,7 +1148,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
                 {wEntries.map(e => {
                   const waitMins = Math.floor((Date.now() - e.addedAt) / 60000);
                   return (
-                    <div key={e.id} className="bg-[#26243f] border border-[#333355]/40 px-4 py-3 flex items-center justify-between">
+                    <div key={e.id} className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-3 flex items-center justify-between">
                       <div>
                         <p className="text-white text-[15px] font-semibold leading-none">{e.guestName}</p>
                         <p className="text-[#9f9aba] text-[12px] mt-1">{e.partySize} Pers. {e.seatPreference ? `· ${e.seatPreference}` : ''}</p>
@@ -1185,9 +1185,9 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
           <div className="py-3 animate-fadeIn">
             {/* Active filter chips */}
             <div className="flex items-center gap-2 mb-4 flex-wrap">
-              <button onClick={() => setShowFilter(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#2a2a42]/60 border border-[#333355]/50 transition-all active:bg-[#353558]">
-                <IconAdjustments className="w-4 h-4 text-[#b0b0cc]" />
-                <span className="text-[#c0c0dd] text-sm">Filter</span>
+              <button onClick={() => setShowFilter(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-vilo-surface/60 border border-vilo-border-subtle/50 transition-all active:bg-vilo-elevated">
+                <IconAdjustments className="w-4 h-4 text-vilo-text-secondary" />
+                <span className="text-vilo-text-soft text-sm">Filter</span>
                 {activeFilterCount > 0 && (
                   <span className="text-xs rounded-full bg-[#7bb7ef] text-white px-1.5 py-0.5 font-bold ml-1">{activeFilterCount}</span>
                 )}
@@ -1222,16 +1222,16 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
                     {Math.abs(trendInfo.revDiff)}%
                   </span>
                 )}
-                <IconChevronRight className="w-5 h-5 text-[#8888aa]" />
+                <IconChevronRight className="w-5 h-5 text-vilo-text-muted" />
               </div>
               <div className="flex items-baseline gap-4 flex-wrap">
-                <p className="text-white text-lg font-bold">{statFilters.source !== 'alle' ? filteredRevenue.toFixed(2) : totalRevenue.toFixed(2)} &euro; <span className="text-[#b0b0cc] text-sm font-normal">Diese Schicht{statFilters.source !== 'alle' ? ` (${sourceOptions.find(s => s.value === statFilters.source)?.label})` : ''}</span></p>
-                <p className="text-[#b0b0cc] text-sm"><span className="font-bold text-white">{comp.avgRevenue.toFixed(2)} &euro;</span> in den {comp.comparisonLabel}</p>
+                <p className="text-white text-lg font-bold">{statFilters.source !== 'alle' ? filteredRevenue.toFixed(2) : totalRevenue.toFixed(2)} &euro; <span className="text-vilo-text-secondary text-sm font-normal">Diese Schicht{statFilters.source !== 'alle' ? ` (${sourceOptions.find(s => s.value === statFilters.source)?.label})` : ''}</span></p>
+                <p className="text-vilo-text-secondary text-sm"><span className="font-bold text-white">{comp.avgRevenue.toFixed(2)} &euro;</span> in den {comp.comparisonLabel}</p>
               </div>
               <ComparisonBar current={statFilters.source !== 'alle' ? filteredRevenue : totalRevenue} comparison={comp.avgRevenue} color="#8b5cf6" currentLabel="Aktuell" compLabel="Vergleich" />
             </button>
 
-            <div className="border-t border-[#333355]/30 my-2" />
+            <div className="border-t border-vilo-border-subtle/30 my-2" />
 
             {/* Schichtstatistiken */}
             <button onClick={() => setDrillDown('schichtstatistiken')} className="w-full text-left mb-6 mt-4">
@@ -1243,17 +1243,17 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
                     {Math.abs(trendInfo.guestDiff)}%
                   </span>
                 )}
-                <IconChevronRight className="w-5 h-5 text-[#8888aa]" />
+                <IconChevronRight className="w-5 h-5 text-vilo-text-muted" />
               </div>
               <div className="flex items-baseline gap-4 flex-wrap">
-                <p className="text-white text-lg font-bold">{filteredTotalGuests} <span className="text-[#b0b0cc] text-sm font-normal">                Gäste{statFilters.source !== 'alle' ? ` (${sourceOptions.find(s => s.value === statFilters.source)?.label})` : ''}</span></p>
-                                <p className="text-[#b0b0cc] text-sm"><span className="font-bold text-white">{comp.avgGuests}</span> platzierte Gäste an den {comp.comparisonLabel}</p>
+                <p className="text-white text-lg font-bold">{filteredTotalGuests} <span className="text-vilo-text-secondary text-sm font-normal">                Gäste{statFilters.source !== 'alle' ? ` (${sourceOptions.find(s => s.value === statFilters.source)?.label})` : ''}</span></p>
+                                <p className="text-vilo-text-secondary text-sm"><span className="font-bold text-white">{comp.avgGuests}</span> platzierte Gäste an den {comp.comparisonLabel}</p>
               </div>
               <ComparisonBar current={filteredTotalGuests} comparison={comp.avgGuests} color="#8b5cf6" currentLabel="Aktuell" compLabel="Vergleich" />
               <div className="flex items-center gap-3 mt-3 flex-wrap">
-                {(statFilters.source === 'alle' || statFilters.source === 'phone') && (<><span className="text-emerald-400 font-bold text-sm">{sourcePhone}</span><span className="text-[#b0b0cc] text-xs">Telefon/Im Haus</span></>)}
-                {(statFilters.source === 'alle' || statFilters.source === 'walk_in') && (<><span className="text-amber-400 font-bold text-sm">{sourceWalkIn}</span><span className="text-[#b0b0cc] text-xs">Walk-In</span></>)}
-                {(statFilters.source === 'alle' || statFilters.source === 'online') && (<><span className="text-blue-400 font-bold text-sm">{sourceOnline}</span><span className="text-[#b0b0cc] text-xs">Online</span></>)}
+                {(statFilters.source === 'alle' || statFilters.source === 'phone') && (<><span className="text-emerald-400 font-bold text-sm">{sourcePhone}</span><span className="text-vilo-text-secondary text-xs">Telefon/Im Haus</span></>)}
+                {(statFilters.source === 'alle' || statFilters.source === 'walk_in') && (<><span className="text-amber-400 font-bold text-sm">{sourceWalkIn}</span><span className="text-vilo-text-secondary text-xs">Walk-In</span></>)}
+                {(statFilters.source === 'alle' || statFilters.source === 'online') && (<><span className="text-blue-400 font-bold text-sm">{sourceOnline}</span><span className="text-vilo-text-secondary text-xs">Online</span></>)}
               </div>
               {filteredTotalGuests > 0 && (
                 <div className="flex h-3 rounded-full overflow-hidden mt-2">
@@ -1264,38 +1264,38 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
               )}
             </button>
 
-            <div className="border-t border-[#333355]/30 my-2" />
+            <div className="border-t border-vilo-border-subtle/30 my-2" />
 
             {/* Schichtfluss */}
             <button onClick={() => setDrillDown('schichtfluss')} className="w-full text-left mb-6 mt-4">
               <div className="flex items-center gap-2 mb-2">
                 <h2 className="text-white text-xl font-bold">Schichtfluss</h2>
-                <IconChevronRight className="w-5 h-5 text-[#8888aa]" />
+                <IconChevronRight className="w-5 h-5 text-vilo-text-muted" />
               </div>
               <div className="flex justify-between items-center mb-1">
-                <p className="text-[#b0b0cc] text-sm"><span className="text-white font-bold">{currentHourGuests}</span>                 platzierte Gäste um {currentHourTime}</p>
+                <p className="text-vilo-text-secondary text-sm"><span className="text-white font-bold">{currentHourGuests}</span>                 platzierte Gäste um {currentHourTime}</p>
                                 <p className="text-white font-bold text-sm">{state.closedTables.length + occupiedTables.length} Gruppen</p>
               </div>
               <HourlyBarChart data={hourlyData} accentColor="#8b5cf6" />
             </button>
 
-            <div className="border-t border-[#333355]/30 my-2" />
+            <div className="border-t border-vilo-border-subtle/30 my-2" />
 
             {/* Durchschnitt */}
             <div className="mt-4 mb-6">
               <h2 className="text-white text-xl font-bold mb-3">Durchschnitt</h2>
               <div className="grid grid-cols-2 gap-3">
-                <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-3">
+                <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-3">
                   <p className="text-white text-[24px] font-bold leading-none">{avgPerGuest.toFixed(2)} &euro;</p>
                   <p className="text-[#9f9aba] text-[12px] mt-2">pro Gast</p>
                 </div>
-                <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-3">
+                <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-3">
                   <p className="text-white text-[24px] font-bold leading-none">{avgPerGroup.toFixed(2)} &euro;</p>
                   <p className="text-[#9f9aba] text-[12px] mt-2">pro Gruppe</p>
                 </div>
               </div>
               {avgTableDuration > 0 && (
-                <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-3 mt-3">
+                <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-3 mt-3">
                   <div className="flex items-center gap-2">
                     <IconHourglass className="w-4 h-4 text-[#9f9aba]" />
                     <p className="text-white text-[24px] font-bold leading-none">{avgTableDuration} Min</p>
@@ -1308,7 +1308,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
             {/* Tisch-Performance Ranking */}
             {tablePerformance.length > 0 && (
               <>
-                <div className="border-t border-[#333355]/30 my-2" />
+                <div className="border-t border-vilo-border-subtle/30 my-2" />
                 <div className="mt-4 mb-6">
                   <div className="flex items-center gap-2 mb-3">
                     <IconTrophy className="w-5 h-5 text-amber-400" />
@@ -1316,12 +1316,12 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
                   </div>
                   <div className="space-y-2">
                     {tablePerformance.slice(0, 5).map((tp, i) => (
-                      <div key={tp.id} className="flex items-center justify-between bg-[#2a2a42]/60 rounded-xl border border-[#333355]/50 p-3">
+                      <div key={tp.id} className="flex items-center justify-between bg-vilo-surface/60 rounded-xl border border-vilo-border-subtle/50 p-3">
                         <div className="flex items-center gap-3">
-                          <span className={`text-lg font-bold ${i === 0 ? 'text-amber-400' : i === 1 ? 'text-[#c0c0dd]' : i === 2 ? 'text-orange-400' : 'text-[#8888aa]'}`}>#{i + 1}</span>
+                          <span className={`text-lg font-bold ${i === 0 ? 'text-amber-400' : i === 1 ? 'text-vilo-text-soft' : i === 2 ? 'text-orange-400' : 'text-vilo-text-muted'}`}>#{i + 1}</span>
                           <div>
                             <p className="text-white text-sm font-semibold">{tp.name}</p>
-                            <p className="text-[#b0b0cc] text-xs">{tp.orderTotal.toFixed(2)} &euro; &middot; {tp.duration}</p>
+                            <p className="text-vilo-text-secondary text-xs">{tp.orderTotal.toFixed(2)} &euro; &middot; {tp.duration}</p>
                           </div>
                         </div>
                         <div className="text-right">
@@ -1334,12 +1334,12 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
               </>
             )}
 
-            <div className="border-t border-[#333355]/30 my-2" />
+            <div className="border-t border-vilo-border-subtle/30 my-2" />
 
             {/* Trinkgeld */}
             <div className="mt-3 mb-5">
               <h2 className="text-white text-[18px] font-bold mb-2">Trinkgeld</h2>
-              <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-2.5">
+              <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-2.5">
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="text-white text-[20px] font-bold leading-none">{realTips.toFixed(2)} &euro;</p>
@@ -1354,31 +1354,31 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
             </div>
 
             {/* OpenTable-Style: Shift Overview Kennzahlen */}
-            <div className="border-t border-[#333355]/30 my-2" />
+            <div className="border-t border-vilo-border-subtle/30 my-2" />
             <div className="mt-3 mb-5">
               <h2 className="text-white text-[18px] font-bold mb-2">Shift Overview</h2>
               <div className="grid grid-cols-3 gap-2.5">
-                <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-2.5">
+                <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-2.5">
                   <p className="text-white text-[20px] font-bold leading-none">{totalReservationParties}</p>
                   <p className="text-[#9f9aba] text-[11px] mt-1.5">Gruppen</p>
                 </div>
-                <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-2.5">
+                <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-2.5">
                   <p className="text-white text-[20px] font-bold leading-none">{totalReservationCovers}</p>
                   <p className="text-[#9f9aba] text-[11px] mt-1.5">Gäste</p>
                 </div>
-                <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-2.5">
+                <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-2.5">
                   <p className="text-white text-[20px] font-bold leading-none">{shortNoticeCovers}</p>
                   <p className="text-[#9f9aba] text-[11px] mt-1.5">Kurzfristig (&lt;3h)</p>
                 </div>
-                <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-2.5">
+                <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-2.5">
                   <p className="text-white text-[20px] font-bold leading-none">{sourceWalkIn}</p>
                   <p className="text-[#9f9aba] text-[11px] mt-1.5">Walk-Ins</p>
                 </div>
-                <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-2.5">
+                <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-2.5">
                   <p className="text-white text-[20px] font-bold leading-none">{avgPerGuest > 0 ? avgPerGuest.toFixed(0) + '\u20AC' : '\u2013'}</p>
                   <p className="text-[#9f9aba] text-[11px] mt-1.5">\u2300 pro Gast</p>
                 </div>
-                <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-2.5">
+                <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-2.5">
                   <p className="text-white text-[20px] font-bold leading-none">{totalRevenue > 0 ? totalRevenue.toFixed(0) + '\u20AC' : '\u2013'}</p>
                   <p className="text-[#9f9aba] text-[11px] mt-1.5">Gesamt-Umsatz</p>
                 </div>
@@ -1401,21 +1401,21 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
             {/* Warteliste */}
             {waitlistWaiting > 0 && (
               <>
-                <div className="border-t border-[#333355]/30 my-2" />
+                <div className="border-t border-vilo-border-subtle/30 my-2" />
                 <button onClick={() => setDrillDown('warteliste')} className="w-full text-left mt-3 mb-5">
                   <div className="flex items-center gap-2 mb-2">
                     <h2 className="text-white text-[18px] font-bold">Warteliste</h2>
-                    <IconChevronRight className="w-5 h-5 text-[#8888aa]" />
+                    <IconChevronRight className="w-5 h-5 text-vilo-text-muted" />
                   </div>
                   <div className="grid grid-cols-2 gap-2.5">
-                    <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-2.5">
+                    <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-2.5">
                       <div className="flex items-center gap-2 mb-1">
                         <IconListNumbers className="w-4 h-4 text-[#cf45f3]" />
                         <p className="text-[#d8c7ff] text-[11px]">Wartend</p>
                       </div>
                       <p className="text-white text-[20px] font-bold leading-none">{waitlistWaiting}</p>
                     </div>
-                    <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-2.5">
+                    <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-2.5">
                       <p className="text-[#9f9aba] text-[11px] mb-1">&empty; Wartezeit</p>
                       <p className="text-white text-[20px] font-bold leading-none">{waitlistAvgWait} Min</p>
                     </div>

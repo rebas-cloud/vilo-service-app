@@ -6,6 +6,7 @@ import {
   loadGuests, addGuest, deleteGuest,
   toggleGuestTag, addGuestNote, removeGuestNote, loadReservations
 } from '../utils/storage';
+import { SurfaceCard, StatGrid, ActionButton } from './ui';
 
 function generateId(): string {
   return Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
@@ -108,7 +109,7 @@ export function GuestProfile({ guest, onClose, onUpdated, onReserve }: GuestProf
     <div className={`absolute inset-0 z-30 flex flex-col ${isClosing ? 'vilo-panel-exit' : 'vilo-panel-enter'}`} style={{ background: '#1a1a2e' }}>
       {/* Header */}
       <div className="px-4 py-2.5 flex items-center justify-between" style={{ background: '#1a1a2e' }}>
-        <button onClick={requestClose} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0] transition-colors">
+        <button onClick={requestClose} className="p-1 text-vilo-text-secondary hover:text-vilo-text-primary transition-colors">
           <IconChevronLeft className="w-5 h-5" />
         </button>
         <h1 className="text-white font-bold text-[16px] tracking-tight">Gast-Profil</h1>
@@ -119,7 +120,7 @@ export function GuestProfile({ guest, onClose, onUpdated, onReserve }: GuestProf
         {/* Profile Card */}
         <div className="px-4 py-3 border-b border-slate-800" style={{ background: '#1a1a2e' }}>
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 bg-[#8b5cf6] flex items-center justify-center shrink-0 text-white font-bold text-[24px]">
+            <div className="w-10 h-10 bg-vilo-accent flex items-center justify-center shrink-0 text-white font-bold text-[24px]">
               {(guest.name || 'G').charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
@@ -136,29 +137,17 @@ export function GuestProfile({ guest, onClose, onUpdated, onReserve }: GuestProf
           </div>
 
           {/* Stats Row */}
-          <div className="grid grid-cols-2 gap-2 mt-3">
-            <div className="bg-[#26243f] px-2.5 py-2 text-center">
-              <p className="text-white font-bold text-[15px] leading-none">{guest.totalVisits}</p>
-              <p className="text-[#8888aa] text-[9px] uppercase tracking-[0.14em] mt-1">Besuche</p>
-            </div>
-            <div className="bg-[#26243f] px-2.5 py-2 text-center">
-              <p className="text-white font-bold text-[15px] leading-none">{guest.totalSpend.toFixed(0)}€</p>
-              <p className="text-[#8888aa] text-[9px] uppercase tracking-[0.14em] mt-1">Umsatz</p>
-            </div>
-            <div className="bg-[#26243f] px-2.5 py-2 text-center">
-              <p className="text-white font-bold text-[15px] leading-none">{guest.totalVisits > 0 ? (guest.totalSpend / guest.totalVisits).toFixed(0) : '0'}€</p>
-              <p className="text-[#8888aa] text-[9px] uppercase tracking-[0.14em] mt-1">Ø Besuch</p>
-            </div>
-            <div className="bg-[#26243f] px-2.5 py-2 text-center">
-              <p className="text-white font-bold text-[15px] leading-none">{guest.lastVisit ? formatDate(guest.lastVisit) : '-'}</p>
-              <p className="text-[#8888aa] text-[9px] uppercase tracking-[0.14em] mt-1">Letzter</p>
-            </div>
-          </div>
+          <StatGrid cols={2} className="mt-3" items={[
+            { value: guest.totalVisits, label: 'Besuche' },
+            { value: `${guest.totalSpend.toFixed(0)}€`, label: 'Umsatz' },
+            { value: `${guest.totalVisits > 0 ? (guest.totalSpend / guest.totalVisits).toFixed(0) : '0'}€`, label: 'Ø Besuch' },
+            { value: guest.lastVisit ? formatDate(guest.lastVisit) : '-', label: 'Letzter' },
+          ]} />
 
           {/* Referral Sources for this guest */}
           {guestReservations.filter(r => r.referralSource).length > 0 && (
-            <div className="mt-2 rounded-md bg-[#26243f] p-2">
-              <p className="text-[#8888aa] text-[9px] uppercase tracking-[0.14em] mb-1">Empfehlungen</p>
+            <SurfaceCard className="mt-2 rounded-md p-2">
+              <p className="text-vilo-text-muted text-[9px] uppercase tracking-[0.14em] mb-1">Empfehlungen</p>
               <div className="flex flex-wrap gap-1.5">
                 {[...new Set(guestReservations.filter(r => r.referralSource).map(r => r.referralSource!))].map(src => (
                   <span key={src} className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#a78bfa]/15 text-[#a78bfa]">
@@ -166,14 +155,14 @@ export function GuestProfile({ guest, onClose, onUpdated, onReserve }: GuestProf
                   </span>
                 ))}
               </div>
-            </div>
+            </SurfaceCard>
           )}
         </div>
 
         {/* Tags Section */}
         <div className="px-4 py-2.5 border-b border-slate-800">
           <div className="flex items-center justify-between mb-1.5">
-            <div className="flex items-center gap-1.5 text-[#b0b0cc] text-[11px] font-medium">
+            <div className="flex items-center gap-1.5 text-vilo-text-secondary text-[11px] font-medium">
               <IconTag className="w-3.5 h-3.5" /> Etiketten
             </div>
             <button onClick={() => setShowTagPicker(!showTagPicker)}
@@ -227,10 +216,10 @@ export function GuestProfile({ guest, onClose, onUpdated, onReserve }: GuestProf
               return (
                 <button key={cat.value} onClick={() => setActiveNoteTab(cat.value)}
                   className={'flex flex-col items-center px-2.5 py-1.5 text-[11px] transition-colors relative ' +
-                    (isActive ? 'text-[#d8c7ff]' : 'text-[#8888aa] hover:text-[#c0c0dd]')}>
+                    (isActive ? 'text-[#d8c7ff]' : 'text-vilo-text-muted hover:text-vilo-text-soft')}>
                   <Icon className="w-4 h-4 mb-0.5" style={{ width: 16, height: 16 }} />
                   {count > 0 && (
-                    <span className="absolute top-0 right-0.5 w-3.5 h-3.5 rounded-full bg-[#8b5cf6] text-white text-[8px] font-bold flex items-center justify-center">
+                    <span className="absolute top-0 right-0.5 w-3.5 h-3.5 rounded-full bg-vilo-accent text-white text-[8px] font-bold flex items-center justify-center">
                       {count}
                     </span>
                   )}
@@ -246,7 +235,7 @@ export function GuestProfile({ guest, onClose, onUpdated, onReserve }: GuestProf
         {/* Notes for active category */}
         <div className="px-4 py-2.5 space-y-2">
           <div className="flex items-center justify-between mb-1">
-            <p className="text-[#b0b0cc] text-[11px] font-medium">
+            <p className="text-vilo-text-secondary text-[11px] font-medium">
               {NOTE_CATEGORIES.find(c => c.value === activeNoteTab)?.label}
             </p>
             <button onClick={() => setShowAddNote(true)}
@@ -256,21 +245,21 @@ export function GuestProfile({ guest, onClose, onUpdated, onReserve }: GuestProf
           </div>
 
           {showAddNote && (
-            <div className="rounded-md bg-[#26243f] p-2.5 space-y-2">
+            <div className="rounded-md bg-vilo-card p-2.5 space-y-2">
               <textarea value={noteText}
                 onChange={(e) => setNoteText(e.target.value)}
                 placeholder="Hinweis eingeben..."
                 rows={2}
-                className="w-full rounded-md px-3 py-2 bg-[#1a1a2e] text-white border border-[#3d3d5c] focus:border-violet-500 focus:outline-none text-[13px] resize-none"
+                className="w-full rounded-md px-3 py-2 bg-[#1a1a2e] text-white border border-vilo-border-strong focus:border-violet-500 focus:outline-none text-[13px] resize-none"
                 autoFocus
               />
               <div className="flex gap-2">
                 <button onClick={handleAddNote} disabled={!noteText.trim()}
-                  className="flex-1 py-1.5 rounded-md bg-[#8b5cf6] text-white text-[11px] font-medium hover:bg-[#7c3aed] disabled:opacity-50">
+                  className="flex-1 py-1.5 rounded-md bg-vilo-accent text-white text-[11px] font-medium hover:bg-[#7c3aed] disabled:opacity-50">
                   Speichern
                 </button>
                 <button onClick={() => { setShowAddNote(false); setNoteText(''); }}
-                  className="px-3 py-1.5 rounded-md bg-[#353558] text-[#c0c0dd] text-[11px]">
+                  className="px-3 py-1.5 rounded-md bg-vilo-elevated text-vilo-text-soft text-[11px]">
                   Abbrechen
                 </button>
               </div>
@@ -278,7 +267,7 @@ export function GuestProfile({ guest, onClose, onUpdated, onReserve }: GuestProf
           )}
 
           {categoryNotes.map(note => (
-            <div key={note.id} className="rounded-md bg-[#26243f] p-2.5 flex items-start justify-between">
+            <div key={note.id} className="rounded-md bg-vilo-card p-2.5 flex items-start justify-between">
               <div className="flex-1 min-w-0">
                 <p className="text-[#ddd] text-[13px] leading-snug">{note.text}</p>
                 <p className="text-[#777] text-[10px] mt-1">
@@ -296,20 +285,20 @@ export function GuestProfile({ guest, onClose, onUpdated, onReserve }: GuestProf
         {/* Visit History */}
         {guest.visits.length > 0 && (
           <div className="px-4 py-2.5 border-t border-slate-800">
-            <p className="text-[#b0b0cc] text-[11px] font-medium mb-2 flex items-center gap-1.5">
+            <p className="text-vilo-text-secondary text-[11px] font-medium mb-2 flex items-center gap-1.5">
               <IconHistory className="w-3 h-3" /> Besuchshistorie
             </p>
             <div className="space-y-1.5">
               {guest.visits.slice(-10).reverse().map((v, i) => (
-                <div key={i} className="rounded-md bg-[#26243f] p-2 flex items-center justify-between">
+                <div key={i} className="rounded-md bg-vilo-card p-2 flex items-center justify-between">
                   <div className="flex items-center gap-2 text-[11px]">
-                    <span className="text-[#c0c0dd]">{formatDate(v.date)}</span>
-                    <span className="text-[#8888aa]">{v.tableName}</span>
-                    <span className="text-[#8888aa] flex items-center gap-0.5">
+                    <span className="text-vilo-text-soft">{formatDate(v.date)}</span>
+                    <span className="text-vilo-text-muted">{v.tableName}</span>
+                    <span className="text-vilo-text-muted flex items-center gap-0.5">
                       <IconUsers className="w-3 h-3" />{v.partySize}
                     </span>
                   </div>
-                  <span className="text-[#c0c0dd] text-[11px] font-medium">{v.revenue.toFixed(2)}€</span>
+                  <span className="text-vilo-text-soft text-[11px] font-medium">{v.revenue.toFixed(2)}€</span>
                 </div>
               ))}
             </div>
@@ -319,12 +308,12 @@ export function GuestProfile({ guest, onClose, onUpdated, onReserve }: GuestProf
         {/* Upcoming Reservations */}
         {guestReservations.filter(r => r.status === 'confirmed').length > 0 && (
           <div className="px-4 py-2.5 border-t border-slate-800">
-            <p className="text-[#b0b0cc] text-[11px] font-medium mb-2 flex items-center gap-1.5">
+            <p className="text-vilo-text-secondary text-[11px] font-medium mb-2 flex items-center gap-1.5">
               <IconCalendarCheck className="w-3 h-3" /> Reservierungen
             </p>
             <div className="space-y-1.5">
               {guestReservations.filter(r => r.status === 'confirmed').map(r => (
-                <div key={r.id} className="bg-[#26243f] px-3 py-2 flex items-center justify-between gap-3">
+                <div key={r.id} className="bg-vilo-card px-3 py-2 flex items-center justify-between gap-3">
                   <div className="min-w-0 flex items-center gap-2 text-[11px] font-medium">
                     <span className="text-[#d8c7ff] whitespace-nowrap">{formatDate(r.date)}</span>
                     <span className="text-[#c7c1dd] flex items-center gap-1 whitespace-nowrap">
@@ -345,11 +334,10 @@ export function GuestProfile({ guest, onClose, onUpdated, onReserve }: GuestProf
       </div>
 
       {/* Bottom Action */}
-      <div className="px-4 py-2.5 border-t border-[#333355]" style={{ background: '#1a1a2e', paddingBottom: 'max(10px, env(safe-area-inset-bottom))' }}>
-        <button onClick={() => onReserve?.(guest.id)}
-          className="w-full py-3 bg-[#8b5cf6] text-white font-semibold text-[13px] hover:bg-[#7c3aed] transition-colors">
+      <div className="px-4 py-2.5 border-t border-vilo-border-subtle" style={{ background: '#1a1a2e', paddingBottom: 'max(10px, env(safe-area-inset-bottom))' }}>
+        <ActionButton variant="primary" className="text-[13px]" onClick={() => onReserve?.(guest.id)}>
           Reservieren
-        </button>
+        </ActionButton>
       </div>
     </div>
   );
@@ -422,9 +410,9 @@ export function GuestList({ onClose, onSelectGuest }: GuestListProps) {
   return (
     <div className="absolute inset-0 z-30 flex flex-col" style={{ background: '#1a1a2e' }}>
       {/* Header */}
-      <div className="px-4 py-3 flex items-center justify-between border-b border-[#333355]" style={{ background: '#1a1a2e' }}>
+      <div className="px-4 py-3 flex items-center justify-between border-b border-vilo-border-subtle" style={{ background: '#1a1a2e' }}>
         <div className="flex items-center gap-3">
-          <button onClick={onClose} className="p-1.5 rounded-lg text-[#b0b0cc] hover:text-[#e0e0f0] transition-colors">
+          <button onClick={onClose} className="p-1.5 rounded-lg text-vilo-text-secondary hover:text-vilo-text-primary transition-colors">
             <IconX className="w-5 h-5" />
           </button>
           <h1 className="text-white font-bold text-lg">Gäste</h1>
@@ -436,7 +424,7 @@ export function GuestList({ onClose, onSelectGuest }: GuestListProps) {
       </div>
 
       {/* Stats bar */}
-      <div className="px-4 py-1.5 flex items-center gap-3 text-[10px] text-[#8888aa] border-b border-[#333355]" style={{ background: '#1a1a2e' }}>
+      <div className="px-4 py-1.5 flex items-center gap-3 text-[10px] text-vilo-text-muted border-b border-vilo-border-subtle" style={{ background: '#1a1a2e' }}>
         <span>{guests.length} Gäste</span>
         <span>{totalVisitsAll} Besuche</span>
         {totalSpendAll > 0 && <span>{totalSpendAll.toFixed(0)}€ Umsatz</span>}
@@ -446,8 +434,8 @@ export function GuestList({ onClose, onSelectGuest }: GuestListProps) {
 
       {/* Search */}
       <div className="px-4 py-2 border-b border-slate-800" style={{ background: '#1a1a2e' }}>
-        <div className="flex items-center gap-2 rounded-lg bg-[#2a2a42] px-3 py-2">
-          <IconSearch className="w-4 h-4 text-[#8888aa]" />
+        <div className="flex items-center gap-2 rounded-lg bg-vilo-surface px-3 py-2">
+          <IconSearch className="w-4 h-4 text-vilo-text-muted" />
           <input type="text" value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Name, Telefon, E-Mail oder Tag suchen..."
@@ -474,7 +462,7 @@ export function GuestList({ onClose, onSelectGuest }: GuestListProps) {
       {/* Guest List */}
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-[#8888aa]">
+          <div className="flex flex-col items-center justify-center py-16 text-vilo-text-muted">
             <IconUser className="w-12 h-12 mb-3 opacity-50" />
             <p className="text-sm font-medium">{searchQuery ? 'Kein Gast gefunden' : 'Noch keine Gäste'}</p>
             <p className="text-xs mt-1">Gäste werden automatisch bei Reservierungen angelegt</p>
@@ -482,10 +470,10 @@ export function GuestList({ onClose, onSelectGuest }: GuestListProps) {
         ) : (
           filtered.map(g => (
             <div key={g.id} onClick={() => onSelectGuest(g)}
-              className="rounded-xl p-3 flex items-center gap-3 cursor-pointer active:bg-[#353558]/50 transition-colors"
+              className="rounded-xl p-3 flex items-center gap-3 cursor-pointer active:bg-vilo-elevated/50 transition-colors"
               style={{ background: '#1a1a2e' }}>
-              <div className="w-10 h-10 rounded-full bg-[#353558] flex items-center justify-center shrink-0">
-                <IconUser className="w-5 h-5 text-[#b0b0cc]" />
+              <div className="w-10 h-10 rounded-full bg-vilo-elevated flex items-center justify-center shrink-0">
+                <IconUser className="w-5 h-5 text-vilo-text-secondary" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
@@ -500,7 +488,7 @@ export function GuestList({ onClose, onSelectGuest }: GuestListProps) {
                     ) : null;
                   })}
                 </div>
-                <div className="flex items-center gap-3 text-xs text-[#8888aa] mt-0.5">
+                <div className="flex items-center gap-3 text-xs text-vilo-text-muted mt-0.5">
                   {g.phone && <span className="flex items-center gap-1"><IconPhone className="w-3 h-3" />{g.phone}</span>}
                   <span>{g.totalVisits} Besuche</span>
                   {g.totalSpend > 0 && <span>{g.totalSpend.toFixed(0)}€</span>}
@@ -522,34 +510,34 @@ export function GuestList({ onClose, onSelectGuest }: GuestListProps) {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-white font-bold text-lg">Neuer Gast</h2>
               <button onClick={() => setShowCreateForm(false)}
-                className="p-1.5 text-[#b0b0cc] hover:text-[#e0e0f0] transition-colors">
+                className="p-1.5 text-vilo-text-secondary hover:text-vilo-text-primary transition-colors">
                 <IconX className="w-5 h-5" />
               </button>
             </div>
             <div className="space-y-3">
               <div>
-                <label className="text-xs text-[#b0b0cc] font-medium mb-1 block">Name *</label>
+                <label className="text-xs text-vilo-text-secondary font-medium mb-1 block">Name *</label>
                 <input type="text" value={formName}
                   onChange={(e) => setFormName(e.target.value)}
                   placeholder="Gastname"
-                  className="w-full rounded-lg px-3 py-2.5 bg-[#2a2a42] text-white border border-[#3d3d5c] focus:border-violet-500 focus:outline-none text-sm"
+                  className="w-full rounded-lg px-3 py-2.5 bg-vilo-surface text-white border border-vilo-border-strong focus:border-violet-500 focus:outline-none text-sm"
                   autoFocus
                 />
               </div>
               <div>
-                <label className="text-xs text-[#b0b0cc] font-medium mb-1 block">Telefon</label>
+                <label className="text-xs text-vilo-text-secondary font-medium mb-1 block">Telefon</label>
                 <input type="tel" value={formPhone}
                   onChange={(e) => setFormPhone(e.target.value)}
                   placeholder="+49..."
-                  className="w-full rounded-lg px-3 py-2.5 bg-[#2a2a42] text-white border border-[#3d3d5c] focus:border-violet-500 focus:outline-none text-sm"
+                  className="w-full rounded-lg px-3 py-2.5 bg-vilo-surface text-white border border-vilo-border-strong focus:border-violet-500 focus:outline-none text-sm"
                 />
               </div>
               <div>
-                <label className="text-xs text-[#b0b0cc] font-medium mb-1 block">E-Mail</label>
+                <label className="text-xs text-vilo-text-secondary font-medium mb-1 block">E-Mail</label>
                 <input type="email" value={formEmail}
                   onChange={(e) => setFormEmail(e.target.value)}
                   placeholder="email@beispiel.de"
-                  className="w-full rounded-lg px-3 py-2.5 bg-[#2a2a42] text-white border border-[#3d3d5c] focus:border-violet-500 focus:outline-none text-sm"
+                  className="w-full rounded-lg px-3 py-2.5 bg-vilo-surface text-white border border-vilo-border-strong focus:border-violet-500 focus:outline-none text-sm"
                 />
               </div>
               <button onClick={handleCreate} disabled={!formName.trim()}

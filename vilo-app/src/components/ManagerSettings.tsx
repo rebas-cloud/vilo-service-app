@@ -92,7 +92,7 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
   const renderRestaurant = () => (
     <div className="space-y-4">
       <div>
-        <label className="text-[#b0b0cc] text-xs block mb-1">Restaurant-Name</label>
+        <label className="text-vilo-text-secondary text-xs block mb-1">Restaurant-Name</label>
         <input
           type="text"
           value={restaurant.name}
@@ -101,11 +101,11 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
             setRestaurant(updated);
           }}
           onBlur={() => saveAll(restaurant)}
-          className="w-full px-3 py-2.5 rounded-xl bg-[#353558]/50 border border-[#3d3d5c] text-white text-sm outline-none focus:border-violet-500 transition-colors"
+          className="w-full px-3 py-2.5 rounded-xl bg-vilo-elevated/50 border border-vilo-border-strong text-white text-sm outline-none focus:border-violet-500 transition-colors"
         />
       </div>
       <div>
-        <label className="text-[#b0b0cc] text-xs block mb-1">Adresse (optional)</label>
+        <label className="text-vilo-text-secondary text-xs block mb-1">Adresse (optional)</label>
         <input
           type="text"
           value={restaurant.address || ''}
@@ -115,12 +115,12 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
           }}
           onBlur={() => saveAll(restaurant)}
           placeholder="Musterstraße 1, 10115 Berlin"
-          className="w-full px-3 py-2.5 rounded-xl bg-[#353558]/50 border border-[#3d3d5c] text-white text-sm outline-none focus:border-violet-500 transition-colors placeholder:text-[#8888aa]"
+          className="w-full px-3 py-2.5 rounded-xl bg-vilo-elevated/50 border border-vilo-border-strong text-white text-sm outline-none focus:border-violet-500 transition-colors placeholder:text-vilo-text-muted"
         />
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-[#b0b0cc] text-xs block mb-1">Waehrung</label>
+          <label className="text-vilo-text-secondary text-xs block mb-1">Waehrung</label>
           <select
             value={restaurant.currency}
             onChange={e => {
@@ -128,7 +128,7 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
               setRestaurant(updated);
               saveAll(updated);
             }}
-            className="w-full px-3 py-2.5 rounded-xl bg-[#353558]/50 border border-[#3d3d5c] text-white text-sm outline-none focus:border-violet-500"
+            className="w-full px-3 py-2.5 rounded-xl bg-vilo-elevated/50 border border-vilo-border-strong text-white text-sm outline-none focus:border-violet-500"
           >
             <option value="EUR">EUR</option>
             <option value="CHF">CHF</option>
@@ -137,7 +137,7 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
           </select>
         </div>
         <div>
-          <label className="text-[#b0b0cc] text-xs block mb-1">MwSt. (%)</label>
+          <label className="text-vilo-text-secondary text-xs block mb-1">MwSt. (%)</label>
           <input
             type="number"
             value={restaurant.taxRate}
@@ -146,12 +146,12 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
               setRestaurant(updated);
             }}
             onBlur={() => saveAll(restaurant)}
-            className="w-full px-3 py-2.5 rounded-xl bg-[#353558]/50 border border-[#3d3d5c] text-white text-sm outline-none focus:border-violet-500"
+            className="w-full px-3 py-2.5 rounded-xl bg-vilo-elevated/50 border border-vilo-border-strong text-white text-sm outline-none focus:border-violet-500"
           />
         </div>
       </div>
       <div>
-        <label className="text-[#b0b0cc] text-xs block mb-1">Pacing Limit (Max. Reservierungen pro 30 Min.)</label>
+        <label className="text-vilo-text-secondary text-xs block mb-1">Pacing Limit (Max. Reservierungen pro 30 Min.)</label>
         <input
           type="number"
           min="0"
@@ -162,19 +162,19 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
           }}
           onBlur={() => saveAll(restaurant)}
           placeholder="0 = unbegrenzt"
-          className="w-full px-3 py-2.5 rounded-xl bg-[#353558]/50 border border-[#3d3d5c] text-white text-sm outline-none focus:border-violet-500 transition-colors placeholder:text-[#8888aa]"
+          className="w-full px-3 py-2.5 rounded-xl bg-vilo-elevated/50 border border-vilo-border-strong text-white text-sm outline-none focus:border-violet-500 transition-colors placeholder:text-vilo-text-muted"
         />
         <p className="text-[#777] text-[10px] mt-1">0 = kein Limit. Bei Überschreitung wird eine Warnung angezeigt.</p>
       </div>
       <div>
-        <label className="text-[#b0b0cc] text-xs block mb-1">Restaurant-Code (für Kellner-Login)</label>
+        <label className="text-vilo-text-secondary text-xs block mb-1">Restaurant-Code (für Kellner-Login)</label>
         <div className="flex items-center gap-2">
-          <div className="flex-1 px-3 py-2.5 rounded-xl bg-[#353558]/50 border border-[#3d3d5c] text-white text-sm font-mono tracking-wider">
+          <div className="flex-1 px-3 py-2.5 rounded-xl bg-vilo-elevated/50 border border-vilo-border-strong text-white text-sm font-mono tracking-wider">
             {restaurant.code}
           </div>
           <button
             onClick={() => navigator.clipboard?.writeText(restaurant.code)}
-            className="p-2.5 rounded-xl bg-[#353558] text-[#c0c0dd] hover:bg-[#555] transition-colors"
+            className="p-2.5 rounded-xl bg-vilo-elevated text-vilo-text-soft hover:bg-[#555] transition-colors"
             title="Code kopieren"
           >
             <IconCopy className="w-4 h-4" />
@@ -248,14 +248,14 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
         const zoneTables = tables.filter(t => t.zone === zone.id);
         const isExpanded = expandedZones.has(zone.id);
         return (
-          <div key={zone.id} className="rounded-xl bg-[#2a2a42]/60 border border-[#333355]/50 overflow-hidden">
+          <div key={zone.id} className="rounded-xl bg-vilo-surface/60 border border-vilo-border-subtle/50 overflow-hidden">
             {/* Zone header */}
             <div className="flex items-center justify-between p-3">
               <button
                 onClick={() => toggleZoneExpanded(zone.id)}
                 className="flex items-center gap-2 flex-1 text-left"
               >
-                {isExpanded ? <IconChevronUp className="w-4 h-4 text-[#b0b0cc]" /> : <IconChevronDown className="w-4 h-4 text-[#b0b0cc]" />}
+                {isExpanded ? <IconChevronUp className="w-4 h-4 text-vilo-text-secondary" /> : <IconChevronDown className="w-4 h-4 text-vilo-text-secondary" />}
                 {editingZone === zone.id ? (
                   <input
                     type="text"
@@ -264,24 +264,24 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
                     onKeyDown={e => { if (e.key === 'Enter') handleRenameZone(zone.id); if (e.key === 'Escape') setEditingZone(null); }}
                     onBlur={() => handleRenameZone(zone.id)}
                     autoFocus
-                    className="bg-[#353558] px-2 py-1 rounded text-white text-sm outline-none focus:ring-1 focus:ring-violet-500"
+                    className="bg-vilo-elevated px-2 py-1 rounded text-white text-sm outline-none focus:ring-1 focus:ring-violet-500"
                     onClick={e => e.stopPropagation()}
                   />
                 ) : (
                   <span className="text-white text-sm font-medium">{zone.name}</span>
                 )}
-                <span className="text-[#8888aa] text-xs">({zoneTables.length})</span>
+                <span className="text-vilo-text-muted text-xs">({zoneTables.length})</span>
               </button>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => { setEditingZone(zone.id); setNewZoneName(zone.name); }}
-                  className="p-1.5 rounded-lg text-[#b0b0cc] hover:text-[#e0e0f0] hover:bg-[#353558] transition-colors"
+                  className="p-1.5 rounded-lg text-vilo-text-secondary hover:text-vilo-text-primary hover:bg-vilo-elevated transition-colors"
                 >
                   <IconEdit className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => handleDeleteZone(zone.id)}
-                  className="p-1.5 rounded-lg text-[#b0b0cc] hover:text-red-400 hover:bg-[#353558] transition-colors"
+                  className="p-1.5 rounded-lg text-vilo-text-secondary hover:text-red-400 hover:bg-vilo-elevated transition-colors"
                 >
                   <IconTrash className="w-3.5 h-3.5" />
                 </button>
@@ -290,16 +290,16 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
 
             {/* Tables list */}
             {isExpanded && (
-              <div className="border-t border-[#333355]/50 p-2 space-y-1">
+              <div className="border-t border-vilo-border-subtle/50 p-2 space-y-1">
                 {zoneTables.map(table => (
-                  <div key={table.id} className="flex items-center justify-between px-3 py-2 rounded-lg bg-[#353558]/30 group">
+                  <div key={table.id} className="flex items-center justify-between px-3 py-2 rounded-lg bg-vilo-elevated/30 group">
                     <div className="flex items-center gap-2">
                       <IconGripVertical className="w-3.5 h-3.5 text-[#777]" />
                       <span className="text-[#ddd] text-sm">{table.name}</span>
                     </div>
                     <button
                       onClick={() => handleDeleteTable(table.id)}
-                      className="p-1 rounded text-[#8888aa] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                      className="p-1 rounded text-vilo-text-muted hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
                     >
                       <IconTrash className="w-3.5 h-3.5" />
                     </button>
@@ -316,19 +316,19 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
                       onKeyDown={e => { if (e.key === 'Enter') handleAddTable(zone.id); if (e.key === 'Escape') setAddingTable(null); }}
                       placeholder="Tisch-Name"
                       autoFocus
-                      className="flex-1 px-3 py-2 rounded-lg bg-[#353558] text-white text-sm placeholder:text-[#8888aa] outline-none focus:ring-1 focus:ring-violet-500"
+                      className="flex-1 px-3 py-2 rounded-lg bg-vilo-elevated text-white text-sm placeholder:text-vilo-text-muted outline-none focus:ring-1 focus:ring-violet-500"
                     />
                     <button onClick={() => handleAddTable(zone.id)} className="p-2 rounded-lg bg-[#7bb7ef] text-white hover:bg-[#7bb7ef] transition-colors">
                       <IconCheck className="w-4 h-4" />
                     </button>
-                    <button onClick={() => setAddingTable(null)} className="p-2 rounded-lg bg-[#353558] text-[#c0c0dd] hover:bg-[#555] transition-colors">
+                    <button onClick={() => setAddingTable(null)} className="p-2 rounded-lg bg-vilo-elevated text-vilo-text-soft hover:bg-[#555] transition-colors">
                       <IconX className="w-4 h-4" />
                     </button>
                   </div>
                 ) : (
                   <button
                     onClick={() => { setAddingTable(zone.id); setAddTableName(''); }}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-[#b0b0cc] hover:text-[#e0e0f0] hover:bg-[#353558]/50 transition-colors w-full text-left text-sm"
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-vilo-text-secondary hover:text-vilo-text-primary hover:bg-vilo-elevated/50 transition-colors w-full text-left text-sm"
                   >
                     <IconPlus className="w-3.5 h-3.5" /> Tisch hinzufuegen
                   </button>
@@ -349,19 +349,19 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
             onKeyDown={e => { if (e.key === 'Enter') handleAddZone(); if (e.key === 'Escape') setAddingZone(false); }}
             placeholder="Zone-Name (z.B. Terrasse)"
             autoFocus
-            className="flex-1 px-3 py-2.5 rounded-xl bg-[#353558] text-white text-sm placeholder:text-[#8888aa] outline-none focus:ring-1 focus:ring-violet-500"
+            className="flex-1 px-3 py-2.5 rounded-xl bg-vilo-elevated text-white text-sm placeholder:text-vilo-text-muted outline-none focus:ring-1 focus:ring-violet-500"
           />
           <button onClick={handleAddZone} className="p-2.5 rounded-xl bg-[#7bb7ef] text-white hover:bg-[#7bb7ef] transition-colors">
             <IconCheck className="w-4 h-4" />
           </button>
-          <button onClick={() => setAddingZone(false)} className="p-2.5 rounded-xl bg-[#353558] text-[#c0c0dd] hover:bg-[#555] transition-colors">
+          <button onClick={() => setAddingZone(false)} className="p-2.5 rounded-xl bg-vilo-elevated text-vilo-text-soft hover:bg-[#555] transition-colors">
             <IconX className="w-4 h-4" />
           </button>
         </div>
       ) : (
         <button
           onClick={() => { setAddingZone(true); setAddZoneValue(''); }}
-          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-[#333355] text-[#b0b0cc] hover:text-[#e0e0f0] hover:border-violet-500 transition-colors text-sm"
+          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-vilo-border-subtle text-vilo-text-secondary hover:text-vilo-text-primary hover:border-violet-500 transition-colors text-sm"
         >
           <IconPlus className="w-4 h-4" /> Neue Zone
         </button>
@@ -427,14 +427,14 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
   };
 
   const renderMenuItemForm = (itemId: string | null) => (
-    <div className="p-3 rounded-xl bg-[#353558]/40 border border-[#3d3d5c] space-y-2">
+    <div className="p-3 rounded-xl bg-vilo-elevated/40 border border-vilo-border-strong space-y-2">
       <input
         type="text"
         value={menuForm.name}
         onChange={e => setMenuForm(f => ({ ...f, name: e.target.value }))}
         placeholder="Name (z.B. Pizza Margherita)"
         autoFocus
-        className="w-full px-3 py-2 rounded-lg bg-[#353558] text-white text-sm placeholder:text-[#8888aa] outline-none focus:ring-1 focus:ring-violet-500"
+        className="w-full px-3 py-2 rounded-lg bg-vilo-elevated text-white text-sm placeholder:text-vilo-text-muted outline-none focus:ring-1 focus:ring-violet-500"
       />
       <div className="grid grid-cols-3 gap-2">
         <input
@@ -443,12 +443,12 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
           value={menuForm.price}
           onChange={e => setMenuForm(f => ({ ...f, price: e.target.value }))}
           placeholder="Preis"
-          className="px-3 py-2 rounded-lg bg-[#353558] text-white text-sm placeholder:text-[#8888aa] outline-none focus:ring-1 focus:ring-violet-500"
+          className="px-3 py-2 rounded-lg bg-vilo-elevated text-white text-sm placeholder:text-vilo-text-muted outline-none focus:ring-1 focus:ring-violet-500"
         />
         <select
           value={menuForm.category}
           onChange={e => setMenuForm(f => ({ ...f, category: e.target.value as MenuCategory }))}
-          className="px-2 py-2 rounded-lg bg-[#353558] text-white text-sm outline-none focus:ring-1 focus:ring-violet-500"
+          className="px-2 py-2 rounded-lg bg-vilo-elevated text-white text-sm outline-none focus:ring-1 focus:ring-violet-500"
         >
           {categoryOrder.map(cat => (
             <option key={cat} value={cat}>{categoryLabels[cat]}</option>
@@ -457,7 +457,7 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
         <select
           value={menuForm.routing}
           onChange={e => setMenuForm(f => ({ ...f, routing: e.target.value as 'bar' | 'kitchen' }))}
-          className="px-2 py-2 rounded-lg bg-[#353558] text-white text-sm outline-none focus:ring-1 focus:ring-violet-500"
+          className="px-2 py-2 rounded-lg bg-vilo-elevated text-white text-sm outline-none focus:ring-1 focus:ring-violet-500"
         >
           <option value="kitchen">Küche</option>
           <option value="bar">Bar</option>
@@ -466,7 +466,7 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
       <div className="flex gap-2 justify-end">
         <button
           onClick={() => { setEditingMenuItem(null); setAddingMenuItem(false); setMenuForm({ name: '', price: '', category: 'mains', routing: 'kitchen' }); }}
-          className="px-3 py-1.5 rounded-lg bg-[#555] text-[#c0c0dd] text-sm hover:bg-slate-500 transition-colors"
+          className="px-3 py-1.5 rounded-lg bg-[#555] text-vilo-text-soft text-sm hover:bg-slate-500 transition-colors"
         >
           Abbrechen
         </button>
@@ -486,29 +486,29 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
         const items = menuItems.filter(m => m.category === cat);
         const isExpanded = expandedCategory === cat;
         return (
-          <div key={cat} className="rounded-xl bg-[#2a2a42]/60 border border-[#333355]/50 overflow-hidden">
+          <div key={cat} className="rounded-xl bg-vilo-surface/60 border border-vilo-border-subtle/50 overflow-hidden">
             <button
               onClick={() => setExpandedCategory(isExpanded ? null : cat)}
               className="w-full flex items-center justify-between p-3"
             >
               <div className="flex items-center gap-2">
-                {isExpanded ? <IconChevronUp className="w-4 h-4 text-[#b0b0cc]" /> : <IconChevronDown className="w-4 h-4 text-[#b0b0cc]" />}
+                {isExpanded ? <IconChevronUp className="w-4 h-4 text-vilo-text-secondary" /> : <IconChevronDown className="w-4 h-4 text-vilo-text-secondary" />}
                 <span className="text-white text-sm font-medium">{categoryLabels[cat]}</span>
-                <span className="text-[#8888aa] text-xs">({items.length})</span>
+                <span className="text-vilo-text-muted text-xs">({items.length})</span>
               </div>
             </button>
 
             {isExpanded && (
-              <div className="border-t border-[#333355]/50 p-2 space-y-1">
+              <div className="border-t border-vilo-border-subtle/50 p-2 space-y-1">
                 {items.map(item => (
                   editingMenuItem === item.id ? (
                     <div key={item.id}>{renderMenuItemForm(item.id)}</div>
                   ) : (
-                    <div key={item.id} className="flex items-center justify-between px-3 py-2 rounded-lg bg-[#353558]/30 group">
+                    <div key={item.id} className="flex items-center justify-between px-3 py-2 rounded-lg bg-vilo-elevated/30 group">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <span className="text-[#ddd] text-sm">{item.name}</span>
-                          <span className="text-[#8888aa] text-xs px-1.5 py-0.5 rounded bg-[#353558]">
+                          <span className="text-vilo-text-muted text-xs px-1.5 py-0.5 rounded bg-vilo-elevated">
                             {item.routing === 'bar' ? 'Bar' : 'Küche'}
                           </span>
                         </div>
@@ -517,13 +517,13 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
                         <span className="text-white text-sm font-medium">{item.price.toFixed(2)} {restaurant.currency}</span>
                         <button
                           onClick={() => startEditMenuItem(item)}
-                          className="p-1 rounded text-[#8888aa] hover:text-[#e0e0f0] opacity-0 group-hover:opacity-100 transition-all"
+                          className="p-1 rounded text-vilo-text-muted hover:text-vilo-text-primary opacity-0 group-hover:opacity-100 transition-all"
                         >
                           <IconEdit className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDeleteMenuItem(item.id)}
-                          className="p-1 rounded text-[#8888aa] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                          className="p-1 rounded text-vilo-text-muted hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
                         >
                           <IconTrash className="w-3.5 h-3.5" />
                         </button>
@@ -538,7 +538,7 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
                 ) : (
                   <button
                     onClick={() => { setAddingMenuItem(true); setMenuForm({ name: '', price: '', category: cat, routing: cat === 'drinks' ? 'bar' : 'kitchen' }); }}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-[#b0b0cc] hover:text-[#e0e0f0] hover:bg-[#353558]/50 transition-colors w-full text-left text-sm"
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-vilo-text-secondary hover:text-vilo-text-primary hover:bg-vilo-elevated/50 transition-colors w-full text-left text-sm"
                   >
                     <IconPlus className="w-3.5 h-3.5" /> Item hinzufuegen
                   </button>
@@ -594,7 +594,7 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
   };
 
   const renderStaffForm = (staffId: string | null) => (
-    <div className="p-3 rounded-xl bg-[#353558]/40 border border-[#3d3d5c] space-y-2">
+    <div className="p-3 rounded-xl bg-vilo-elevated/40 border border-vilo-border-strong space-y-2">
       <div className="grid grid-cols-2 gap-2">
         <input
           type="text"
@@ -602,7 +602,7 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
           onChange={e => setStaffForm(f => ({ ...f, name: e.target.value }))}
           placeholder="Name"
           autoFocus
-          className="px-3 py-2 rounded-lg bg-[#353558] text-white text-sm placeholder:text-[#8888aa] outline-none focus:ring-1 focus:ring-violet-500"
+          className="px-3 py-2 rounded-lg bg-vilo-elevated text-white text-sm placeholder:text-vilo-text-muted outline-none focus:ring-1 focus:ring-violet-500"
         />
         <input
           type="text"
@@ -611,21 +611,21 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
           value={staffForm.pin}
           onChange={e => setStaffForm(f => ({ ...f, pin: e.target.value.replace(/\D/g, '').slice(0, 4) }))}
           placeholder="4-stellige PIN"
-          className="px-3 py-2 rounded-lg bg-[#353558] text-white text-sm placeholder:text-[#8888aa] outline-none focus:ring-1 focus:ring-violet-500 font-mono tracking-wider"
+          className="px-3 py-2 rounded-lg bg-vilo-elevated text-white text-sm placeholder:text-vilo-text-muted outline-none focus:ring-1 focus:ring-violet-500 font-mono tracking-wider"
         />
       </div>
       <div className="flex items-center gap-2">
         <select
           value={staffForm.role}
           onChange={e => setStaffForm(f => ({ ...f, role: e.target.value as 'waiter' | 'manager' }))}
-          className="flex-1 px-3 py-2 rounded-lg bg-[#353558] text-white text-sm outline-none focus:ring-1 focus:ring-violet-500"
+          className="flex-1 px-3 py-2 rounded-lg bg-vilo-elevated text-white text-sm outline-none focus:ring-1 focus:ring-violet-500"
         >
           <option value="waiter">Kellner</option>
           <option value="manager">Manager</option>
         </select>
         <button
           onClick={() => { setEditingStaff(null); setAddingStaff(false); setStaffForm({ name: '', pin: '', role: 'waiter' }); }}
-          className="px-3 py-2 rounded-lg bg-[#555] text-[#c0c0dd] text-sm hover:bg-slate-500 transition-colors"
+          className="px-3 py-2 rounded-lg bg-[#555] text-vilo-text-soft text-sm hover:bg-slate-500 transition-colors"
         >
           Abbrechen
         </button>
@@ -651,28 +651,28 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
         editingStaff === s.id ? (
           <div key={s.id}>{renderStaffForm(s.id)}</div>
         ) : (
-          <div key={s.id} className="flex items-center justify-between px-3 py-3 rounded-xl bg-[#2a2a42]/60 border border-[#333355]/50 group">
+          <div key={s.id} className="flex items-center justify-between px-3 py-3 rounded-xl bg-vilo-surface/60 border border-vilo-border-subtle/50 group">
             <div className="flex items-center gap-3">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                s.role === 'manager' ? 'bg-[#7bb7ef] text-white' : 'bg-[#353558] text-[#c0c0dd]'
+                s.role === 'manager' ? 'bg-[#7bb7ef] text-white' : 'bg-vilo-elevated text-vilo-text-soft'
               }`}>
                 {s.name.charAt(0).toUpperCase()}
               </div>
               <div>
                 <p className="text-white text-sm font-medium">{s.name}</p>
-                <p className="text-[#8888aa] text-xs">{s.role === 'manager' ? 'Manager' : 'Kellner'} &middot; PIN: {s.pin}</p>
+                <p className="text-vilo-text-muted text-xs">{s.role === 'manager' ? 'Manager' : 'Kellner'} &middot; PIN: {s.pin}</p>
               </div>
             </div>
             <div className="flex items-center gap-1">
               <button
                 onClick={() => startEditStaff(s)}
-                className="p-1.5 rounded-lg text-[#b0b0cc] hover:text-[#e0e0f0] hover:bg-[#353558] opacity-0 group-hover:opacity-100 transition-all"
+                className="p-1.5 rounded-lg text-vilo-text-secondary hover:text-vilo-text-primary hover:bg-vilo-elevated opacity-0 group-hover:opacity-100 transition-all"
               >
                 <IconEdit className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => handleDeleteStaff(s.id)}
-                className="p-1.5 rounded-lg text-[#b0b0cc] hover:text-red-400 hover:bg-[#353558] opacity-0 group-hover:opacity-100 transition-all"
+                className="p-1.5 rounded-lg text-vilo-text-secondary hover:text-red-400 hover:bg-vilo-elevated opacity-0 group-hover:opacity-100 transition-all"
               >
                 <IconTrash className="w-3.5 h-3.5" />
               </button>
@@ -686,7 +686,7 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
       ) : (
         <button
           onClick={() => { setAddingStaff(true); setStaffForm({ name: '', pin: '', role: 'waiter' }); }}
-          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-[#333355] text-[#b0b0cc] hover:text-[#e0e0f0] hover:border-violet-500 transition-colors text-sm"
+          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-vilo-border-subtle text-vilo-text-secondary hover:text-vilo-text-primary hover:border-violet-500 transition-colors text-sm"
         >
           <IconPlus className="w-4 h-4" /> Mitarbeiter hinzufuegen
         </button>
@@ -706,9 +706,9 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
   return (
     <div className="h-full bg-[#1a1a2e] flex flex-col">
       {/* Header */}
-      <header className="bg-[#2a2a42]/80 backdrop-blur border-b border-[#333355] px-4 py-3">
+      <header className="bg-vilo-surface/80 backdrop-blur border-b border-vilo-border-subtle px-4 py-3">
         <div className="flex items-center gap-3">
-          <button onClick={onBack} className="p-1.5 rounded-lg bg-[#353558] text-[#c0c0dd] hover:bg-[#555] transition-colors">
+          <button onClick={onBack} className="p-1.5 rounded-lg bg-vilo-elevated text-vilo-text-soft hover:bg-[#555] transition-colors">
             <IconArrowLeft className="w-5 h-5" />
           </button>
           <h1 className="text-white font-semibold text-lg">Einstellungen</h1>
@@ -716,7 +716,7 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
       </header>
 
       {/* Tab Navigation */}
-      <div className="flex bg-[#2a2a42]/50 border-b border-[#333355] px-2">
+      <div className="flex bg-vilo-surface/50 border-b border-vilo-border-subtle px-2">
         {tabs.map(tab => (
           <button
             key={tab.id}
@@ -724,7 +724,7 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
             className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium transition-colors border-b-2 ${
               activeTab === tab.id
                 ? 'text-[#b1d9ff] border-violet-400'
-                : 'text-[#8888aa] border-transparent hover:text-[#c0c0dd]'
+                : 'text-vilo-text-muted border-transparent hover:text-vilo-text-soft'
             }`}
           >
             {tab.icon}
