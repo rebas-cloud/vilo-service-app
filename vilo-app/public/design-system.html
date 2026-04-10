@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VILO Design System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
       --vilo-bg-base: #1a1a2e;
@@ -16,11 +18,9 @@
       --vilo-bg-interactive-hover: #403d61;
       --vilo-bg-btn-secondary: #2b2944;
       --vilo-bg-btn-danger: #4a1733;
-
       --vilo-border-subtle: #333355;
       --vilo-border-strong: #3d3d5c;
       --vilo-border-soft: rgba(255, 255, 255, 0.08);
-
       --vilo-text-primary: #e0e0f0;
       --vilo-text-soft: #c0c0dd;
       --vilo-text-secondary: #b0b0cc;
@@ -28,16 +28,13 @@
       --vilo-text-dim: #6e7592;
       --vilo-text-disabled: #58607d;
       --vilo-text-danger: #f5d0fe;
-
       --vilo-accent: #8b5cf6;
       --vilo-accent-light: #c4b5fd;
       --vilo-accent-hover: #7c3aed;
       --vilo-accent-secondary: #d946ef;
-
       --vilo-success: #22c55e;
       --vilo-warning: #f59e0b;
       --vilo-danger: #ef4444;
-
       --vilo-tag-vip: #eab308;
       --vilo-tag-loyal: #22d3ee;
       --vilo-tag-vegan: #16a34a;
@@ -49,499 +46,587 @@
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
 
     body {
       background: var(--vilo-bg-base);
       color: var(--vilo-text-primary);
-      font-family: 'Sen', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      padding: 24px;
-      max-width: 800px;
-      margin: 0 auto;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.5;
     }
 
-    h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
-    h2 { font-size: 18px; font-weight: 700; color: var(--vilo-accent-light); margin: 40px 0 16px; border-bottom: 1px solid var(--vilo-border-subtle); padding-bottom: 8px; }
-    h3 { font-size: 13px; font-weight: 600; color: var(--vilo-text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin: 24px 0 12px; }
-    .subtitle { color: var(--vilo-text-secondary); font-size: 14px; margin-bottom: 32px; }
-    .row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
-    .col { display: flex; flex-direction: column; gap: 8px; }
-    code { background: var(--vilo-bg-elevated); padding: 2px 6px; font-size: 11px; color: var(--vilo-accent-light); font-family: 'SF Mono', monospace; }
+    /* ====== LAYOUT ====== */
+    .page { display: flex; min-height: 100vh; }
 
-    /* ===================== COLORS ===================== */
-    .color-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
-    .color-swatch {
-      height: 64px;
+    /* Sidebar Nav */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: 220px;
+      height: 100vh;
+      background: #13132a;
+      border-right: 1px solid var(--vilo-border-subtle);
+      padding: 24px 0;
+      overflow-y: auto;
+      z-index: 50;
+    }
+    .sidebar-logo {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--vilo-border-subtle);
+      margin-bottom: 12px;
+    }
+    .sidebar-logo h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+    .sidebar-logo h1 span { color: var(--vilo-accent); }
+    .sidebar-logo p { font-size: 11px; color: var(--vilo-text-muted); margin-top: 2px; }
+    .sidebar a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 20px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--vilo-text-secondary);
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .sidebar a:hover { color: white; background: var(--vilo-bg-surface); }
+    .sidebar a.active { color: var(--vilo-accent-light); background: var(--vilo-accent); background: rgba(139, 92, 246, 0.12); border-right: 2px solid var(--vilo-accent); }
+    .sidebar .nav-group { font-size: 10px; font-weight: 700; color: var(--vilo-text-dim); text-transform: uppercase; letter-spacing: 0.12em; padding: 16px 20px 6px; }
+
+    /* Main Content */
+    .main { margin-left: 220px; flex: 1; padding: 40px 48px; max-width: 900px; }
+
+    /* Section */
+    section { margin-bottom: 64px; scroll-margin-top: 24px; }
+    .section-header { margin-bottom: 24px; }
+    .section-header h2 { font-size: 22px; font-weight: 700; }
+    .section-header p { font-size: 13px; color: var(--vilo-text-muted); margin-top: 4px; }
+
+    /* Component Block */
+    .component {
+      margin-bottom: 32px;
+    }
+    .component-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--vilo-text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+    }
+    .component-desc {
+      font-size: 12px;
+      color: var(--vilo-text-muted);
+      margin-bottom: 12px;
+    }
+
+    /* Preview Box */
+    .preview {
+      background: var(--vilo-bg-panel);
+      border: 1px solid var(--vilo-border-subtle);
+      padding: 24px;
+      position: relative;
+    }
+    .preview::before {
+      content: 'Preview';
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--vilo-text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .preview-dark {
+      background: var(--vilo-bg-base);
+    }
+
+    /* Code Block */
+    .code-block {
+      background: #0d0d1a;
+      border: 1px solid var(--vilo-border-subtle);
+      border-top: none;
+      padding: 12px 16px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 12px;
+      color: var(--vilo-accent-light);
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    code {
+      background: rgba(139, 92, 246, 0.12);
+      padding: 2px 6px;
+      font-size: 11px;
+      color: var(--vilo-accent-light);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+
+    /* ====== COLOR GRID ====== */
+    .color-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 6px; }
+    .swatch {
+      aspect-ratio: 1.6;
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
       padding: 8px;
-      font-size: 10px;
-      font-weight: 600;
-    }
-    .color-swatch .name { color: rgba(255,255,255,0.9); }
-    .color-swatch .value { color: rgba(255,255,255,0.5); font-family: monospace; margin-top: 2px; }
-
-    /* ===================== SURFACE CARD ===================== */
-    .surface-card {
-      background: var(--vilo-bg-card);
-      padding: 16px;
-    }
-    .surface-card.alt {
-      background: var(--vilo-bg-card-alt);
-    }
-
-    /* ===================== INFO ROW ===================== */
-    .info-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .info-row .icon-box {
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--vilo-text-dim);
-      flex-shrink: 0;
-    }
-    .info-row .content { flex: 1; min-width: 0; }
-    .info-row .title { font-size: 13px; font-weight: 700; color: white; }
-    .info-row .subtitle-text { font-size: 11px; color: var(--vilo-text-muted); margin-top: 2px; }
-    .info-row .badge {
-      margin-top: 4px;
-      display: inline-flex;
-      background: #4b3a83;
-      padding: 4px 8px;
-      font-size: 11px;
-      font-weight: 500;
-      color: #d9c4ff;
-    }
-    .info-row .chevron { color: #a9a4ca; flex-shrink: 0; }
-
-    /* ===================== STAT GRID ===================== */
-    .stat-grid { display: grid; gap: 8px; }
-    .stat-grid.cols-2 { grid-template-columns: 1fr 1fr; }
-    .stat-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
-    .stat-grid.cols-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
-    .stat-cell {
-      background: var(--vilo-bg-card);
-      padding: 10px 12px;
-      text-align: center;
-    }
-    .stat-cell .stat-value { font-size: 12px; font-weight: 700; color: white; }
-    .stat-cell .stat-label { font-size: 9px; color: var(--vilo-text-muted); text-transform: uppercase; letter-spacing: 0.14em; margin-top: 4px; }
-
-    /* ===================== BUTTONS ===================== */
-    .btn {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      padding: 12px 16px;
-      font-size: 15px;
-      font-weight: 600;
-      border: none;
+      transition: transform 0.15s;
       cursor: pointer;
-      transition: all 0.2s;
+      position: relative;
     }
-    .btn:hover { filter: brightness(1.1); }
+    .swatch:hover { transform: scale(1.04); z-index: 1; }
+    .swatch .s-name { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.85); }
+    .swatch .s-var { font-size: 9px; color: rgba(255,255,255,0.4); font-family: monospace; margin-top: 1px; }
+    .swatch .s-hex { position: absolute; top: 6px; right: 8px; font-size: 9px; color: rgba(255,255,255,0.35); font-family: monospace; opacity: 0; transition: opacity 0.15s; }
+    .swatch:hover .s-hex { opacity: 1; }
+
+    /* ====== COMPONENTS ====== */
+    .surface-card { background: var(--vilo-bg-card); padding: 16px; }
+    .surface-card-alt { background: var(--vilo-bg-card-alt); padding: 16px; }
+
+    .info-row { display: flex; align-items: center; gap: 12px; }
+    .info-row .ir-icon { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--vilo-text-dim); flex-shrink: 0; }
+    .info-row .ir-body { flex: 1; min-width: 0; }
+    .info-row .ir-title { font-size: 13px; font-weight: 700; color: white; }
+    .info-row .ir-sub { font-size: 11px; color: var(--vilo-text-muted); margin-top: 2px; }
+    .info-row .ir-badge { margin-top: 4px; display: inline-flex; background: #4b3a83; padding: 4px 8px; font-size: 11px; font-weight: 500; color: #d9c4ff; }
+    .chevron { color: #a9a4ca; flex-shrink: 0; }
+
+    .stat-grid { display: grid; gap: 8px; }
+    .stat-grid.c2 { grid-template-columns: 1fr 1fr; }
+    .stat-grid.c3 { grid-template-columns: 1fr 1fr 1fr; }
+    .stat-grid.c4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+    .stat-cell { background: var(--vilo-bg-card); padding: 10px 12px; text-align: center; }
+    .stat-cell .sv { font-size: 13px; font-weight: 700; color: white; }
+    .stat-cell .sl { font-size: 9px; color: var(--vilo-text-muted); text-transform: uppercase; letter-spacing: 0.14em; margin-top: 4px; }
+
+    .btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 16px; font-size: 15px; font-weight: 600; border: none; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+    .btn:hover { filter: brightness(1.12); }
+    .btn:active { transform: scale(0.98); }
     .btn-primary { background: var(--vilo-accent); color: white; }
-    .btn-primary:hover { background: var(--vilo-accent-hover); }
     .btn-secondary { background: var(--vilo-bg-btn-secondary); color: var(--vilo-text-danger); }
     .btn-danger { background: var(--vilo-bg-btn-danger); color: var(--vilo-text-danger); }
-    .btn-small { padding: 8px 16px; font-size: 13px; width: auto; }
+    .btn-sm { width: auto; padding: 8px 16px; font-size: 13px; }
 
-    /* ===================== ICON ACTION PAIR ===================== */
-    .icon-action-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .icon-action-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 68px;
-      background: var(--vilo-bg-interactive);
-      color: var(--vilo-text-dim);
-      border: none;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .icon-action-btn:hover { background: var(--vilo-bg-interactive-hover); }
+    .icon-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .icon-btn { display: flex; align-items: center; justify-content: center; min-height: 68px; background: var(--vilo-bg-interactive); color: var(--vilo-text-dim); border: none; cursor: pointer; transition: all 0.15s; }
+    .icon-btn:hover { background: var(--vilo-bg-interactive-hover); }
 
-    /* ===================== STATUS HEADER ===================== */
-    .status-header {
-      width: 100%;
-      padding: 12px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      color: white;
-      font-size: 13px;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-    }
-    .status-header .left { display: flex; align-items: center; gap: 8px; }
+    .status-bar { width: 100%; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; color: white; font-size: 13px; font-weight: 600; border: none; cursor: pointer; font-family: inherit; }
+    .status-bar .sb-left { display: flex; align-items: center; gap: 8px; }
 
-    /* ===================== TAGS ===================== */
-    .tag {
-      display: inline-flex;
-      padding: 4px 10px;
-      font-size: 10px;
-      font-weight: 600;
-    }
+    .tag { display: inline-flex; padding: 4px 10px; font-size: 10px; font-weight: 600; transition: all 0.15s; cursor: default; }
+    .tag:hover { filter: brightness(1.2); }
 
-    /* ===================== TEXT STYLES ===================== */
-    .text-demo { margin-bottom: 6px; }
-
-    /* ===================== FORM INPUTS ===================== */
-    .input {
-      width: 100%;
-      padding: 12px 16px;
-      background: var(--vilo-bg-elevated);
-      border: 1px solid var(--vilo-border-strong);
-      color: white;
-      font-size: 14px;
-      outline: none;
-      font-family: inherit;
-    }
+    .input { width: 100%; padding: 12px 16px; background: var(--vilo-bg-elevated); border: 1px solid var(--vilo-border-strong); color: white; font-size: 14px; outline: none; font-family: inherit; transition: border-color 0.15s; }
     .input:focus { border-color: var(--vilo-accent); }
     .input::placeholder { color: var(--vilo-text-disabled); }
 
-    /* ===================== SPACING ===================== */
     .space-y > * + * { margin-top: 8px; }
-    .space-y-lg > * + * { margin-top: 12px; }
-    .mt-2 { margin-top: 8px; }
-    .mb-1 { margin-bottom: 4px; }
-    .p-4 { padding: 16px; }
+    .gap-12 > * + * { margin-top: 12px; }
 
-    /* SVG icons inline */
-    .icon { width: 20px; height: 20px; }
-    .icon-sm { width: 16px; height: 16px; }
-    .icon-lg { width: 24px; height: 24px; }
+    /* Text showcase */
+    .text-row { display: flex; align-items: baseline; gap: 16px; padding: 6px 0; border-bottom: 1px solid var(--vilo-border-soft); }
+    .text-row:last-child { border: none; }
+    .text-sample { flex: 1; }
+    .text-meta { font-size: 11px; font-family: monospace; color: var(--vilo-text-dim); min-width: 180px; text-align: right; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; padding: 24px 16px; }
+      .color-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    /* Composed example */
+    .composed { max-width: 340px; background: #1f1e33; overflow: hidden; }
+    .composed .inner { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
   </style>
 </head>
 <body>
+<div class="page">
 
-  <h1>VILO Design System</h1>
-  <p class="subtitle">Farben, Komponenten und Muster der VILO POS App</p>
-
-  <!-- ============ COLORS ============ -->
-  <h2>Farben &mdash; Hintergr&uuml;nde</h2>
-  <div class="color-grid">
-    <div class="color-swatch" style="background: var(--vilo-bg-base)"><span class="name">Base</span><span class="value">--vilo-bg-base</span></div>
-    <div class="color-swatch" style="background: var(--vilo-bg-surface)"><span class="name">Surface</span><span class="value">--vilo-bg-surface</span></div>
-    <div class="color-swatch" style="background: var(--vilo-bg-card)"><span class="name">Card</span><span class="value">--vilo-bg-card</span></div>
-    <div class="color-swatch" style="background: var(--vilo-bg-card-alt)"><span class="name">Card Alt</span><span class="value">--vilo-bg-card-alt</span></div>
-    <div class="color-swatch" style="background: var(--vilo-bg-panel)"><span class="name">Panel</span><span class="value">--vilo-bg-panel</span></div>
-    <div class="color-swatch" style="background: var(--vilo-bg-elevated)"><span class="name">Elevated</span><span class="value">--vilo-bg-elevated</span></div>
-    <div class="color-swatch" style="background: var(--vilo-bg-interactive)"><span class="name">Interactive</span><span class="value">--vilo-bg-interactive</span></div>
-    <div class="color-swatch" style="background: var(--vilo-bg-interactive-hover)"><span class="name">Interactive Hover</span><span class="value">--vilo-bg-interactive-hover</span></div>
-  </div>
-
-  <h2>Farben &mdash; Akzente &amp; Status</h2>
-  <div class="color-grid">
-    <div class="color-swatch" style="background: var(--vilo-accent)"><span class="name">Accent</span><span class="value">--vilo-accent</span></div>
-    <div class="color-swatch" style="background: var(--vilo-accent-hover)"><span class="name">Accent Hover</span><span class="value">--vilo-accent-hover</span></div>
-    <div class="color-swatch" style="background: var(--vilo-accent-secondary)"><span class="name">Accent Secondary</span><span class="value">--vilo-accent-secondary</span></div>
-    <div class="color-swatch" style="background: var(--vilo-success)"><span class="name">Success</span><span class="value">--vilo-success</span></div>
-    <div class="color-swatch" style="background: var(--vilo-warning)"><span class="name">Warning</span><span class="value">--vilo-warning</span></div>
-    <div class="color-swatch" style="background: var(--vilo-danger)"><span class="name">Danger</span><span class="value">--vilo-danger</span></div>
-  </div>
-
-  <h2>Farben &mdash; Text</h2>
-  <div style="background: var(--vilo-bg-card); padding: 16px;">
-    <div class="text-demo" style="color: var(--vilo-text-primary); font-size: 14px; font-weight: 600;">Primary Text <code>--vilo-text-primary</code></div>
-    <div class="text-demo" style="color: var(--vilo-text-soft); font-size: 14px;">Soft Text <code>--vilo-text-soft</code></div>
-    <div class="text-demo" style="color: var(--vilo-text-secondary); font-size: 14px;">Secondary Text <code>--vilo-text-secondary</code></div>
-    <div class="text-demo" style="color: var(--vilo-text-muted); font-size: 14px;">Muted Text <code>--vilo-text-muted</code></div>
-    <div class="text-demo" style="color: var(--vilo-text-dim); font-size: 14px;">Dim Text <code>--vilo-text-dim</code></div>
-    <div class="text-demo" style="color: var(--vilo-text-disabled); font-size: 14px;">Disabled Text <code>--vilo-text-disabled</code></div>
-  </div>
-
-  <!-- ============ SURFACE CARD ============ -->
-  <h2>SurfaceCard</h2>
-  <p style="color: var(--vilo-text-secondary); font-size: 13px; margin-bottom: 12px;">Dunkler Karten-Block f&uuml;r Content-Gruppierung. <code>&lt;SurfaceCard&gt;</code></p>
-
-  <h3>Default</h3>
-  <div class="surface-card">
-    <span style="font-size: 13px; font-weight: 600;">Inhalt auf einer Surface Card</span>
-    <p style="font-size: 11px; color: var(--vilo-text-muted); margin-top: 4px;">Hintergrund: <code>bg-vilo-card</code></p>
-  </div>
-
-  <h3>Alt Variante</h3>
-  <div class="surface-card alt" style="margin-top: 8px;">
-    <span style="font-size: 13px; font-weight: 600;">Alt-Variante</span>
-    <p style="font-size: 11px; color: var(--vilo-text-muted); margin-top: 4px;">Hintergrund: <code>bg-vilo-card-alt</code></p>
-  </div>
-
-  <!-- ============ INFO ROW ============ -->
-  <h2>InfoRow</h2>
-  <p style="color: var(--vilo-text-secondary); font-size: 13px; margin-bottom: 12px;">Icon + Titel + Untertitel + optionaler Chevron. <code>&lt;InfoRow&gt;</code></p>
-
-  <div class="space-y-lg">
-    <div class="surface-card">
-      <div class="info-row">
-        <div class="icon-box"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
-        <div class="content">
-          <div class="title">Tisch 4, Tisch 5</div>
-          <div class="subtitle-text">Zugewiesen</div>
-        </div>
-        <svg class="chevron icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
-      </div>
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <h1><span>VILO</span> Design</h1>
+      <p>Component Library v1.0</p>
     </div>
 
-    <div class="surface-card">
-      <div class="info-row">
-        <div class="icon-box"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
-        <div class="content">
-          <div class="title">+49 176 123 4567</div>
-          <div class="badge">SMS-Updates aktiv</div>
+    <div class="nav-group">Foundation</div>
+    <a href="#colors">Farben</a>
+    <a href="#typography">Typografie</a>
+    <a href="#borders">Borders</a>
+
+    <div class="nav-group">Komponenten</div>
+    <a href="#surface-card">SurfaceCard</a>
+    <a href="#info-row">InfoRow</a>
+    <a href="#stat-grid">StatGrid</a>
+    <a href="#action-button">ActionButton</a>
+    <a href="#icon-action">IconActionPair</a>
+    <a href="#status-header">StatusHeaderBar</a>
+
+    <div class="nav-group">Elemente</div>
+    <a href="#tags">Tags</a>
+    <a href="#inputs">Inputs</a>
+
+    <div class="nav-group">Beispiele</div>
+    <a href="#composed">Zusammengesetzt</a>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ============ COLORS ============ -->
+    <section id="colors">
+      <div class="section-header">
+        <h2>Farben</h2>
+        <p>Alle Farben werden &uuml;ber CSS Variables gesteuert. &Auml;nderung in <code>index.css</code> wirkt global.</p>
+      </div>
+
+      <div class="component">
+        <div class="component-label">Hintergr&uuml;nde</div>
+        <div class="color-grid">
+          <div class="swatch" style="background:#1a1a2e" onclick="navigator.clipboard.writeText('--vilo-bg-base')"><span class="s-name">Base</span><span class="s-var">bg-base</span><span class="s-hex">#1a1a2e</span></div>
+          <div class="swatch" style="background:#2a2a42"><span class="s-name">Surface</span><span class="s-var">bg-surface</span><span class="s-hex">#2a2a42</span></div>
+          <div class="swatch" style="background:#26243f"><span class="s-name">Card</span><span class="s-var">bg-card</span><span class="s-hex">#26243f</span></div>
+          <div class="swatch" style="background:#252540"><span class="s-name">Card Alt</span><span class="s-var">bg-card-alt</span><span class="s-hex">#252540</span></div>
+          <div class="swatch" style="background:#353558"><span class="s-name">Elevated</span><span class="s-var">bg-elevated</span><span class="s-hex">#353558</span></div>
+          <div class="swatch" style="background:#373454"><span class="s-name">Interactive</span><span class="s-var">bg-interactive</span><span class="s-hex">#373454</span></div>
         </div>
       </div>
-    </div>
 
-    <div class="surface-card">
-      <div class="info-row">
-        <div class="icon-box" style="color: var(--vilo-text-secondary);"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01"/></svg></div>
-        <div class="content">
-          <div class="title">Kreditkarte hinzuf&uuml;gen</div>
-          <div class="subtitle-text">Noch keine hinterlegt</div>
+      <div class="component">
+        <div class="component-label">Akzente &amp; Status</div>
+        <div class="color-grid">
+          <div class="swatch" style="background:#8b5cf6"><span class="s-name">Accent</span><span class="s-var">accent</span><span class="s-hex">#8b5cf6</span></div>
+          <div class="swatch" style="background:#7c3aed"><span class="s-name">Accent Hover</span><span class="s-var">accent-hover</span><span class="s-hex">#7c3aed</span></div>
+          <div class="swatch" style="background:#d946ef"><span class="s-name">Secondary</span><span class="s-var">accent-secondary</span><span class="s-hex">#d946ef</span></div>
+          <div class="swatch" style="background:#22c55e"><span class="s-name">Success</span><span class="s-var">success</span><span class="s-hex">#22c55e</span></div>
+          <div class="swatch" style="background:#f59e0b"><span class="s-name">Warning</span><span class="s-var">warning</span><span class="s-hex">#f59e0b</span></div>
+          <div class="swatch" style="background:#ef4444"><span class="s-name">Danger</span><span class="s-var">danger</span><span class="s-hex">#ef4444</span></div>
         </div>
-        <svg class="chevron icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
       </div>
-    </div>
-  </div>
+    </section>
 
-  <!-- ============ STAT GRID ============ -->
-  <h2>StatGrid</h2>
-  <p style="color: var(--vilo-text-secondary); font-size: 13px; margin-bottom: 12px;">Metriken-Raster in 2/3/4 Spalten. <code>&lt;StatGrid&gt;</code></p>
+    <!-- ============ TYPOGRAPHY ============ -->
+    <section id="typography">
+      <div class="section-header">
+        <h2>Typografie</h2>
+        <p>Text-Hierarchie mit 6 Stufen von Primary bis Disabled.</p>
+      </div>
+      <div class="preview">
+        <div class="text-row"><div class="text-sample" style="color:var(--vilo-text-primary);font-size:16px;font-weight:700">Primary Bold</div><div class="text-meta">text-primary &middot; #e0e0f0</div></div>
+        <div class="text-row"><div class="text-sample" style="color:var(--vilo-text-soft);font-size:14px">Soft Text</div><div class="text-meta">text-soft &middot; #c0c0dd</div></div>
+        <div class="text-row"><div class="text-sample" style="color:var(--vilo-text-secondary);font-size:14px">Secondary Text</div><div class="text-meta">text-secondary &middot; #b0b0cc</div></div>
+        <div class="text-row"><div class="text-sample" style="color:var(--vilo-text-muted);font-size:13px">Muted Text</div><div class="text-meta">text-muted &middot; #8888aa</div></div>
+        <div class="text-row"><div class="text-sample" style="color:var(--vilo-text-dim);font-size:12px">Dim Text</div><div class="text-meta">text-dim &middot; #6e7592</div></div>
+        <div class="text-row"><div class="text-sample" style="color:var(--vilo-text-disabled);font-size:12px">Disabled Text</div><div class="text-meta">text-disabled &middot; #58607d</div></div>
+      </div>
+    </section>
 
-  <h3>3 Spalten</h3>
-  <div class="stat-grid cols-3">
-    <div class="stat-cell"><div class="stat-value">20:00</div></div>
-    <div class="stat-cell"><div class="stat-value">4 P.</div></div>
-    <div class="stat-cell"><div class="stat-value">1h 30m</div></div>
-  </div>
+    <!-- ============ BORDERS ============ -->
+    <section id="borders">
+      <div class="section-header">
+        <h2>Borders</h2>
+        <p>3 Stufen f&uuml;r Trennlinien und Rahmen.</p>
+      </div>
+      <div class="preview gap-12">
+        <div style="padding:12px;border:1px solid var(--vilo-border-subtle)"><span style="font-size:12px;color:var(--vilo-text-muted)">Subtle <code>border-vilo-border-subtle</code></span></div>
+        <div style="padding:12px;border:1px solid var(--vilo-border-strong);margin-top:8px"><span style="font-size:12px;color:var(--vilo-text-muted)">Strong <code>border-vilo-border-strong</code></span></div>
+        <div style="padding:12px;border:1px solid var(--vilo-border-soft);margin-top:8px"><span style="font-size:12px;color:var(--vilo-text-muted)">Soft <code>border-vilo-border-soft</code></span></div>
+      </div>
+    </section>
 
-  <h3>2 Spalten mit Labels</h3>
-  <div class="stat-grid cols-2" style="margin-top: 8px;">
-    <div class="stat-cell"><div class="stat-value">23</div><div class="stat-label">Besuche</div></div>
-    <div class="stat-cell"><div class="stat-value">1.240&euro;</div><div class="stat-label">Umsatz</div></div>
-    <div class="stat-cell"><div class="stat-value">54&euro;</div><div class="stat-label">&Oslash; Besuch</div></div>
-    <div class="stat-cell"><div class="stat-value">08.04.26</div><div class="stat-label">Letzter</div></div>
-  </div>
+    <!-- ============ SURFACE CARD ============ -->
+    <section id="surface-card">
+      <div class="section-header">
+        <h2>SurfaceCard</h2>
+        <p>Container f&uuml;r Content-Gruppierung. Varianten: <code>default</code> und <code>alt</code>.</p>
+      </div>
+      <div class="preview gap-12">
+        <div class="surface-card">
+          <div style="font-size:13px;font-weight:600">Default Card</div>
+          <div style="font-size:11px;color:var(--vilo-text-muted);margin-top:4px">Tailwind: <code>bg-vilo-card</code></div>
+        </div>
+        <div class="surface-card-alt" style="margin-top:8px">
+          <div style="font-size:13px;font-weight:600">Alt Card</div>
+          <div style="font-size:11px;color:var(--vilo-text-muted);margin-top:4px">Tailwind: <code>bg-vilo-card-alt</code></div>
+        </div>
+      </div>
+      <div class="code-block">&lt;SurfaceCard&gt;...&lt;/SurfaceCard&gt;
+&lt;SurfaceCard variant="alt"&gt;...&lt;/SurfaceCard&gt;</div>
+    </section>
 
-  <h3>4 Spalten</h3>
-  <div class="stat-grid cols-4" style="margin-top: 8px;">
-    <div class="stat-cell"><div class="stat-value">12</div><div class="stat-label">Tische</div></div>
-    <div class="stat-cell"><div class="stat-value">48</div><div class="stat-label">Covers</div></div>
-    <div class="stat-cell"><div class="stat-value">87&euro;</div><div class="stat-label">&Oslash; Spend</div></div>
-    <div class="stat-cell"><div class="stat-value" style="color: var(--vilo-success);">+12%</div><div class="stat-label">vs. Letzte</div></div>
-  </div>
+    <!-- ============ INFO ROW ============ -->
+    <section id="info-row">
+      <div class="section-header">
+        <h2>InfoRow</h2>
+        <p>Icon + Titel + Untertitel/Badge + optionaler Chevron.</p>
+      </div>
+      <div class="preview gap-12">
+        <div class="surface-card">
+          <div class="info-row">
+            <div class="ir-icon">&#9906;</div>
+            <div class="ir-body"><div class="ir-title">Tisch 4, Tisch 5</div><div class="ir-sub">Zugewiesen</div></div>
+            <span class="chevron">&#10095;</span>
+          </div>
+        </div>
+        <div class="surface-card" style="margin-top:8px">
+          <div class="info-row">
+            <div class="ir-icon">&#9993;</div>
+            <div class="ir-body"><div class="ir-title">+49 176 123 4567</div><div class="ir-badge">SMS-Updates aktiv</div></div>
+          </div>
+        </div>
+        <div class="surface-card" style="margin-top:8px">
+          <div class="info-row">
+            <div class="ir-icon">&#9733;</div>
+            <div class="ir-body"><div class="ir-title">Kreditkarte hinzuf&uuml;gen</div><div class="ir-sub">Noch keine hinterlegt</div></div>
+            <span class="chevron">&#10095;</span>
+          </div>
+        </div>
+      </div>
+      <div class="code-block">&lt;InfoRow icon={&lt;IconArmchair /&gt;} title="Tisch 4" subtitle="Zugewiesen" chevron /&gt;
+&lt;InfoRow icon={&lt;IconMessage /&gt;} title="+49 176..." badge="SMS-Updates aktiv" /&gt;</div>
+    </section>
 
-  <!-- ============ BUTTONS ============ -->
-  <h2>ActionButton</h2>
-  <p style="color: var(--vilo-text-secondary); font-size: 13px; margin-bottom: 12px;">Volle Breite, 3 Varianten. <code>&lt;ActionButton&gt;</code></p>
+    <!-- ============ STAT GRID ============ -->
+    <section id="stat-grid">
+      <div class="section-header">
+        <h2>StatGrid</h2>
+        <p>Metriken-Raster. Spalten: 2, 3 oder 4.</p>
+      </div>
 
-  <div class="space-y-lg">
-    <div>
-      <div style="font-size: 11px; color: var(--vilo-text-muted); margin-bottom: 4px;">Primary <code>variant="primary"</code></div>
-      <button class="btn btn-primary">
-        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-        Platzieren
-      </button>
-    </div>
-
-    <div>
-      <div style="font-size: 11px; color: var(--vilo-text-muted); margin-bottom: 4px;">Secondary <code>variant="secondary"</code></div>
-      <button class="btn btn-secondary">
-        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        Stornieren
-      </button>
-    </div>
-
-    <div>
-      <div style="font-size: 11px; color: var(--vilo-text-muted); margin-bottom: 4px;">Danger <code>variant="danger"</code></div>
-      <button class="btn btn-danger">
-        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
-        L&ouml;schen
-      </button>
-    </div>
-  </div>
-
-  <!-- ============ ICON ACTION PAIR ============ -->
-  <h2>IconActionPair</h2>
-  <p style="color: var(--vilo-text-secondary); font-size: 13px; margin-bottom: 12px;">Zwei Icon-Buttons nebeneinander. <code>&lt;IconActionPair&gt;</code></p>
-
-  <div class="icon-action-pair">
-    <button class="icon-action-btn">
-      <svg class="icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7"/></svg>
-    </button>
-    <button class="icon-action-btn">
-      <svg class="icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01"/></svg>
-    </button>
-  </div>
-
-  <!-- ============ STATUS HEADER ============ -->
-  <h2>StatusHeaderBar</h2>
-  <p style="color: var(--vilo-text-secondary); font-size: 13px; margin-bottom: 12px;">Gradient-Status-Bar mit Dropdown. <code>&lt;StatusHeaderBar&gt;</code></p>
-
-  <div class="space-y-lg">
-    <button class="status-header" style="background: linear-gradient(90deg, #22c55e 0%, var(--vilo-accent) 55%, var(--vilo-accent-hover) 100%)">
-      <span class="left">
-        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-        Gebucht
-      </span>
-      <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-    </button>
-
-    <button class="status-header" style="background: linear-gradient(90deg, #8b5cf6 0%, var(--vilo-accent) 55%, var(--vilo-accent-hover) 100%)">
-      <span class="left">
-        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-        Platziert
-      </span>
-      <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-    </button>
-
-    <button class="status-header" style="background: linear-gradient(90deg, #ef4444 0%, var(--vilo-accent) 55%, var(--vilo-accent-hover) 100%)">
-      <span class="left">
-        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        Storniert
-      </span>
-      <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-    </button>
-  </div>
-
-  <!-- ============ TAGS ============ -->
-  <h2>Tags</h2>
-  <p style="color: var(--vilo-text-secondary); font-size: 13px; margin-bottom: 12px;">G&auml;ste-Etiketten mit Farbkodierung.</p>
-
-  <div class="row">
-    <span class="tag" style="background: #eab30822; color: #eab308;">VIP</span>
-    <span class="tag" style="background: #22d3ee22; color: #22d3ee;">Stammgast</span>
-    <span class="tag" style="background: #ef444422; color: #ef4444;">Allergiker</span>
-    <span class="tag" style="background: #22c55e22; color: #22c55e;">Vegetarier</span>
-    <span class="tag" style="background: #16a34a22; color: #16a34a;">Vegan</span>
-    <span class="tag" style="background: #f9731622; color: #f97316;">Kinderstuhl</span>
-    <span class="tag" style="background: #8b5cf622; color: #8b5cf6;">Rollstuhl</span>
-    <span class="tag" style="background: #ec489922; color: #ec4899;">Geburtstag</span>
-    <span class="tag" style="background: #6366f122; color: #6366f1;">Business</span>
-    <span class="tag" style="background: #a78bfa22; color: #a78bfa;">Presse</span>
-  </div>
-
-  <!-- ============ FORM INPUTS ============ -->
-  <h2>Formular-Elemente</h2>
-  <p style="color: var(--vilo-text-secondary); font-size: 13px; margin-bottom: 12px;">Input-Felder im VILO-Stil.</p>
-
-  <div class="space-y-lg" style="max-width: 400px;">
-    <div>
-      <label style="display: block; font-size: 12px; color: var(--vilo-text-soft); font-weight: 500; margin-bottom: 6px;">Name</label>
-      <input class="input" type="text" placeholder="z.B. Marco Rossi" value="Marco Rossi">
-    </div>
-    <div>
-      <label style="display: block; font-size: 12px; color: var(--vilo-text-soft); font-weight: 500; margin-bottom: 6px;">E-Mail</label>
-      <input class="input" type="email" placeholder="email@beispiel.de">
-    </div>
-    <div>
-      <label style="display: block; font-size: 12px; color: var(--vilo-text-soft); font-weight: 500; margin-bottom: 6px;">Telefon</label>
-      <input class="input" type="tel" placeholder="+49 176...">
-    </div>
-  </div>
-
-  <!-- ============ BORDERS ============ -->
-  <h2>Borders</h2>
-  <div class="space-y-lg">
-    <div style="padding: 12px; border: 1px solid var(--vilo-border-subtle);">
-      <span style="font-size: 12px; color: var(--vilo-text-muted);">border-subtle <code>--vilo-border-subtle</code></span>
-    </div>
-    <div style="padding: 12px; border: 1px solid var(--vilo-border-strong);">
-      <span style="font-size: 12px; color: var(--vilo-text-muted);">border-strong <code>--vilo-border-strong</code></span>
-    </div>
-    <div style="padding: 12px; border: 1px solid var(--vilo-border-soft);">
-      <span style="font-size: 12px; color: var(--vilo-text-muted);">border-soft <code>--vilo-border-soft</code></span>
-    </div>
-  </div>
-
-  <!-- ============ ZUSAMMENGESETZT ============ -->
-  <h2>Zusammengesetztes Beispiel</h2>
-  <p style="color: var(--vilo-text-secondary); font-size: 13px; margin-bottom: 12px;">So sieht eine Reservierungs-Detailansicht mit allen Komponenten aus:</p>
-
-  <div style="max-width: 320px; background: #1f1e33; overflow: hidden;">
-    <!-- Status -->
-    <button class="status-header" style="background: linear-gradient(90deg, #22c55e 0%, var(--vilo-accent) 55%, var(--vilo-accent-hover) 100%)">
-      <span class="left">
-        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-        Gebucht
-      </span>
-      <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-    </button>
-
-    <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px;">
-      <!-- Guest -->
-      <div class="surface-card" style="display: flex; align-items: center; gap: 16px; padding: 16px;">
-        <div style="width: 72px; height: 72px; background: var(--vilo-accent); display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; color: white; flex-shrink: 0;">M</div>
-        <div style="min-width: 0; flex: 1;">
-          <div style="font-size: 16px; font-weight: 700; color: white;">Max Mustermann</div>
-          <div style="margin-top: 4px; font-size: 12px; color: #d8c7ff; display: flex; align-items: center; gap: 6px;">
-            <svg style="width: 14px; height: 14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.362 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
-            +49 176 123 4567
+      <div class="component">
+        <div class="component-label">3 Spalten</div>
+        <div class="preview">
+          <div class="stat-grid c3">
+            <div class="stat-cell"><div class="sv">20:00</div></div>
+            <div class="stat-cell"><div class="sv">4 P.</div></div>
+            <div class="stat-cell"><div class="sv">1h 30m</div></div>
           </div>
         </div>
       </div>
 
-      <!-- Stats -->
-      <div class="stat-grid cols-3">
-        <div class="stat-cell"><div class="stat-value">20:00</div></div>
-        <div class="stat-cell"><div class="stat-value">4 P.</div></div>
-        <div class="stat-cell"><div class="stat-value">1h 30m</div></div>
-      </div>
-
-      <!-- Table -->
-      <div class="surface-card">
-        <div class="info-row">
-          <div class="icon-box"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
-          <div class="content">
-            <div class="title">Tisch 4</div>
-            <div class="subtitle-text">Zugewiesen</div>
-          </div>
-          <svg class="chevron icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
-        </div>
-      </div>
-
-      <!-- Phone -->
-      <div class="surface-card">
-        <div class="info-row">
-          <div class="icon-box"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
-          <div class="content">
-            <div class="title">+49 176 123 4567</div>
-            <div class="badge">SMS-Updates aktiv</div>
+      <div class="component">
+        <div class="component-label">2 Spalten mit Labels</div>
+        <div class="preview">
+          <div class="stat-grid c2">
+            <div class="stat-cell"><div class="sv">23</div><div class="sl">Besuche</div></div>
+            <div class="stat-cell"><div class="sv">1.240&euro;</div><div class="sl">Umsatz</div></div>
+            <div class="stat-cell"><div class="sv">54&euro;</div><div class="sl">&Oslash; Besuch</div></div>
+            <div class="stat-cell"><div class="sv">08.04.26</div><div class="sl">Letzter</div></div>
           </div>
         </div>
       </div>
 
-      <!-- Actions -->
-      <div class="icon-action-pair">
-        <button class="icon-action-btn"><svg class="icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7"/></svg></button>
-        <button class="icon-action-btn"><svg class="icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01"/></svg></button>
+      <div class="component">
+        <div class="component-label">4 Spalten</div>
+        <div class="preview">
+          <div class="stat-grid c4">
+            <div class="stat-cell"><div class="sv">12</div><div class="sl">Tische</div></div>
+            <div class="stat-cell"><div class="sv">48</div><div class="sl">Covers</div></div>
+            <div class="stat-cell"><div class="sv">87&euro;</div><div class="sl">&Oslash; Spend</div></div>
+            <div class="stat-cell"><div class="sv" style="color:var(--vilo-success)">+12%</div><div class="sl">vs. Letzte</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="code-block">&lt;StatGrid cols={3} items={[{ value: '20:00' }, { value: '4 P.' }, { value: '1h 30m' }]} /&gt;
+&lt;StatGrid cols={2} items={[{ value: '23', label: 'Besuche' }, ...]} /&gt;</div>
+    </section>
+
+    <!-- ============ ACTION BUTTONS ============ -->
+    <section id="action-button">
+      <div class="section-header">
+        <h2>ActionButton</h2>
+        <p>Volle Breite, 3 Varianten: <code>primary</code>, <code>secondary</code>, <code>danger</code>.</p>
+      </div>
+      <div class="preview gap-12" style="max-width:400px">
+        <div>
+          <div class="component-label">Primary</div>
+          <button class="btn btn-primary">&#10003; Platzieren</button>
+        </div>
+        <div style="margin-top:12px">
+          <div class="component-label">Secondary</div>
+          <button class="btn btn-secondary">&#10005; Stornieren</button>
+        </div>
+        <div style="margin-top:12px">
+          <div class="component-label">Danger</div>
+          <button class="btn btn-danger">&#128465; L&ouml;schen</button>
+        </div>
+      </div>
+      <div class="code-block" style="max-width:400px">&lt;ActionButton variant="primary" icon={&lt;IconCheck /&gt;}&gt;Platzieren&lt;/ActionButton&gt;
+&lt;ActionButton variant="secondary"&gt;Stornieren&lt;/ActionButton&gt;
+&lt;ActionButton variant="danger"&gt;L&ouml;schen&lt;/ActionButton&gt;</div>
+    </section>
+
+    <!-- ============ ICON ACTION PAIR ============ -->
+    <section id="icon-action">
+      <div class="section-header">
+        <h2>IconActionPair</h2>
+        <p>Zwei Icon-Buttons nebeneinander.</p>
+      </div>
+      <div class="preview" style="max-width:340px">
+        <div class="icon-pair">
+          <button class="icon-btn">&#9993;</button>
+          <button class="icon-btn">&#9733;</button>
+        </div>
+      </div>
+      <div class="code-block" style="max-width:340px">&lt;IconActionPair actions={[
+  { icon: &lt;IconMail /&gt;, label: 'E-Mail' },
+  { icon: &lt;IconCreditCard /&gt;, label: 'Kreditkarte' },
+]} /&gt;</div>
+    </section>
+
+    <!-- ============ STATUS HEADER ============ -->
+    <section id="status-header">
+      <div class="section-header">
+        <h2>StatusHeaderBar</h2>
+        <p>Gradient-Status-Bar mit Dropdown-Chevron.</p>
+      </div>
+      <div class="preview gap-12" style="max-width:400px">
+        <button class="status-bar" style="background:linear-gradient(90deg,#22c55e 0%,var(--vilo-accent) 55%,var(--vilo-accent-hover) 100%)">
+          <span class="sb-left">&#10003; Gebucht</span><span>&#9662;</span>
+        </button>
+        <button class="status-bar" style="margin-top:8px;background:linear-gradient(90deg,#8b5cf6 0%,var(--vilo-accent) 55%,var(--vilo-accent-hover) 100%)">
+          <span class="sb-left">&#9201; Platziert</span><span>&#9662;</span>
+        </button>
+        <button class="status-bar" style="margin-top:8px;background:linear-gradient(90deg,#ef4444 0%,var(--vilo-accent) 55%,var(--vilo-accent-hover) 100%)">
+          <span class="sb-left">&#10005; Storniert</span><span>&#9662;</span>
+        </button>
+      </div>
+      <div class="code-block" style="max-width:400px">&lt;StatusHeaderBar label="Gebucht" color="#22c55e" icon={&lt;IconCheck /&gt;} /&gt;</div>
+    </section>
+
+    <!-- ============ TAGS ============ -->
+    <section id="tags">
+      <div class="section-header">
+        <h2>Tags</h2>
+        <p>G&auml;ste-Etiketten mit Farbkodierung. Kein Radius (VILO-Designsprache).</p>
+      </div>
+      <div class="preview">
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <span class="tag" style="background:#eab30822;color:#eab308">VIP</span>
+          <span class="tag" style="background:#22d3ee22;color:#22d3ee">Stammgast</span>
+          <span class="tag" style="background:#ef444422;color:#ef4444">Allergiker</span>
+          <span class="tag" style="background:#22c55e22;color:#22c55e">Vegetarier</span>
+          <span class="tag" style="background:#16a34a22;color:#16a34a">Vegan</span>
+          <span class="tag" style="background:#f9731622;color:#f97316">Kinderstuhl</span>
+          <span class="tag" style="background:#8b5cf622;color:#8b5cf6">Rollstuhl</span>
+          <span class="tag" style="background:#ec489922;color:#ec4899">Geburtstag</span>
+          <span class="tag" style="background:#6366f122;color:#6366f1">Business</span>
+          <span class="tag" style="background:#a78bfa22;color:#a78bfa">Presse</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ INPUTS ============ -->
+    <section id="inputs">
+      <div class="section-header">
+        <h2>Inputs</h2>
+        <p>Formular-Felder im VILO-Stil. Kein Radius, fokussiert mit Accent-Border.</p>
+      </div>
+      <div class="preview" style="max-width:400px">
+        <div class="gap-12">
+          <div>
+            <label style="display:block;font-size:12px;color:var(--vilo-text-soft);font-weight:500;margin-bottom:6px">Name</label>
+            <input class="input" type="text" value="Marco Rossi">
+          </div>
+          <div style="margin-top:12px">
+            <label style="display:block;font-size:12px;color:var(--vilo-text-soft);font-weight:500;margin-bottom:6px">E-Mail</label>
+            <input class="input" type="email" placeholder="email@beispiel.de">
+          </div>
+          <div style="margin-top:12px">
+            <label style="display:block;font-size:12px;color:var(--vilo-text-soft);font-weight:500;margin-bottom:6px">Telefon (disabled)</label>
+            <input class="input" type="tel" placeholder="+49..." disabled style="opacity:0.5;cursor:not-allowed">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ COMPOSED ============ -->
+    <section id="composed">
+      <div class="section-header">
+        <h2>Zusammengesetztes Beispiel</h2>
+        <p>Reservierungs-Detail &mdash; alle Komponenten zusammen.</p>
       </div>
 
-      <!-- Buttons -->
-      <button class="btn btn-primary">
-        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-        Platzieren
-      </button>
-      <button class="btn btn-secondary">
-        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        Stornieren
-      </button>
-      <button class="btn btn-danger">
-        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
-        L&ouml;schen
-      </button>
-    </div>
-  </div>
+      <div class="composed">
+        <button class="status-bar" style="background:linear-gradient(90deg,#22c55e 0%,var(--vilo-accent) 55%,var(--vilo-accent-hover) 100%)">
+          <span class="sb-left">&#10003; Gebucht</span><span>&#9662;</span>
+        </button>
+        <div class="inner">
+          <div class="surface-card" style="display:flex;align-items:center;gap:16px">
+            <div style="width:72px;height:72px;background:var(--vilo-accent);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:white;flex-shrink:0">M</div>
+            <div style="min-width:0;flex:1">
+              <div style="font-size:16px;font-weight:700;color:white">Max Mustermann</div>
+              <div style="margin-top:4px;font-size:12px;color:#d8c7ff">&#9742; +49 176 123 4567</div>
+            </div>
+          </div>
 
-  <div style="height: 80px;"></div>
+          <div class="stat-grid c3">
+            <div class="stat-cell"><div class="sv">20:00</div></div>
+            <div class="stat-cell"><div class="sv">4 P.</div></div>
+            <div class="stat-cell"><div class="sv">1h 30m</div></div>
+          </div>
+
+          <div class="surface-card">
+            <div class="info-row">
+              <div class="ir-icon">&#9906;</div>
+              <div class="ir-body"><div class="ir-title">Tisch 4</div><div class="ir-sub">Zugewiesen</div></div>
+              <span class="chevron">&#10095;</span>
+            </div>
+          </div>
+
+          <div class="surface-card">
+            <div class="info-row">
+              <div class="ir-icon">&#9993;</div>
+              <div class="ir-body"><div class="ir-title">+49 176 123 4567</div><div class="ir-badge">SMS-Updates aktiv</div></div>
+            </div>
+          </div>
+
+          <div class="icon-pair">
+            <button class="icon-btn" style="font-size:20px">&#9993;</button>
+            <button class="icon-btn" style="font-size:20px">&#9733;</button>
+          </div>
+
+          <button class="btn btn-primary">&#10003; Platzieren</button>
+          <button class="btn btn-secondary">&#10005; Stornieren</button>
+          <button class="btn btn-danger">&#128465; L&ouml;schen</button>
+        </div>
+      </div>
+    </section>
+
+    <div style="height:80px"></div>
+  </main>
+</div>
+
+<script>
+  // Highlight active nav item on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.sidebar a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 60) current = s.id;
+    });
+    navLinks.forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  });
+
+  // Click-to-copy on swatches
+  document.querySelectorAll('.swatch').forEach(s => {
+    s.addEventListener('click', () => {
+      const v = s.querySelector('.s-var')?.textContent;
+      if (v) {
+        navigator.clipboard.writeText('--vilo-' + v.replace('bg-', 'bg-'));
+        const hex = s.querySelector('.s-hex');
+        if (hex) { const orig = hex.textContent; hex.textContent = 'Copied!'; hex.style.opacity = '1'; setTimeout(() => { hex.textContent = orig; hex.style.opacity = ''; }, 1000); }
+      }
+    });
+  });
+</script>
 </body>
 </html>
