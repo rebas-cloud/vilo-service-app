@@ -1,6 +1,6 @@
 
 
-import { Loader2, Mic, Radio, Undo2 } from 'lucide-react';
+import { IconLoader2, IconMicrophone, IconRadio, IconArrowBack } from '@tabler/icons-react';
 
 interface VoiceIndicatorProps {
   mode: string;
@@ -87,7 +87,7 @@ export function VoiceIndicator({
             className="ml-2 p-1.5 rounded-lg bg-[#8b5cf6]/20 text-[#c4b5fd] hover:bg-[#8b5cf6]/30 transition-colors flex-shrink-0"
             title="Rückgängig"
           >
-            <Undo2 className="w-4 h-4" />
+            <IconArrowBack className="w-4 h-4" />
           </button>
         </div>
       )}
@@ -111,13 +111,13 @@ export function VoiceIndicator({
             <span className="absolute inset-0 rounded-full bg-violet-400 animate-pulse-ring" />
           )}
           {mode === 'processing' ? (
-            <Loader2 className="w-5 h-5 animate-spin relative z-10" />
+            <IconLoader2 className="w-5 h-5 animate-spin relative z-10" />
           ) : mode === 'idle' ? (
-            <Mic className="w-5 h-5 relative z-10" />
+            <IconMicrophone className="w-5 h-5 relative z-10" />
           ) : mode === 'listening_wake' ? (
-            <Mic className="w-5 h-5 relative z-10" />
+            <IconMicrophone className="w-5 h-5 relative z-10" />
           ) : (
-            <Mic className="w-5 h-5 relative z-10" />
+            <IconMicrophone className="w-5 h-5 relative z-10" />
           )}
         </button>
 
@@ -138,7 +138,7 @@ export function VoiceIndicator({
           }`}
           title={isWakeMode ? 'Hey Vilo Modus aus' : 'Hey Vilo Modus an'}
         >
-          <Radio className="w-4 h-4" />
+          <IconRadio className="w-4 h-4" />
         </button>
       </div>
     </div>

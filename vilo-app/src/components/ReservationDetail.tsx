@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Check, ChevronRight, CreditCard, Edit3, Mail, MessageSquare, Phone, Plus, Sofa, Trash2, X } from 'lucide-react';
+import { IconCheck, IconChevronRight, IconCreditCard, IconEdit, IconMail, IconMessage, IconPhone, IconPlus, IconArmchair, IconTrash, IconX } from '@tabler/icons-react';
 
 import { createPortal } from 'react-dom';
 import { useApp } from '../context/AppContext';
@@ -129,7 +129,7 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
     >
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.03]">
           <h2 className="text-[16px] font-bold text-white">Reservierung</h2>
-          <button onClick={requestClose} className="ml-3 p-1 text-[#b0b0cc] hover:text-[#e0e0f0] shrink-0"><X className="w-5 h-5" /></button>
+          <button onClick={requestClose} className="ml-3 p-1 text-[#b0b0cc] hover:text-[#e0e0f0] shrink-0"><IconX className="w-5 h-5" /></button>
         </div>
 
         <div className="px-4 py-4 space-y-3">
@@ -146,13 +146,13 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
                     className="shrink-0 p-1 text-[#c4b5fd] hover:text-[#e9ddff] transition-colors"
                     aria-label="Reservierung bearbeiten"
                   >
-                    <Edit3 className="w-4 h-4" />
+                    <IconEdit className="w-4 h-4" />
                   </button>
                 )}
               </div>
               {r.guestPhone && (
                 <div className="mt-1 flex items-center gap-2 text-[12px] font-medium text-[#d8c7ff]">
-                  <Phone className="w-4 h-4 shrink-0" />
+                  <IconPhone className="w-4 h-4 shrink-0" />
                   <span className="truncate">{r.guestPhone}</span>
                 </div>
               )}
@@ -174,7 +174,7 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
           <div className="px-4 py-4" style={{ background: surfaceBg }}>
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center text-[#b8c4db]">
-                <Sofa className="w-5 h-5" />
+                <IconArmchair className="w-5 h-5" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="truncate text-[13px] font-bold text-white">
@@ -184,14 +184,14 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
                   {assignedTableNames.length > 0 ? 'Zugewiesen' : 'Nicht zugewiesen'}
                 </div>
               </div>
-              <ChevronRight className="h-4 w-4 shrink-0 text-[#a9a4ca]" />
+              <IconChevronRight className="h-4 w-4 shrink-0 text-[#a9a4ca]" />
             </div>
           </div>
 
           <div className="px-4 py-4" style={{ background: surfaceBg }}>
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center text-[#b8c4db]">
-                <MessageSquare className="w-5 h-5" />
+                <IconMessage className="w-5 h-5" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="truncate text-[13px] font-bold text-white">{r.guestPhone || 'Keine Telefonnummer'}</div>
@@ -204,10 +204,10 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
 
           <div className="grid grid-cols-2 gap-2">
             <button className="flex min-h-[68px] items-center justify-center bg-[#373454] text-[#b8c4db] transition-colors hover:bg-[#403d61]">
-              <Mail className="h-6 w-6" />
+              <IconMail className="h-6 w-6" />
             </button>
             <button className="flex min-h-[68px] items-center justify-center bg-[#373454] text-[#b8c4db] transition-colors hover:bg-[#403d61]">
-              <CreditCard className="h-6 w-6" />
+              <IconCreditCard className="h-6 w-6" />
             </button>
           </div>
 
@@ -246,7 +246,7 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
                   {r.referralSource || 'Noch nicht zugewiesen'}
                 </div>
               </div>
-              {!r.referralSource && <Plus className="w-4 h-4 text-[#c4b5fd] shrink-0" />}
+              {!r.referralSource && <IconPlus className="w-4 h-4 text-[#c4b5fd] shrink-0" />}
             </div>
           </div>
         </div>
@@ -258,7 +258,7 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
             <button onClick={handleSeat}
               className="w-full flex items-center justify-center gap-3 py-3 px-4 text-white font-semibold text-[15px] transition-colors"
               style={{ background: '#8b5cf6' }}>
-              <Check className="w-5 h-5" />
+              <IconCheck className="w-5 h-5" />
               Platzieren
             </button>
           )}
@@ -270,14 +270,14 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
             <button onClick={handleCancel}
               className="w-full flex items-center justify-center gap-3 py-3 px-4 text-[#f5d0fe] font-semibold text-[15px] transition-colors"
               style={{ background: '#2b2944' }}>
-              <X className="w-5 h-5" />
+              <IconX className="w-5 h-5" />
               Stornieren
             </button>
           )}
           <button onClick={handleDelete}
             className="w-full flex items-center justify-center gap-3 py-3 px-4 text-[#f5d0fe] font-semibold text-[15px] transition-colors"
             style={{ background: '#4a1733' }}>
-            <Trash2 className="w-5 h-5" />
+            <IconTrash className="w-5 h-5" />
             {confirmDelete ? 'Wirklich loeschen?' : 'Loeschen'}
           </button>
         </div>

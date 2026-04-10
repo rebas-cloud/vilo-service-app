@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, TouchEvent } from 'react';
-import { X } from 'lucide-react';
+import { IconX } from '@tabler/icons-react';
 
 import viloLogo from '../assets/VILO.svg';
 
@@ -248,7 +248,7 @@ export function AboutVilo({ onClose }: AboutViloProps) {
           onClick={onClose}
           className="p-2 rounded-full text-white/30 hover:text-white/60 transition-colors"
         >
-          <X className="w-5 h-5" />
+          <IconX className="w-5 h-5" />
         </button>
       </div>
 

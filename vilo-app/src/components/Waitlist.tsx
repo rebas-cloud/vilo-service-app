@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { AlertTriangle, Bell, Check, ChevronDown, ChevronLeft, ChevronUp, MessageSquare, Phone, Trash2, UserCheck, Users, X, XCircle } from 'lucide-react';
+import { IconAlertTriangle, IconBell, IconCheck, IconChevronDown, IconChevronLeft, IconChevronUp, IconMessage, IconPhone, IconTrash, IconUserCheck, IconUsers, IconX, IconCircleX } from '@tabler/icons-react';
 
 import { WaitlistEntry, Table } from '../types';
 import { loadWaitlist, saveWaitlist, addWaitlistEntry, updateWaitlistEntry, removeWaitlistEntry } from '../utils/storage';
@@ -118,7 +118,7 @@ function SeatedWaitlistRow({
       style={{ transition: isRemoving ? 'height 0.22s ease, opacity 0.22s ease, margin 0.22s ease' : undefined }}>
       {offsetX < 0 && (
         <div className="absolute inset-0 flex items-center justify-end pr-5" style={{ background: '#4a1733' }}>
-          <Trash2 className="w-5 h-5 text-[#fdf2f8]" />
+          <IconTrash className="w-5 h-5 text-[#fdf2f8]" />
         </div>
       )}
       <div
@@ -133,7 +133,7 @@ function SeatedWaitlistRow({
         onMouseDown={handleMouseDown}
       >
         <div className="w-9 h-9 rounded-full bg-[#8b5cf6] flex items-center justify-center shrink-0">
-          <Check className="w-4 h-4 text-white" />
+          <IconCheck className="w-4 h-4 text-white" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-[15px] font-semibold text-[#eef1fb] truncate">{entry.guestName}</p>
@@ -316,7 +316,7 @@ export function WaitlistPanel({ onClose, onSeatGuest, tables, embedded = false }
           <div className="flex items-center justify-between px-5 py-4 border-b border-[#333355]">
             <h2 className="text-lg font-bold text-white">Tisch zuweisen</h2>
             <button onClick={() => setSeatPickerId(null)} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0]">
-              <X className="w-6 h-6" />
+              <IconX className="w-6 h-6" />
             </button>
           </div>
 
@@ -330,7 +330,7 @@ export function WaitlistPanel({ onClose, onSeatGuest, tables, embedded = false }
           <div className="px-5 py-4">
             {freeTables.length === 0 ? (
               <div className="text-center py-8">
-                <AlertTriangle className="w-8 h-8 text-amber-500 mx-auto mb-2" />
+                <IconAlertTriangle className="w-8 h-8 text-amber-500 mx-auto mb-2" />
                 <p className="text-[#b0b0cc] font-medium">Keine freien Tische verfuegbar</p>
               </div>
             ) : (
@@ -368,11 +368,11 @@ export function WaitlistPanel({ onClose, onSeatGuest, tables, embedded = false }
         >
           <div className="flex items-center justify-between px-4 py-4 border-b border-white/[0.03]">
             <button onClick={() => setShowAddForm(false)} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0] transition-colors">
-              <ChevronLeft className="w-5 h-5" />
+              <IconChevronLeft className="w-5 h-5" />
             </button>
             <h2 className="text-xl font-bold text-white">Warteliste</h2>
             <button onClick={() => setShowAddForm(false)} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0] transition-colors">
-              <X className="w-5 h-5" />
+              <IconX className="w-5 h-5" />
             </button>
           </div>
 
@@ -494,7 +494,7 @@ export function WaitlistPanel({ onClose, onSeatGuest, tables, embedded = false }
             )}
           </div>
           <button onClick={requestClose} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0] transition-colors">
-            <X className="w-5 h-5" />
+            <IconX className="w-5 h-5" />
           </button>
         </div>
 
@@ -519,7 +519,7 @@ export function WaitlistPanel({ onClose, onSeatGuest, tables, embedded = false }
         <div className="flex-1 overflow-y-auto">
           {activeEntries.length === 0 && seatedEntries.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 px-5">
-                <Users className="w-12 h-12 text-[#777] mb-3" />
+                <IconUsers className="w-12 h-12 text-[#777] mb-3" />
                 <p className="text-lg font-semibold text-[#8888aa]">Warteliste ist leer</p>
                 <p className="text-sm text-[#8888aa] mt-1 text-center">
                   Tippe auf "Hinzufügen" um Gäste auf die Warteliste zu setzen
@@ -561,7 +561,7 @@ export function WaitlistPanel({ onClose, onSeatGuest, tables, embedded = false }
                             <span className="text-[13px] text-[#b0b0cc]">· {entry.seatPreference}</span>
                           )}
                           {entry.guestPhone && (
-                            <Phone className="w-3 h-3 text-[#b0b0cc]" />
+                            <IconPhone className="w-3 h-3 text-[#b0b0cc]" />
                           )}
                         </div>
                       </div>
@@ -578,7 +578,7 @@ export function WaitlistPanel({ onClose, onSeatGuest, tables, embedded = false }
                       <div className="px-4 pb-4 space-y-2">
                         {entry.notes && (
                           <div className="flex items-start gap-2 py-2 px-3 bg-[#2a2a42]">
-                            <MessageSquare className="w-4 h-4 text-[#8888aa] shrink-0 mt-0.5" />
+                            <IconMessage className="w-4 h-4 text-[#8888aa] shrink-0 mt-0.5" />
                             <p className="text-sm text-[#b0b0cc]">{entry.notes}</p>
                           </div>
                         )}
@@ -588,7 +588,7 @@ export function WaitlistPanel({ onClose, onSeatGuest, tables, embedded = false }
                           <button onClick={() => setSeatPickerId(entry.id)}
                             className="flex-1 flex items-center justify-center gap-2 py-3 px-3 text-white font-semibold text-sm"
                             style={{ background: '#8b5cf6' }}>
-                            <UserCheck className="w-4 h-4" />
+                            <IconUserCheck className="w-4 h-4" />
                             Platzieren
                           </button>
 
@@ -596,7 +596,7 @@ export function WaitlistPanel({ onClose, onSeatGuest, tables, embedded = false }
                           {entry.status === 'waiting' && entry.guestPhone && (
                             <button onClick={() => handleNotify(entry.id)}
                               className="flex items-center justify-center gap-2 py-3 px-4 bg-[#2b2944] text-[#d8c7ff] font-semibold text-sm hover:bg-[#353253]">
-                              <Bell className="w-4 h-4" />
+                              <IconBell className="w-4 h-4" />
                               Benachrichtigen
                             </button>
                           )}
@@ -607,13 +607,13 @@ export function WaitlistPanel({ onClose, onSeatGuest, tables, embedded = false }
                           {idx > 0 && (
                             <button onClick={() => handleMoveUp(entry.id)}
                               className="flex items-center gap-1 py-2 px-3 rounded-lg border border-[#3d3d5c] text-[#b0b0cc] text-sm hover:bg-[#2a2a42]">
-                              <ChevronUp className="w-4 h-4" /> Hoch
+                              <IconChevronUp className="w-4 h-4" /> Hoch
                             </button>
                           )}
                           {idx < activeEntries.length - 1 && (
                             <button onClick={() => handleMoveDown(entry.id)}
                               className="flex items-center gap-1 py-2 px-3 rounded-lg border border-[#3d3d5c] text-[#b0b0cc] text-sm hover:bg-[#2a2a42]">
-                              <ChevronDown className="w-4 h-4" /> Runter
+                              <IconChevronDown className="w-4 h-4" /> Runter
                             </button>
                           )}
 
@@ -622,13 +622,13 @@ export function WaitlistPanel({ onClose, onSeatGuest, tables, embedded = false }
                           {/* No Show */}
                           <button onClick={() => handleNoShow(entry.id)}
                             className="flex items-center gap-1 py-2 px-3 bg-[#2b2944] text-[#f5d0fe] text-sm hover:bg-[#353253]">
-                            <AlertTriangle className="w-3.5 h-3.5" /> No-Show
+                            <IconAlertTriangle className="w-3.5 h-3.5" /> No-Show
                           </button>
 
                           {/* Cancel */}
                           <button onClick={() => handleCancel(entry.id)}
                             className="flex items-center gap-1 py-2 px-3 bg-[#2b2944] text-[#f5d0fe] text-sm hover:bg-[#353253]">
-                            <XCircle className="w-3.5 h-3.5" /> Stornieren
+                            <IconCircleX className="w-3.5 h-3.5" /> Stornieren
                           </button>
                         </div>
                       </div>

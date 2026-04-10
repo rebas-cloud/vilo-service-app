@@ -288,9 +288,7 @@ export function subscribeToState(
         });
       }
     )
-    .subscribe((status) => {
-      console.log('[VILO Supabase] Realtime status:', status);
-    });
+    .subscribe();
 
   return channel;
 }

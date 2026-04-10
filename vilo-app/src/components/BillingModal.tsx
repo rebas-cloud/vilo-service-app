@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Banknote, Check, ChevronRight, CreditCard, Divide, UserCheck, Users, X } from 'lucide-react';
+import { IconArrowLeft, IconCash, IconCheck, IconChevronRight, IconCreditCard, IconDivide, IconUserCheck, IconUsers, IconX } from '@tabler/icons-react';
 
 import { useApp } from '../context/AppContext';
 
@@ -224,7 +224,7 @@ export function BillingModal() {
               onClick={() => setTipScreen(null)}
               className="p-2 rounded-lg bg-[#353558] text-[#c0c0dd] hover:bg-[#555] transition-colors"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <IconArrowLeft className="w-5 h-5" />
             </button>
             <h2 className="text-white font-semibold text-lg">Trinkgeld</h2>
             <div className="w-9" />
@@ -354,7 +354,7 @@ export function BillingModal() {
                   : 'bg-[#d946ef] hover:bg-[#c026d3] active:bg-[#a21caf]'
               }`}
             >
-              {tipScreen.method === 'card' ? <CreditCard className="w-5 h-5" /> : <Banknote className="w-5 h-5" />}
+              {tipScreen.method === 'card' ? <IconCreditCard className="w-5 h-5" /> : <IconCash className="w-5 h-5" />}
               {tipScreen.method === 'card' ? 'Kartenzahlung' : 'Barzahlung'} — {grandTotal.toFixed(2)} EUR
             </button>
           </div>
@@ -375,7 +375,7 @@ export function BillingModal() {
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center px-4">
         <div className="bg-[#2a2a42] rounded-2xl w-full max-w-md p-8 text-center animate-fade-in">
           <div className="w-16 h-16 bg-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Check className="w-8 h-8 text-white" />
+            <IconCheck className="w-8 h-8 text-white" />
           </div>
           <h2 className="text-white text-xl font-bold mb-2">Alle bezahlt</h2>
           <p className="text-[#b0b0cc] text-sm mb-1">Gesamt: {totalPaid.toFixed(2)} EUR</p>
@@ -400,7 +400,7 @@ export function BillingModal() {
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center px-4">
         <div className="bg-[#2a2a42] rounded-2xl w-full max-w-md p-8 text-center animate-fade-in">
           <div className="w-16 h-16 bg-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Check className="w-8 h-8 text-white" />
+            <IconCheck className="w-8 h-8 text-white" />
           </div>
           <h2 className="text-white text-xl font-bold mb-2">Zahlung abgeschlossen</h2>
           <p className="text-[#b0b0cc] text-sm mb-1">
@@ -435,7 +435,7 @@ export function BillingModal() {
           <div className="flex items-center justify-between p-4 border-b border-[#333355]">
             <h2 className="text-white font-semibold">Items zuweisen</h2>
             <button onClick={() => setAssigningItems(false)} className="p-2 rounded-lg bg-[#353558] text-[#c0c0dd] hover:bg-[#555] transition-colors">
-              <X className="w-5 h-5" />
+              <IconX className="w-5 h-5" />
             </button>
           </div>
           <div className="p-4 space-y-2">
@@ -484,7 +484,7 @@ export function BillingModal() {
             onClick={handleClose}
             className="p-2 rounded-lg bg-[#353558] text-[#c0c0dd] hover:bg-[#555] transition-colors"
           >
-            <X className="w-5 h-5" />
+            <IconX className="w-5 h-5" />
           </button>
         </div>
 
@@ -497,7 +497,7 @@ export function BillingModal() {
                 billingMode === 'combined' ? 'bg-[#7bb7ef] text-white' : 'bg-[#353558] text-[#c0c0dd]'
               }`}
             >
-              <UserCheck className="w-3.5 h-3.5" />
+              <IconUserCheck className="w-3.5 h-3.5" />
               Zusammen
             </button>
             <button
@@ -506,7 +506,7 @@ export function BillingModal() {
                 billingMode === 'split' ? 'bg-[#7bb7ef] text-white' : 'bg-[#353558] text-[#c0c0dd]'
               }`}
             >
-              <Users className="w-3.5 h-3.5" />
+              <IconUsers className="w-3.5 h-3.5" />
               Getrennt
             </button>
             <button
@@ -515,7 +515,7 @@ export function BillingModal() {
                 billingMode === 'equal' ? 'bg-[#7bb7ef] text-white' : 'bg-[#353558] text-[#c0c0dd]'
               }`}
             >
-              <Divide className="w-3.5 h-3.5" />
+              <IconDivide className="w-3.5 h-3.5" />
               Teilen
             </button>
           </div>
@@ -561,14 +561,14 @@ export function BillingModal() {
                   onClick={() => handleCombinedPayment('card')}
                   className="flex items-center justify-center gap-2 py-3.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-500 active:bg-blue-700 transition-colors"
                 >
-                  <CreditCard className="w-5 h-5" />
+                  <IconCreditCard className="w-5 h-5" />
                   Karte
                 </button>
                 <button
                   onClick={() => handleCombinedPayment('cash')}
                   className="flex items-center justify-center gap-2 py-3.5 rounded-xl bg-emerald-600 text-white font-medium hover:bg-emerald-500 active:bg-emerald-700 transition-colors"
                 >
-                  <Banknote className="w-5 h-5" />
+                  <IconCash className="w-5 h-5" />
                   Bar
                 </button>
               </div>
@@ -585,7 +585,7 @@ export function BillingModal() {
                   className="w-full mb-4 flex items-center justify-between p-3 rounded-lg bg-amber-900/30 border border-amber-700/50 text-amber-300 text-sm hover:bg-amber-900/50 transition-colors"
                 >
                   <span>{ordersBySeat['Allgemein'].length} Item(s) ohne Gastzuordnung</span>
-                  <ChevronRight className="w-4 h-4" />
+                  <IconChevronRight className="w-4 h-4" />
                 </button>
               )}
 
@@ -603,7 +603,7 @@ export function BillingModal() {
                         <div className="flex items-center gap-2">
                           {isPaid && (
                             <div className="w-5 h-5 bg-emerald-600 rounded-full flex items-center justify-center">
-                              <Check className="w-3 h-3 text-white" />
+                              <IconCheck className="w-3 h-3 text-white" />
                             </div>
                           )}
                           <p className={`text-sm font-semibold ${isPaid ? 'text-emerald-300' : 'text-[#b1d9ff]'}`}>{guestKey}</p>
@@ -646,14 +646,14 @@ export function BillingModal() {
                             onClick={() => handleGuestPayment(guestKey, 'card')}
                             className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-500 transition-colors"
                           >
-                            <CreditCard className="w-3.5 h-3.5" />
+                            <IconCreditCard className="w-3.5 h-3.5" />
                             Karte
                           </button>
                           <button
                             onClick={() => handleGuestPayment(guestKey, 'cash')}
                             className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-emerald-600 text-white text-xs font-medium hover:bg-emerald-500 transition-colors"
                           >
-                            <Banknote className="w-3.5 h-3.5" />
+                            <IconCash className="w-3.5 h-3.5" />
                             Bar
                           </button>
                         </div>
@@ -727,7 +727,7 @@ export function BillingModal() {
                         <div className="flex items-center gap-2">
                           {isPaid && (
                             <div className="w-5 h-5 bg-emerald-600 rounded-full flex items-center justify-center">
-                              <Check className="w-3 h-3 text-white" />
+                              <IconCheck className="w-3 h-3 text-white" />
                             </div>
                           )}
                           <p className={`text-sm font-medium ${isPaid ? 'text-emerald-300' : 'text-white'}`}>
@@ -744,14 +744,14 @@ export function BillingModal() {
                               onClick={() => handleEqualPayment(i, 'card')}
                               className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-500 transition-colors"
                             >
-                              <CreditCard className="w-3 h-3" />
+                              <IconCreditCard className="w-3 h-3" />
                               Karte
                             </button>
                             <button
                               onClick={() => handleEqualPayment(i, 'cash')}
                               className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-medium hover:bg-emerald-500 transition-colors"
                             >
-                              <Banknote className="w-3 h-3" />
+                              <IconCash className="w-3 h-3" />
                               Bar
                             </button>
                           </div>

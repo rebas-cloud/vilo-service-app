@@ -159,7 +159,6 @@ function extractTableRef(lower: string): { tableId: string; remainingText: strin
 
 export function parseIntent(text: string, menuItems: MenuItem[]): Intent {
   const lower = text.toLowerCase().trim();
-  console.log('[VILO] Parsing intent:', lower);
 
   // Undo
   if (lower.includes('rückgängig') || lower.includes('undo') || lower.includes('zurück nehmen') || lower.includes('zurücknehmen')) {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { ChevronDown, ChevronUp, Clock3, Download, Phone, Printer, Users } from 'lucide-react';
+import { IconChevronDown, IconChevronUp, IconClock, IconDownload, IconPhone, IconPrinter, IconUsers } from '@tabler/icons-react';
 
 import { useApp } from '../context/AppContext';
 import { ReservationDetail } from './ReservationDetail';
@@ -22,10 +22,10 @@ const SOURCE_COLORS: Record<string, string> = {
   walk_in: '#22c55e',
 };
 
-const SOURCE_ICONS: Record<string, typeof Phone> = {
-  phone: Phone,
-  online: Phone,
-  walk_in: Phone,
+const SOURCE_ICONS: Record<string, typeof IconPhone> = {
+  phone: IconPhone,
+  online: IconPhone,
+  walk_in: IconPhone,
 };
 
 // Figma occasion icon badges
@@ -143,16 +143,16 @@ export function ReservationList({ onSelectTable }: ReservationListProps) {
           </div>
           <div className="flex items-center gap-3">
             <button onClick={handleExportCSV} className="p-0.5 text-[#8888aa] hover:text-[#7bb7ef] transition-colors" title="CSV Export">
-              <Download className="w-4 h-4" />
+              <IconDownload className="w-4 h-4" />
             </button>
             <button onClick={handlePrint} className="p-0.5 text-[#8888aa] hover:text-[#7bb7ef] transition-colors" title="Drucken">
-              <Printer className="w-4 h-4" />
+              <IconPrinter className="w-4 h-4" />
             </button>
             <button
               onClick={() => setCollapsed(!collapsed)}
               className="p-0.5 text-[#8888aa] hover:text-white transition-colors"
             >
-              {collapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+              {collapsed ? <IconChevronDown className="w-4 h-4" /> : <IconChevronUp className="w-4 h-4" />}
             </button>
           </div>
         </div>
@@ -162,14 +162,14 @@ export function ReservationList({ onSelectTable }: ReservationListProps) {
           <div>
             {todayReservations.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-[#555577]">
-                <Users className="w-10 h-10 mb-3 opacity-40" />
+                <IconUsers className="w-10 h-10 mb-3 opacity-40" />
                 <p className="text-sm font-medium text-[#777]">Keine Reservierungen für heute</p>
               </div>
             ) : (
               todayReservations.map((r) => {
                 const sourceColor = SOURCE_COLORS[r.source] || '#8888aa';
                 const tableNumber = r.tableId ? r.tableId.replace(/[^0-9]/g, '') || '?' : null;
-                const SourceIcon = SOURCE_ICONS[r.source] || Users;
+                const SourceIcon = SOURCE_ICONS[r.source] || IconUsers;
                 const detailLabel = r.guestName;
                 const isSelected = r.id === selectedReservationId;
 
@@ -205,7 +205,7 @@ export function ReservationList({ onSelectTable }: ReservationListProps) {
                           </div>
                         ) : (
                           <div className="flex h-[38px] w-[38px] items-center justify-center bg-[#2f2d4a]">
-                            <Clock3 className="h-4.5 w-4.5 text-[#76709a]" />
+                            <IconClock className="h-4.5 w-4.5 text-[#76709a]" />
                           </div>
                         )}
                       </div>

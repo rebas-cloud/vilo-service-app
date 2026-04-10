@@ -49,7 +49,6 @@ export function useSync() {
         restaurantId,
         // State change handler
         (payload) => {
-          console.log('[VILO SYNC] State change:', payload.eventType);
           isRemoteUpdate.current = true;
 
           const row = payload.new;
@@ -70,7 +69,6 @@ export function useSync() {
         },
         // Config change handler
         (payload) => {
-          console.log('[VILO SYNC] Config change:', payload.eventType);
           isRemoteUpdate.current = true;
 
           const row = payload.new;

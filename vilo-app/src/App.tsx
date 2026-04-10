@@ -1,5 +1,5 @@
-import { useCallback, useState, useRef, useEffect } from 'react';
-import { AlertTriangle, BarChart3, BookOpen, Calendar, ChefHat, ChevronLeft, ChevronRight, Eye, LayoutGrid, LogOut, Menu, Settings, Sparkles } from 'lucide-react';
+import { useCallback, useState, useRef, useEffect, lazy, Suspense } from 'react';
+import { IconAlertTriangle, IconChartBar, IconBook, IconCalendar, IconChefHat, IconChevronLeft, IconChevronRight, IconEye, IconLayoutGrid, IconLogout, IconMenu2, IconSettings, IconSparkles } from '@tabler/icons-react';
 
 import './App.css';
 import { AppProvider, useApp } from './context/AppContext';
@@ -11,20 +11,22 @@ import { loadStorage, saveStorage, generateRestaurantCode, hashPassword, complet
 import { useSync } from './hooks/useSync';
 import { WelcomePage } from './components/WelcomePage';
 import { RegistrationPage } from './components/RegistrationPage';
-import { OnboardingWizard } from './components/OnboardingWizard';
 import { WaiterLoginPage } from './components/WaiterLoginPage';
 import { LoginPage } from './components/LoginPage';
 import { FloorPlan } from './components/FloorPlan';
 import { TableDetail } from './components/TableDetail';
 import { VoiceIndicator } from './components/VoiceIndicator';
 import { BillingModal } from './components/BillingModal';
-import { Dashboard } from './components/Dashboard';
-import { KitchenBarDisplay } from './components/KitchenBarDisplay';
-import { ManagerSettings } from './components/ManagerSettings';
-import { ReservationList } from './components/ReservationList';
-import { Timeline } from './components/Timeline';
-import { ProblemReservations } from './components/ProblemReservations';
 import viloLogo from './assets/VILO.svg';
+
+// Lazy-loaded components (code-splitting)
+const Dashboard = lazy(() => import('./components/Dashboard').then(m => ({ default: m.Dashboard })));
+const OnboardingWizard = lazy(() => import('./components/OnboardingWizard').then(m => ({ default: m.OnboardingWizard })));
+const KitchenBarDisplay = lazy(() => import('./components/KitchenBarDisplay').then(m => ({ default: m.KitchenBarDisplay })));
+const ManagerSettings = lazy(() => import('./components/ManagerSettings').then(m => ({ default: m.ManagerSettings })));
+const ReservationList = lazy(() => import('./components/ReservationList').then(m => ({ default: m.ReservationList })));
+const Timeline = lazy(() => import('./components/Timeline').then(m => ({ default: m.Timeline })));
+const ProblemReservations = lazy(() => import('./components/ProblemReservations').then(m => ({ default: m.ProblemReservations })));
 
 import { Restaurant, Zone, Table, MenuItem, Staff, ViloStorage } from './types';
 import { restaurant as demoRestaurantData, zones as demoZones, tables as demoTables, menu as demoMenu, staff as demoStaff } from './data/mockData';
@@ -90,7 +92,6 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
 
       parseIntentLLM(command, stateRef.current.menu, tableIds, stateRef.current.activeTableId)
         .then(intent => {
-          console.log('[VILO] LLM intent:', intent);
           const confirmation = executeIntent(intent, command);
           dispatch({ type: 'SET_LAST_CONFIRMATION', confirmation });
           speakConfirmation(confirmation);
@@ -203,37 +204,37 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
     setSelectedDate(newDate);
   };
 
-  // Map subTab to content
+  // Map subTab to content (lazy-loaded tabs wrapped in Suspense)
+  const lazyFallback = (
+    <div className="flex-1 flex items-center justify-center">
+      <div className="w-6 h-6 border-2 border-[#7bb7ef] border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+
   const getSubTabContent = () => {
-    switch (subTab) {
-      case 'statistiken':
-        return <Dashboard onSelectTable={handleSelectTable} />;
-      case 'uebersicht':
-        return <Dashboard onSelectTable={handleSelectTable} initialTab="uebersicht" />;
-      case 'liste':
-        return <ReservationList onSelectTable={handleSelectTable} />;
-      case 'raumplan':
-        return (
-          <FloorPlan
-            onZoneChange={handleZoneChange}
-          />
-        );
-      case 'bearbeiten':
-        return (
-          <FloorPlan
-            onZoneChange={handleZoneChange}
-            initialEditMode={true}
-          />
-        );
-      case 'timeline':
-        return <Timeline onSelectTable={handleSelectTable} />;
-      case 'probleme':
-        return <ProblemReservations onSelectTable={handleSelectTable} />;
-      case 'reservierungen':
-        return <ReservationList onSelectTable={handleSelectTable} />;
-      default:
-        return null;
-    }
+    const content = (() => {
+      switch (subTab) {
+        case 'statistiken':
+          return <Dashboard onSelectTable={handleSelectTable} />;
+        case 'uebersicht':
+          return <Dashboard onSelectTable={handleSelectTable} initialTab="uebersicht" />;
+        case 'liste':
+          return <ReservationList onSelectTable={handleSelectTable} />;
+        case 'raumplan':
+          return <FloorPlan onZoneChange={handleZoneChange} />;
+        case 'bearbeiten':
+          return <FloorPlan onZoneChange={handleZoneChange} initialEditMode={true} />;
+        case 'timeline':
+          return <Timeline onSelectTable={handleSelectTable} />;
+        case 'probleme':
+          return <ProblemReservations onSelectTable={handleSelectTable} />;
+        case 'reservierungen':
+          return <ReservationList onSelectTable={handleSelectTable} />;
+        default:
+          return null;
+      }
+    })();
+    return <Suspense fallback={lazyFallback}>{content}</Suspense>;
   };
 
   // Main view with clean sub-tab navigation
@@ -251,7 +252,7 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
             {/* Center: date with chevrons */}
             <div className="min-w-0 flex items-center justify-center gap-1">
               <button onClick={() => changeDate(-1)} className="shrink-0 p-1 text-[#b0b0cc] hover:text-white transition-colors">
-                <ChevronLeft className="w-4 h-4" />
+                <IconChevronLeft className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setShowDatePicker(true)}
@@ -264,7 +265,7 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
                 {!isToday() && <span className="hidden sm:inline text-[#cf45f3] text-[10px] leading-none">(nicht heute)</span>}
               </button>
               <button onClick={() => changeDate(1)} className="shrink-0 p-1 text-[#b0b0cc] hover:text-white transition-colors">
-                <ChevronRight className="w-4 h-4" />
+                <IconChevronRight className="w-4 h-4" />
               </button>
             </div>
 
@@ -283,13 +284,13 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
                   onClick={() => setShowMoreMenu(prev => !prev)}
                   className="p-1.5 text-[#b0b0cc] hover:text-white hover:bg-[#2a2a42] transition-colors"
                 >
-                  <Settings className="w-4.5 h-4.5" />
+                  <IconSettings className="w-4.5 h-4.5" />
                 </button>
                 {showMoreMenu && (
                   <div className="absolute right-0 top-full mt-1 bg-[#2a2a42] border border-[#333355] rounded-xl shadow-xl z-50 min-w-[180px] overflow-hidden animate-fade-in">
                     <button onClick={() => { setShowMoreMenu(false); setShowSettings(true); }}
                       className="w-full flex items-center gap-3 px-4 py-3 text-[#c0c0dd] text-sm hover:bg-[#353558] transition-colors">
-                      <Settings className="w-4 h-4" /> Einstellungen
+                      <IconSettings className="w-4 h-4" /> Einstellungen
                     </button>
                     <button onClick={() => { setShowKitchenBar(true); setShowMoreMenu(false); }}
                       className="w-full flex items-center gap-3 px-4 py-3 text-[#c0c0dd] text-sm hover:bg-[#353558] transition-colors">
@@ -298,7 +299,7 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
                     <div className="border-t border-[#333355]" />
                     <button onClick={() => { setShowMoreMenu(false); onLogout(); }}
                       className="w-full flex items-center gap-3 px-4 py-3 text-red-400 text-sm hover:bg-red-900/20 transition-colors">
-                      <LogOut className="w-4 h-4" /> Abmelden
+                      <IconLogout className="w-4 h-4" /> Abmelden
                     </button>
                   </div>
                 )}
@@ -409,13 +410,16 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
       {/* Küche/Bar Display (overlay) */}
       {showKitchenBar && (
         <div className="fixed inset-0 z-50">
-          <KitchenBarDisplay onBack={() => setShowKitchenBar(false)} />
+          <Suspense fallback={lazyFallback}>
+            <KitchenBarDisplay onBack={() => setShowKitchenBar(false)} />
+          </Suspense>
         </div>
       )}
 
       {/* Settings view (overlay) */}
       {showSettings && (
         <div className="fixed inset-0 z-50">
+          <Suspense fallback={lazyFallback}>
           <ManagerSettings
             onBack={() => setShowSettings(false)}
             onDataChanged={(data) => {
@@ -429,6 +433,7 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
               });
             }}
           />
+          </Suspense>
         </div>
       )}
 
@@ -440,7 +445,7 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
             onClick={() => { setSubTab('statistiken'); setShowDrawer(false); }}
             className="relative flex flex-col items-center justify-center w-16 h-full transition-colors"
           >
-            <BookOpen className={`w-6 h-6 ${isHomeSection && !showDrawer ? 'text-[#8b5cf6]' : 'text-[#6b6b8a]'}`} />
+            <IconBook className={`w-6 h-6 ${isHomeSection && !showDrawer ? 'text-[#8b5cf6]' : 'text-[#6b6b8a]'}`} />
             {isHomeSection && !showDrawer && <div className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-[#8b5cf6]" />}
           </button>
           {/* AI Voice */}
@@ -455,7 +460,7 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
             }}
             className="relative flex flex-col items-center justify-center w-16 h-full transition-colors"
           >
-            <Sparkles className={`w-6 h-6 ${
+            <IconSparkles className={`w-6 h-6 ${
               voice.mode !== 'idle' ? 'text-[#7c3aed] animate-pulse' : 'text-[#6b6b8a]'
             }`} />
             {voice.mode !== 'idle' && <div className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-[#7c3aed]" />}
@@ -465,7 +470,7 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
             onClick={() => { setSubTab('liste'); setShowDrawer(false); }}
             className="relative flex flex-col items-center justify-center w-16 h-full transition-colors"
           >
-            <Calendar className={`w-6 h-6 ${isReservationSection && !showDrawer ? 'text-[#8b5cf6]' : 'text-[#6b6b8a]'}`} />
+            <IconCalendar className={`w-6 h-6 ${isReservationSection && !showDrawer ? 'text-[#8b5cf6]' : 'text-[#6b6b8a]'}`} />
             {isReservationSection && !showDrawer && <div className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-[#8b5cf6]" />}
           </button>
           {/* Raumplan */}
@@ -473,7 +478,7 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
             onClick={() => { setSubTab('raumplan'); setShowDrawer(false); }}
             className="relative flex flex-col items-center justify-center w-16 h-full transition-colors"
           >
-            <LayoutGrid className={`w-6 h-6 ${isFloorPlanSection && !showDrawer ? 'text-[#8b5cf6]' : 'text-[#6b6b8a]'}`} />
+            <IconLayoutGrid className={`w-6 h-6 ${isFloorPlanSection && !showDrawer ? 'text-[#8b5cf6]' : 'text-[#6b6b8a]'}`} />
             {isFloorPlanSection && !showDrawer && <div className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-[#8b5cf6]" />}
           </button>
           {/* Mehr - Slide-Up Drawer */}
@@ -481,7 +486,7 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
             onClick={() => setShowDrawer(prev => !prev)}
             className="relative flex flex-col items-center justify-center w-16 h-full transition-colors"
           >
-            <Menu className={`w-6 h-6 ${showDrawer ? 'text-[#7bb7ef]' : 'text-[#6b6b8a]'}`} />
+            <IconMenu2 className={`w-6 h-6 ${showDrawer ? 'text-[#7bb7ef]' : 'text-[#6b6b8a]'}`} />
             {showDrawer && <div className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-[#7bb7ef]" />}
           </button>
         </div>
@@ -506,9 +511,9 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
               <p className="text-[#6b6b8a] text-[11px] font-semibold uppercase tracking-wider mb-2">Ansichten</p>
               <div className="grid grid-cols-4 gap-2">
                 {[
-                  { id: 'statistiken' as SubTab, label: 'Statistiken', icon: BarChart3 },
-                  { id: 'uebersicht' as SubTab, label: 'Übersicht', icon: Eye },
-                  { id: 'probleme' as SubTab, label: 'Probleme', icon: AlertTriangle },
+                  { id: 'statistiken' as SubTab, label: 'Statistiken', icon: IconChartBar },
+                  { id: 'uebersicht' as SubTab, label: 'Übersicht', icon: IconEye },
+                  { id: 'probleme' as SubTab, label: 'Probleme', icon: IconAlertTriangle },
                 ].map(item => {
                   const Icon = item.icon;
                   const isActive = subTab === item.id;
@@ -541,21 +546,21 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
                   onClick={() => { setShowDrawer(false); setShowSettings(true); }}
                   className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl text-[#8888aa] hover:bg-[#2a2a42] hover:text-[#c0c0dd] transition-colors"
                 >
-                  <Settings className="w-5 h-5" />
+                  <IconSettings className="w-5 h-5" />
                   <span className="text-[11px] font-medium">Einstell.</span>
                 </button>
                 <button
                   onClick={() => { setShowDrawer(false); setShowKitchenBar(true); }}
                   className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl text-[#8888aa] hover:bg-[#2a2a42] hover:text-[#c0c0dd] transition-colors"
                 >
-                  <ChefHat className="w-5 h-5" />
+                  <IconChefHat className="w-5 h-5" />
                   <span className="text-[11px] font-medium">Küche</span>
                 </button>
                 <button
                   onClick={() => { setShowDrawer(false); onLogout(); }}
                   className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl text-red-400/80 hover:bg-red-900/15 hover:text-red-400 transition-colors"
                 >
-                  <LogOut className="w-5 h-5" />
+                  <IconLogout className="w-5 h-5" />
                   <span className="text-[11px] font-medium">Abmelden</span>
                 </button>
               </div>
@@ -715,12 +720,14 @@ function App() {
       );
     case 'onboarding':
       return (
-        <OnboardingWizard
-          restaurantName={restaurantName}
-          onComplete={handleOnboardingComplete}
-          onBack={() => handleReset()}
-          onQuickStart={handleQuickStart}
-        />
+        <Suspense fallback={<div className="flex-1 flex items-center justify-center h-screen bg-[#1a1a2e]"><div className="w-6 h-6 border-2 border-[#7bb7ef] border-t-transparent rounded-full animate-spin" /></div>}>
+          <OnboardingWizard
+            restaurantName={restaurantName}
+            onComplete={handleOnboardingComplete}
+            onBack={() => handleReset()}
+            onQuickStart={handleQuickStart}
+          />
+        </Suspense>
       );
     case 'waiter-login':
       return (

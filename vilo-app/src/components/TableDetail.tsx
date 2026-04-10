@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { AlertTriangle, ArrowLeft, ChefHat, ChevronDown, ChevronRight, Clock, Coffee, CreditCard, CupSoda, Search, Trash2, Users, UtensilsCrossed, Wine } from 'lucide-react';
+import { IconAlertTriangle, IconArrowLeft, IconChefHat, IconChevronDown, IconChevronRight, IconClock, IconCoffee, IconCreditCard, IconGlass, IconSearch, IconTrash, IconUsers, IconToolsKitchen } from '@tabler/icons-react';
 
 import { useApp } from '../context/AppContext';
 
@@ -141,12 +141,12 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
 
   const getStateIcon = (orderState: string) => {
     switch (orderState) {
-      case 'ordered': return <Clock className="w-3.5 h-3.5 text-amber-400" />;
-      case 'sent_to_kitchen': return <UtensilsCrossed className="w-3.5 h-3.5 text-blue-400" />;
-      case 'sent_to_bar': return <Wine className="w-3.5 h-3.5 text-purple-400" />;
-      case 'problem': return <AlertTriangle className="w-3.5 h-3.5 text-[#ec4899]" />;
-      case 'ready': return <Coffee className="w-3.5 h-3.5 text-emerald-400" />;
-      case 'served': return <ChevronRight className="w-3.5 h-3.5 text-[#8888aa]" />;
+      case 'ordered': return <IconClock className="w-3.5 h-3.5 text-amber-400" />;
+      case 'sent_to_kitchen': return <IconToolsKitchen className="w-3.5 h-3.5 text-blue-400" />;
+      case 'sent_to_bar': return <IconGlass className="w-3.5 h-3.5 text-purple-400" />;
+      case 'problem': return <IconAlertTriangle className="w-3.5 h-3.5 text-[#ec4899]" />;
+      case 'ready': return <IconCoffee className="w-3.5 h-3.5 text-emerald-400" />;
+      case 'served': return <IconChevronRight className="w-3.5 h-3.5 text-[#8888aa]" />;
       default: return null;
     }
   };
@@ -178,10 +178,10 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
   };
 
   const categoryIcons: Record<string, React.ReactNode> = {
-    drinks: <CupSoda className="h-5 w-5" />,
-    starters: <UtensilsCrossed className="h-5 w-5" />,
-    mains: <Wine className="h-5 w-5" />,
-    desserts: <Coffee className="h-5 w-5" />,
+    drinks: <IconGlass className="h-5 w-5" />,
+    starters: <IconToolsKitchen className="h-5 w-5" />,
+    mains: <IconGlass className="h-5 w-5" />,
+    desserts: <IconCoffee className="h-5 w-5" />,
   };
 
   const categoryLabels: Record<string, string> = {
@@ -273,7 +273,7 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
                 onClick={onBack}
                 className="p-1.5 rounded-lg bg-[#353558] text-[#c0c0dd] hover:bg-[#555] transition-colors"
               >
-                <ArrowLeft className="w-5 h-5" />
+                <IconArrowLeft className="w-5 h-5" />
               </button>
               <div className="min-w-0 flex-1">
                 <h2 className="text-white font-semibold text-lg leading-tight">{table.name}</h2>
@@ -290,11 +290,11 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
               </div>
               <div className="flex items-center gap-3">
                 <span className="inline-flex flex-shrink-0 items-center gap-1.5 text-sm text-[#cfd3e6]">
-                  <Users className="w-4 h-4 text-[#8b5cf6]" />
+                  <IconUsers className="w-4 h-4 text-[#8b5cf6]" />
                   {operatorLabel}
                 </span>
                 <button className="p-2 text-[#8b5cf6] hover:text-white transition-colors">
-                  <Search className="w-4 h-4" />
+                  <IconSearch className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -331,7 +331,7 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
                   {session.serviceStatus && (
                     <span className="text-[11px] font-semibold text-white">1</span>
                   )}
-                  <ChevronDown
+                  <IconChevronDown
                     className={'h-4 w-4 flex-shrink-0 text-white transition-transform ' + (showStatusPicker ? 'rotate-180' : '')}
                   />
                 </div>
@@ -411,7 +411,7 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
           <div className="flex-1 overflow-y-auto bg-[#1a1b2d]">
             {session.orders.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-[#8888aa]">
-                <UtensilsCrossed className="w-12 h-12 mb-3 opacity-50" />
+                <IconToolsKitchen className="w-12 h-12 mb-3 opacity-50" />
                 <p className="text-sm">Noch keine Bestellungen</p>
               </div>
             ) : (
@@ -436,7 +436,7 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-[11px] font-semibold text-white">{section.orders.length}</span>
-                        <ChevronDown
+                        <IconChevronDown
                           className={`h-4 w-4 transition-transform ${collapsedSections[section.id] ? '' : 'rotate-180'}`}
                           style={{ color: '#ffffff' }}
                         />
@@ -505,7 +505,7 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
               >
                 <span className="block text-[9px] uppercase tracking-[0.18em] text-[#9f9aba]">Gesamt</span>
                 <span className={`mt-1 flex items-center gap-1.5 text-[16px] leading-none font-bold whitespace-nowrap ${ordersByState.ordered.length > 0 ? 'justify-start text-white' : 'justify-center text-white'}`}>
-                  <CreditCard className="h-3.5 w-3.5 shrink-0 text-[#cf8cff]" />
+                  <IconCreditCard className="h-3.5 w-3.5 shrink-0 text-[#cf8cff]" />
                   <span>{total.toFixed(2)} €</span>
                 </span>
               </button>
@@ -514,7 +514,7 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
                   onClick={handleSendOrders}
                   className="flex items-center gap-1.5 border border-[#b66cff]/40 bg-[#a855f7] px-3 py-2.5 text-[12px] font-semibold text-white transition-colors hover:bg-[#9333ea] whitespace-nowrap"
                 >
-                  <ChefHat className="h-3.5 w-3.5" />
+                  <IconChefHat className="h-3.5 w-3.5" />
                   Senden
                 </button>
               )}
@@ -734,7 +734,7 @@ function OrderRow({ order, getStateIcon, getStateLabel, getCourseLabel, formatTi
       {/* Red delete background - only visible when swiping */}
       {offsetX < 0 && (
         <div className="absolute inset-0 bg-red-600 flex items-center justify-end pr-5">
-          <Trash2 className="w-5 h-5 text-white" />
+          <IconTrash className="w-5 h-5 text-white" />
         </div>
       )}
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { AlertTriangle, ArrowDownRight, ArrowUpRight, Calendar, ChevronLeft, ChevronRight, CircleDot, Clock, Coffee, ListOrdered, Moon, PenLine, SlidersHorizontal, Sparkles, Sun, Timer, TrendingUp, Trophy, Users, Utensils, UtensilsCrossed, X } from 'lucide-react';
+import { IconAlertTriangle, IconArrowDownRight, IconArrowUpRight, IconCalendar, IconChevronLeft, IconChevronRight, IconCircleDot, IconClock, IconCoffee, IconListNumbers, IconMoon, IconPencil, IconAdjustments, IconSparkles, IconSun, IconHourglass, IconTrendingUp, IconTrophy, IconUsers, IconToolsKitchen2, IconToolsKitchen, IconX } from '@tabler/icons-react';
 
 import { useApp } from '../context/AppContext';
 import { ShiftHistoryRecord } from '../types';
@@ -308,7 +308,7 @@ function UebersichtTab({ occupiedTables: _occupiedTables, freeTables: _freeTable
         <div className="rounded-none overflow-hidden" style={{ background: '#252540' }}>
           <div className="flex items-center justify-between px-2.5 md:px-4 pt-2.5 md:pt-3 pb-2">
             <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-[#8888aa]" />
+              <IconUsers className="w-4 h-4 text-[#8888aa]" />
               <span className="text-[#9f9aba] text-[11px] font-semibold uppercase tracking-[0.18em]">Grosse Gruppen</span>
             </div>
             <span className="min-w-6 h-6 px-1 bg-[#312e52] text-white text-[11px] font-bold flex items-center justify-center">{bigGroups.length}</span>
@@ -338,7 +338,7 @@ function UebersichtTab({ occupiedTables: _occupiedTables, freeTables: _freeTable
           <div className="rounded-none overflow-hidden" style={{ background: '#252540' }}>
             <div className="flex items-center justify-between px-2.5 md:px-4 pt-2.5 md:pt-3 pb-2">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#8888aa]" />
+                <IconSparkles className="w-4 h-4 text-[#8888aa]" />
                 <span className="text-[#9f9aba] text-[11px] font-semibold uppercase tracking-[0.18em]">Besondere Anlässe</span>
               </div>
               <span className="min-w-6 h-6 px-1 bg-[#312e52] text-white text-[11px] font-bold flex items-center justify-center">{specialEvents.length}</span>
@@ -378,7 +378,7 @@ function UebersichtTab({ occupiedTables: _occupiedTables, freeTables: _freeTable
           <div className="rounded-none overflow-hidden" style={{ background: '#252540' }}>
             <div className="flex items-center justify-between px-2.5 md:px-4 pt-2.5 md:pt-3 pb-2">
               <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-[#8888aa]" />
+                <IconCalendar className="w-4 h-4 text-[#8888aa]" />
                 <span className="text-[#9f9aba] text-[11px] font-semibold uppercase tracking-[0.18em]">Sitzplatzwünsche</span>
               </div>
               <span className="min-w-6 h-6 px-1 bg-[#312e52] text-white text-[11px] font-bold flex items-center justify-center">{seatRequests.length}</span>
@@ -427,7 +427,7 @@ function UebersichtTab({ occupiedTables: _occupiedTables, freeTables: _freeTable
         <div className="rounded-none overflow-hidden mt-3 md:mt-4" style={{ background: '#252540' }}>
           <div className="flex items-center justify-between px-2.5 md:px-4 pt-2.5 md:pt-3 pb-2">
             <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-[#8888aa]" />
+              <IconClock className="w-4 h-4 text-[#8888aa]" />
               <span className="text-[#9f9aba] text-[11px] font-semibold uppercase tracking-[0.18em]">Warteliste</span>
             </div>
             <span className="min-w-6 h-6 px-1 bg-[#312e52] text-white text-[11px] font-bold flex items-center justify-center">{waitlist.length}</span>
@@ -455,7 +455,7 @@ function UebersichtTab({ occupiedTables: _occupiedTables, freeTables: _freeTable
       <div className="rounded-none overflow-hidden mt-3 md:mt-4" style={{ background: '#252540' }}>
         <div className="flex items-center justify-between px-2.5 md:px-4 pt-2.5 md:pt-3 pb-2">
           <div className="flex items-center gap-2">
-            <PenLine className="w-4 h-4 text-[#8888aa]" />
+            <IconPencil className="w-4 h-4 text-[#8888aa]" />
             <span className="text-[#9f9aba] text-[11px] font-semibold uppercase tracking-[0.18em]">Schichtnotizen</span>
           </div>
           <span className="min-w-6 h-6 px-1 bg-[#312e52] text-white text-[11px] font-bold flex items-center justify-center">{shiftNotes.length}</span>
@@ -475,7 +475,7 @@ function UebersichtTab({ occupiedTables: _occupiedTables, freeTables: _freeTable
               onClick={addShiftNote}
               className="h-10 w-10 shrink-0 flex items-center justify-center bg-[#26243f] text-white text-sm font-medium hover:bg-[#312e52] transition-all"
             >
-              <PenLine className="w-4 h-4" />
+              <IconPencil className="w-4 h-4" />
             </button>
           </div>
           {shiftNotes.length === 0 ? (
@@ -489,7 +489,7 @@ function UebersichtTab({ occupiedTables: _occupiedTables, freeTables: _freeTable
                     <p className="text-[#64748b] text-[11px] mt-0.5">{note.author} &middot; {new Date(note.timestamp).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}</p>
                   </div>
                   <button onClick={() => removeShiftNote(note.id)} className="p-1 hover:bg-white/5 transition-colors shrink-0">
-                    <X className="w-3.5 h-3.5 text-[#64748b]" />
+                    <IconX className="w-3.5 h-3.5 text-[#64748b]" />
                   </button>
                 </div>
               ))}
@@ -708,7 +708,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
       const oldestSent = Math.min(...sentOrders.map(o => o.timestamp));
       const waitMins = Math.floor((now - oldestSent) / 60000);
       if (waitMins >= 20) {
-        _alerts.push({ id: `wait-food-${t.id}`, type: 'warning', icon: <Clock className="w-4 h-4" />, title: `Wartet seit ${waitMins} Min auf Essen`, description: `${t.sentCount} Bestellung(en) in Zubereitung`, tableId: t.id, tableName: t.name, priority: waitMins, timestamp: oldestSent });
+        _alerts.push({ id: `wait-food-${t.id}`, type: 'warning', icon: <IconClock className="w-4 h-4" />, title: `Wartet seit ${waitMins} Min auf Essen`, description: `${t.sentCount} Bestellung(en) in Zubereitung`, tableId: t.id, tableName: t.name, priority: waitMins, timestamp: oldestSent });
       }
     }
     if (t.readyCount > 0) {
@@ -716,11 +716,11 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
       const oldestReady = Math.min(...readyOrders.map(o => o.timestamp));
       const readyMins = Math.floor((now - oldestReady) / 60000);
       if (readyMins >= 5) {
-        _alerts.push({ id: `ready-pickup-${t.id}`, type: 'warning', icon: <UtensilsCrossed className="w-4 h-4" />, title: `Essen fertig seit ${readyMins} Min`, description: `${t.readyCount} Gericht(e) warten auf Abholung`, tableId: t.id, tableName: t.name, priority: readyMins + 50, timestamp: oldestReady });
+        _alerts.push({ id: `ready-pickup-${t.id}`, type: 'warning', icon: <IconToolsKitchen className="w-4 h-4" />, title: `Essen fertig seit ${readyMins} Min`, description: `${t.readyCount} Gericht(e) warten auf Abholung`, tableId: t.id, tableName: t.name, priority: readyMins + 50, timestamp: oldestReady });
       }
     }
     if (t.orders.length === 0 && t.duration >= 10) {
-      _alerts.push({ id: `no-order-${t.id}`, type: 'info', icon: <CircleDot className="w-4 h-4" />, title: `Seit ${t.duration} Min ohne Bestellung`, description: 'Vergessen? Gast fragen ob er bestellen möchte', tableId: t.id, tableName: t.name, priority: t.duration, timestamp: t.startTime });
+      _alerts.push({ id: `no-order-${t.id}`, type: 'info', icon: <IconCircleDot className="w-4 h-4" />, title: `Seit ${t.duration} Min ohne Bestellung`, description: 'Vergessen? Gast fragen ob er bestellen möchte', tableId: t.id, tableName: t.name, priority: t.duration, timestamp: t.startTime });
     }
     if (t.servedCount > 0 && t.orderedCount === 0 && t.sentCount === 0 && t.readyCount === 0) {
       const lastOrderTime = Math.max(...t.orders.map(o => o.timestamp));
@@ -728,10 +728,10 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
       const hasDessert = t.orders.some(o => o.course === 'dessert');
       const hasDrinkRecently = t.orders.some(o => o.routing === 'bar' && (now - o.timestamp) < 15 * 60000);
       if (sinceLast >= 15 && !hasDessert) {
-        _alerts.push({ id: `upsell-dessert-${t.id}`, type: 'upsell', icon: <Coffee className="w-4 h-4" />, title: 'Dessert oder Getränk anbieten?', description: `Letzte Bestellung vor ${sinceLast} Min`, tableId: t.id, tableName: t.name, priority: 10, timestamp: lastOrderTime });
+        _alerts.push({ id: `upsell-dessert-${t.id}`, type: 'upsell', icon: <IconCoffee className="w-4 h-4" />, title: 'Dessert oder Getränk anbieten?', description: `Letzte Bestellung vor ${sinceLast} Min`, tableId: t.id, tableName: t.name, priority: 10, timestamp: lastOrderTime });
       }
       if (sinceLast >= 25 && !hasDrinkRecently) {
-        _alerts.push({ id: `upsell-drink-${t.id}`, type: 'upsell', icon: <Coffee className="w-4 h-4" />, title: 'Nachgetränk anbieten?', description: `Seit ${sinceLast} Min kein neues Getränk`, tableId: t.id, tableName: t.name, priority: 5, timestamp: lastOrderTime });
+        _alerts.push({ id: `upsell-drink-${t.id}`, type: 'upsell', icon: <IconCoffee className="w-4 h-4" />, title: 'Nachgetränk anbieten?', description: `Seit ${sinceLast} Min kein neues Getränk`, tableId: t.id, tableName: t.name, priority: 5, timestamp: lastOrderTime });
       }
     }
     // Drink reorder timer: if all drinks served and last drink order > 20 min ago
@@ -741,7 +741,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
       const sinceDrink = Math.floor((now - lastDrinkTime) / 60000);
       const hasPendingDrink = t.orders.some(o => o.routing === 'bar' && (o.state === 'ordered' || o.state === 'sent_to_bar' || o.state === 'ready'));
       if (sinceDrink >= 20 && !hasPendingDrink && t.status !== 'free') {
-        _alerts.push({ id: `drink-reorder-${t.id}`, type: 'upsell', icon: <Timer className="w-4 h-4" />, title: 'Getränke-Nachbestellung?', description: `Letztes Getränk vor ${sinceDrink} Min serviert`, tableId: t.id, tableName: t.name, priority: 8, timestamp: lastDrinkTime });
+        _alerts.push({ id: `drink-reorder-${t.id}`, type: 'upsell', icon: <IconHourglass className="w-4 h-4" />, title: 'Getränke-Nachbestellung?', description: `Letztes Getränk vor ${sinceDrink} Min serviert`, tableId: t.id, tableName: t.name, priority: 8, timestamp: lastDrinkTime });
       }
     }
     const allergyPattern = /allergi|nuss|nuess|laktose|gluten|vegan|vegetar|unvertraeglich|intoleran/i;
@@ -749,17 +749,17 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
     const allergyOrderNotes = t.orders.filter(o => o.notes && allergyPattern.test(o.notes)).map(o => o.notes!);
     const allAllergyHints = [...allergyNotes, ...allergyOrderNotes];
     if (allAllergyHints.length > 0) {
-      _alerts.push({ id: `allergy-${t.id}`, type: 'allergy', icon: <AlertTriangle className="w-4 h-4" />, title: 'Allergie-Hinweis', description: allAllergyHints.join(', '), tableId: t.id, tableName: t.name, priority: 100, timestamp: t.startTime });
+      _alerts.push({ id: `allergy-${t.id}`, type: 'allergy', icon: <IconAlertTriangle className="w-4 h-4" />, title: 'Allergie-Hinweis', description: allAllergyHints.join(', '), tableId: t.id, tableName: t.name, priority: 100, timestamp: t.startTime });
     }
   });
 
   const totalSentKitchen = Object.values(state.sessions).reduce((sum, session) => sum + session.orders.filter(o => o.state === 'sent_to_kitchen').length, 0);
   const totalSentBar = Object.values(state.sessions).reduce((sum, session) => sum + session.orders.filter(o => o.state === 'sent_to_bar').length, 0);
   if (totalSentKitchen >= 8) {
-    _alerts.push({ id: 'kitchen-overload', type: 'warning', icon: <TrendingUp className="w-4 h-4" />, title: 'Küche unter Druck', description: `${totalSentKitchen} offene Bestellungen in der Küche`, tableId: '', tableName: 'Küche', priority: 80, timestamp: now });
+    _alerts.push({ id: 'kitchen-overload', type: 'warning', icon: <IconTrendingUp className="w-4 h-4" />, title: 'Küche unter Druck', description: `${totalSentKitchen} offene Bestellungen in der Küche`, tableId: '', tableName: 'Küche', priority: 80, timestamp: now });
   }
   if (totalSentBar >= 6) {
-    _alerts.push({ id: 'bar-overload', type: 'warning', icon: <TrendingUp className="w-4 h-4" />, title: 'Bar unter Druck', description: `${totalSentBar} offene Bestellungen an der Bar`, tableId: '', tableName: 'Bar', priority: 75, timestamp: now });
+    _alerts.push({ id: 'bar-overload', type: 'warning', icon: <IconTrendingUp className="w-4 h-4" />, title: 'Bar unter Druck', description: `${totalSentBar} offene Bestellungen an der Bar`, tableId: '', tableName: 'Bar', priority: 75, timestamp: now });
   }
   return _alerts;
   }, [occupiedTables, now, state.sessions]);
@@ -795,10 +795,10 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
   void trendInfo; void tablesServed; void avgPerTable; void totalReadyItems; void realTips; void tipCount;
 
   const shiftOptions: { value: ShiftFilter; label: string; icon: React.ReactNode }[] = [
-    { value: 'alle', label: 'Alle Schichten', icon: <Clock className="w-4 h-4" /> },
-    { value: 'Fruehstueck', label: 'Frühstück', icon: <Sun className="w-4 h-4" /> },
-    { value: 'Lunch', label: 'Lunch', icon: <Utensils className="w-4 h-4" /> },
-    { value: 'Dinner', label: 'Dinner', icon: <Moon className="w-4 h-4" /> },
+    { value: 'alle', label: 'Alle Schichten', icon: <IconClock className="w-4 h-4" /> },
+    { value: 'Fruehstueck', label: 'Frühstück', icon: <IconSun className="w-4 h-4" /> },
+    { value: 'Lunch', label: 'Lunch', icon: <IconToolsKitchen2 className="w-4 h-4" /> },
+    { value: 'Dinner', label: 'Dinner', icon: <IconMoon className="w-4 h-4" /> },
   ];
   const timeOptions: { value: TimeRangeFilter; label: string }[] = [
     { value: 'heute', label: 'Heute' },
@@ -824,7 +824,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
       <div className="absolute inset-0 z-40 bg-[#1a1a2e] flex flex-col">
         <header className="bg-[#1f1d33] border-b border-[#2c2947] px-4 py-2.5">
           <button onClick={() => setDrillDown(null)} className="flex items-center gap-2 text-[#d8c7ff] hover:text-white transition-colors">
-            <ChevronLeft className="w-4 h-4" />
+            <IconChevronLeft className="w-4 h-4" />
                     <span className="text-[13px] font-medium">Zurück</span>
                   </button>
                 </header>
@@ -881,7 +881,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
       <div className="absolute inset-0 z-40 bg-[#1a1a2e] flex flex-col">
         <header className="bg-[#1f1d33] border-b border-[#2c2947] px-4 py-2.5">
           <button onClick={() => setDrillDown(null)} className="flex items-center gap-2 text-[#d8c7ff] hover:text-white transition-colors">
-            <ChevronLeft className="w-4 h-4" />
+            <IconChevronLeft className="w-4 h-4" />
                     <span className="text-[13px] font-medium">Zurück</span>
                   </button>
                 </header>
@@ -949,7 +949,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
       <div className="absolute inset-0 z-40 bg-[#1a1a2e] flex flex-col">
         <header className="bg-[#1f1d33] border-b border-[#2c2947] px-4 py-2.5">
           <button onClick={() => setDrillDown(null)} className="flex items-center gap-2 text-[#d8c7ff] hover:text-white transition-colors">
-            <ChevronLeft className="w-4 h-4" />
+            <IconChevronLeft className="w-4 h-4" />
                     <span className="text-[13px] font-medium">Zurück</span>
                   </button>
                 </header>
@@ -988,7 +988,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
       <div className="absolute inset-0 z-40 bg-[#1a1a2e] flex flex-col">
         <header className="bg-[#1f1d33] border-b border-[#2c2947] px-4 py-2.5 flex items-center justify-between">
           <button onClick={() => setShowFilter(false)} className="flex items-center gap-2 text-[#d8c7ff] hover:text-white transition-colors">
-            <ChevronLeft className="w-4 h-4" />
+            <IconChevronLeft className="w-4 h-4" />
                       <span className="text-[13px] font-medium">Zurück</span>
                     </button>
                     <h1 className="text-white font-semibold">Filter</h1>
@@ -1030,7 +1030,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
                       : 'bg-[#2a2a42]/60 border-[#333355]/50 text-[#b0b0cc]'
                   }`}
                 >
-                  <Calendar className="w-4 h-4" />
+                  <IconCalendar className="w-4 h-4" />
                   <span className="text-sm font-medium">{opt.label}</span>
                 </button>
               ))}
@@ -1051,7 +1051,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
                       : 'bg-[#2a2a42]/60 border-[#333355]/50 text-[#b0b0cc]'
                   }`}
                 >
-                  <Users className="w-4 h-4" />
+                  <IconUsers className="w-4 h-4" />
                   <span className={`text-sm font-medium ${statFilters.source === opt.value ? '' : opt.color}`}>{opt.label}</span>
                 </button>
               ))}
@@ -1107,7 +1107,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
       <div className="absolute inset-0 z-40 bg-[#1a1a2e] flex flex-col">
         <header className="bg-[#1f1d33] border-b border-[#2c2947] px-4 py-2.5">
           <button onClick={() => setDrillDown(null)} className="flex items-center gap-2 text-[#d8c7ff] hover:text-white transition-colors">
-            <ChevronLeft className="w-4 h-4" />
+            <IconChevronLeft className="w-4 h-4" />
                     <span className="text-[13px] font-medium">Zurück</span>
                   </button>
                 </header>
@@ -1186,7 +1186,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
             {/* Active filter chips */}
             <div className="flex items-center gap-2 mb-4 flex-wrap">
               <button onClick={() => setShowFilter(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#2a2a42]/60 border border-[#333355]/50 transition-all active:bg-[#353558]">
-                <SlidersHorizontal className="w-4 h-4 text-[#b0b0cc]" />
+                <IconAdjustments className="w-4 h-4 text-[#b0b0cc]" />
                 <span className="text-[#c0c0dd] text-sm">Filter</span>
                 {activeFilterCount > 0 && (
                   <span className="text-xs rounded-full bg-[#7bb7ef] text-white px-1.5 py-0.5 font-bold ml-1">{activeFilterCount}</span>
@@ -1195,19 +1195,19 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
               {statFilters.shift !== 'alle' && (
                 <span className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#7bb7ef]/20 border border-violet-500/40 text-[#b1d9ff] text-xs font-medium">
                   {statFilters.shift}
-                  <button onClick={() => setStatFilters(p => ({ ...p, shift: 'alle' }))} className="ml-0.5"><X className="w-3 h-3" /></button>
+                  <button onClick={() => setStatFilters(p => ({ ...p, shift: 'alle' }))} className="ml-0.5"><IconX className="w-3 h-3" /></button>
                 </span>
               )}
               {statFilters.timeRange !== 'heute' && (
                 <span className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#7bb7ef]/20 border border-violet-500/40 text-[#b1d9ff] text-xs font-medium">
                   {timeOptions.find(t => t.value === statFilters.timeRange)?.label}
-                  <button onClick={() => setStatFilters(p => ({ ...p, timeRange: 'heute' }))} className="ml-0.5"><X className="w-3 h-3" /></button>
+                  <button onClick={() => setStatFilters(p => ({ ...p, timeRange: 'heute' }))} className="ml-0.5"><IconX className="w-3 h-3" /></button>
                 </span>
               )}
               {statFilters.source !== 'alle' && (
                 <span className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#7bb7ef]/20 border border-violet-500/40 text-[#b1d9ff] text-xs font-medium">
                   {sourceOptions.find(s => s.value === statFilters.source)?.label}
-                  <button onClick={() => setStatFilters(p => ({ ...p, source: 'alle' }))} className="ml-0.5"><X className="w-3 h-3" /></button>
+                  <button onClick={() => setStatFilters(p => ({ ...p, source: 'alle' }))} className="ml-0.5"><IconX className="w-3 h-3" /></button>
                 </span>
               )}
             </div>
@@ -1218,11 +1218,11 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
                 <h2 className="text-white text-xl font-bold">Einnahmen</h2>
                 {trendInfo && trendInfo.revDiff !== 0 && (
                   <span className={`flex items-center gap-0.5 text-xs font-bold px-1.5 py-0.5 rounded-full ${trendInfo.revDiff > 0 ? 'bg-emerald-900/40 text-emerald-400' : 'bg-red-900/40 text-red-400'}`}>
-                    {trendInfo.revDiff > 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                    {trendInfo.revDiff > 0 ? <IconArrowUpRight className="w-3 h-3" /> : <IconArrowDownRight className="w-3 h-3" />}
                     {Math.abs(trendInfo.revDiff)}%
                   </span>
                 )}
-                <ChevronRight className="w-5 h-5 text-[#8888aa]" />
+                <IconChevronRight className="w-5 h-5 text-[#8888aa]" />
               </div>
               <div className="flex items-baseline gap-4 flex-wrap">
                 <p className="text-white text-lg font-bold">{statFilters.source !== 'alle' ? filteredRevenue.toFixed(2) : totalRevenue.toFixed(2)} &euro; <span className="text-[#b0b0cc] text-sm font-normal">Diese Schicht{statFilters.source !== 'alle' ? ` (${sourceOptions.find(s => s.value === statFilters.source)?.label})` : ''}</span></p>
@@ -1239,11 +1239,11 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
                 <h2 className="text-white text-xl font-bold">Schichtstatistiken</h2>
                 {trendInfo && trendInfo.guestDiff !== 0 && (
                   <span className={`flex items-center gap-0.5 text-xs font-bold px-1.5 py-0.5 rounded-full ${trendInfo.guestDiff > 0 ? 'bg-emerald-900/40 text-emerald-400' : 'bg-red-900/40 text-red-400'}`}>
-                    {trendInfo.guestDiff > 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                    {trendInfo.guestDiff > 0 ? <IconArrowUpRight className="w-3 h-3" /> : <IconArrowDownRight className="w-3 h-3" />}
                     {Math.abs(trendInfo.guestDiff)}%
                   </span>
                 )}
-                <ChevronRight className="w-5 h-5 text-[#8888aa]" />
+                <IconChevronRight className="w-5 h-5 text-[#8888aa]" />
               </div>
               <div className="flex items-baseline gap-4 flex-wrap">
                 <p className="text-white text-lg font-bold">{filteredTotalGuests} <span className="text-[#b0b0cc] text-sm font-normal">                Gäste{statFilters.source !== 'alle' ? ` (${sourceOptions.find(s => s.value === statFilters.source)?.label})` : ''}</span></p>
@@ -1270,7 +1270,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
             <button onClick={() => setDrillDown('schichtfluss')} className="w-full text-left mb-6 mt-4">
               <div className="flex items-center gap-2 mb-2">
                 <h2 className="text-white text-xl font-bold">Schichtfluss</h2>
-                <ChevronRight className="w-5 h-5 text-[#8888aa]" />
+                <IconChevronRight className="w-5 h-5 text-[#8888aa]" />
               </div>
               <div className="flex justify-between items-center mb-1">
                 <p className="text-[#b0b0cc] text-sm"><span className="text-white font-bold">{currentHourGuests}</span>                 platzierte Gäste um {currentHourTime}</p>
@@ -1297,7 +1297,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
               {avgTableDuration > 0 && (
                 <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-3 mt-3">
                   <div className="flex items-center gap-2">
-                    <Timer className="w-4 h-4 text-[#9f9aba]" />
+                    <IconHourglass className="w-4 h-4 text-[#9f9aba]" />
                     <p className="text-white text-[24px] font-bold leading-none">{avgTableDuration} Min</p>
                   </div>
                   <p className="text-[#9f9aba] text-[12px] mt-2">⌀ Tischzeit</p>
@@ -1311,7 +1311,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
                 <div className="border-t border-[#333355]/30 my-2" />
                 <div className="mt-4 mb-6">
                   <div className="flex items-center gap-2 mb-3">
-                    <Trophy className="w-5 h-5 text-amber-400" />
+                    <IconTrophy className="w-5 h-5 text-amber-400" />
                     <h2 className="text-white text-xl font-bold">Tisch-Ranking</h2>
                   </div>
                   <div className="space-y-2">
@@ -1405,12 +1405,12 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
                 <button onClick={() => setDrillDown('warteliste')} className="w-full text-left mt-3 mb-5">
                   <div className="flex items-center gap-2 mb-2">
                     <h2 className="text-white text-[18px] font-bold">Warteliste</h2>
-                    <ChevronRight className="w-5 h-5 text-[#8888aa]" />
+                    <IconChevronRight className="w-5 h-5 text-[#8888aa]" />
                   </div>
                   <div className="grid grid-cols-2 gap-2.5">
                     <div className="bg-[#26243f] border border-[#333355]/40 px-4 py-2.5">
                       <div className="flex items-center gap-2 mb-1">
-                        <ListOrdered className="w-4 h-4 text-[#cf45f3]" />
+                        <IconListNumbers className="w-4 h-4 text-[#cf45f3]" />
                         <p className="text-[#d8c7ff] text-[11px]">Wartend</p>
                       </div>
                       <p className="text-white text-[20px] font-bold leading-none">{waitlistWaiting}</p>

@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { IconArrowLeft, IconEye, IconEyeOff, IconLoader2 } from '@tabler/icons-react';
 
 import viloLogo from '../assets/VILO.svg';
 
 interface RegistrationPageProps {
   onBack: () => void;
-  onRegister: (name: string, email: string, password: string) => void;
+  onRegister: (name: string, email: string, password: string) => void | Promise<void>;
 }
 
 export function RegistrationPage({ onBack, onRegister }: RegistrationPageProps) {
@@ -14,6 +14,7 @@ export function RegistrationPage({ onBack, onRegister }: RegistrationPageProps) 
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -26,10 +27,17 @@ export function RegistrationPage({ onBack, onRegister }: RegistrationPageProps) 
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validate()) {
-      onRegister(name.trim(), email.trim().toLowerCase(), password);
+      setIsLoading(true);
+      try {
+        await onRegister(name.trim(), email.trim().toLowerCase(), password);
+      } catch {
+        setErrors({ email: 'Registrierung fehlgeschlagen. Bitte versuche es erneut.' });
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -41,7 +49,7 @@ export function RegistrationPage({ onBack, onRegister }: RegistrationPageProps) 
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-4">
         <button onClick={onBack} className="p-2 rounded-lg hover:bg-[#353558]/50 transition-colors">
-          <ArrowLeft className="w-5 h-5 text-[#b0b0cc]" />
+          <IconArrowLeft className="w-5 h-5 text-[#b0b0cc]" />
         </button>
         <h2 className="text-lg font-semibold text-white">Konto erstellen</h2>
       </div>
@@ -103,7 +111,7 @@ export function RegistrationPage({ onBack, onRegister }: RegistrationPageProps) 
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-[#b0b0cc] hover:text-[#c0c0dd]"
               >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showPassword ? <IconEyeOff className="w-5 h-5" /> : <IconEye className="w-5 h-5" />}
               </button>
             </div>
             {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password}</p>}
@@ -112,9 +120,10 @@ export function RegistrationPage({ onBack, onRegister }: RegistrationPageProps) 
           {/* Submit */}
           <button
             type="submit"
-            className="w-full py-3.5 rounded-xl bg-[#7bb7ef] hover:bg-[#7bb7ef] active:bg-violet-700 text-white font-semibold text-lg transition-colors mt-6"
+            disabled={isLoading}
+            className="w-full py-3.5 rounded-xl bg-[#7bb7ef] hover:bg-[#7bb7ef] active:bg-violet-700 text-white font-semibold text-lg transition-colors mt-6 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            Weiter
+            {isLoading ? <><IconLoader2 className="w-5 h-5 animate-spin" /> Wird erstellt...</> : 'Weiter'}
           </button>
         </form>
       </div>

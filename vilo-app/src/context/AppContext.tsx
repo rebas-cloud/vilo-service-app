@@ -716,12 +716,10 @@ export function AppProvider({ children, config }: AppProviderProps) {
   const restaurantId = config?.restaurant?.id || state.restaurant?.id || '';
 
   const executeIntent = useCallback((intent: Intent, command: string): string => {
-    console.log('[VILO] Executing intent:', intent.type, intent);
     switch (intent.type) {
       case 'SET_TABLE': {
         const table = state.tables.find(t => t.id === intent.tableId);
         if (!table) {
-          console.log('[VILO] Table not found:', intent.tableId, 'Available:', state.tables.map(t => t.id));
           return `Tisch "${intent.tableId}" nicht gefunden.`;
         }
         dispatch({ type: 'SET_ACTIVE_TABLE', tableId: intent.tableId });

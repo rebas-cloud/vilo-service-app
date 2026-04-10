@@ -1,5 +1,5 @@
 import React from 'react';
-import { LogOut, Mic, MicOff, Users } from 'lucide-react';
+import { IconLogout, IconMicrophone, IconMicrophoneOff, IconUsers } from '@tabler/icons-react';
 
 import viloLogo from '../assets/VILO.svg';
 import { useApp } from '../context/AppContext';
@@ -65,13 +65,13 @@ export function TableOverview({ voiceMode, onStartVoice, onStopVoice }: TableOve
                   : 'bg-[#353558] text-[#c0c0dd] hover:bg-[#555]'
               }`}
             >
-              {voiceMode !== 'idle' ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
+              {voiceMode !== 'idle' ? <IconMicrophone className="w-5 h-5" /> : <IconMicrophoneOff className="w-5 h-5" />}
             </button>
             <button
               onClick={() => dispatch({ type: 'LOGOUT' })}
               className="p-2 rounded-lg bg-[#353558] text-[#c0c0dd] hover:bg-[#555] transition-colors"
             >
-              <LogOut className="w-5 h-5" />
+              <IconLogout className="w-5 h-5" />
             </button>
           </div>
         </div>
@@ -151,7 +151,7 @@ export function TableOverview({ voiceMode, onStartVoice, onStopVoice }: TableOve
             </span>
           </div>
           <div className="flex items-center gap-1.5 text-[#b0b0cc]">
-            <Users className="w-4 h-4" />
+            <IconUsers className="w-4 h-4" />
             <span>{Object.keys(state.sessions).length} aktiv</span>
           </div>
         </div>

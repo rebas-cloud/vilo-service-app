@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, ArrowRight, Check, LayoutGrid, Plus, Store, Trash2, Users, UtensilsCrossed, Zap } from 'lucide-react';
+import { IconArrowLeft, IconArrowRight, IconCheck, IconLayoutGrid, IconPlus, IconBuildingStore, IconTrash, IconUsers, IconToolsKitchen, IconBolt } from '@tabler/icons-react';
 
 import { Zone, Table, MenuItem, Staff, MenuCategory } from '../types';
 
@@ -18,7 +18,7 @@ const STEP_TITLES = [
   'Team einrichten',
 ];
 
-const STEP_ICONS = [Store, LayoutGrid, UtensilsCrossed, Users];
+const STEP_ICONS = [IconBuildingStore, IconLayoutGrid, IconToolsKitchen, IconUsers];
 
 const CATEGORY_LABELS: Record<MenuCategory, string> = {
   drinks: 'Getränke',
@@ -172,7 +172,7 @@ export function OnboardingWizard({ initialStep = 0, onComplete, onBack, onQuickS
       <div className="px-4 pt-4 pb-2">
         <div className="flex items-center justify-between mb-3">
           <button onClick={handlePrev} className="p-2 rounded-lg hover:bg-[#353558]/50 transition-colors">
-            <ArrowLeft className="w-5 h-5 text-[#b0b0cc]" />
+            <IconArrowLeft className="w-5 h-5 text-[#b0b0cc]" />
           </button>
           <span className="text-sm text-[#b0b0cc]">Schritt {step + 1} von 4</span>
           {step === 0 && (
@@ -180,7 +180,7 @@ export function OnboardingWizard({ initialStep = 0, onComplete, onBack, onQuickS
               onClick={onQuickStart}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-400 text-sm font-medium hover:bg-amber-500/30 transition-colors"
             >
-              <Zap className="w-4 h-4" />
+              <IconBolt className="w-4 h-4" />
               Schnellstart
             </button>
           )}
@@ -276,7 +276,7 @@ export function OnboardingWizard({ initialStep = 0, onComplete, onBack, onQuickS
                     onClick={() => removeZone(zone.id)}
                     className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <IconTrash className="w-4 h-4" />
                   </button>
                 </div>
                 <div className="flex items-center gap-3 mt-3">
@@ -304,7 +304,7 @@ export function OnboardingWizard({ initialStep = 0, onComplete, onBack, onQuickS
               onClick={addZone}
               className="w-full p-3 rounded-xl border-2 border-dashed border-[#3d3d5c] text-[#b0b0cc] hover:border-violet-500 hover:text-[#b1d9ff] transition-colors flex items-center justify-center gap-2"
             >
-              <Plus className="w-4 h-4" />
+              <IconPlus className="w-4 h-4" />
               Bereich hinzufuegen
             </button>
 
@@ -366,7 +366,7 @@ export function OnboardingWizard({ initialStep = 0, onComplete, onBack, onQuickS
                 disabled={!newItemName.trim() || !newItemPrice.trim()}
                 className="px-3 py-2.5 rounded-xl bg-[#7bb7ef] text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#7bb7ef] transition-colors"
               >
-                <Plus className="w-5 h-5" />
+                <IconPlus className="w-5 h-5" />
               </button>
             </div>
 
@@ -384,7 +384,7 @@ export function OnboardingWizard({ initialStep = 0, onComplete, onBack, onQuickS
                       onClick={() => removeMenuItem(item.id)}
                       className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <IconTrash className="w-4 h-4" />
                     </button>
                   </div>
                 ))}
@@ -456,7 +456,7 @@ export function OnboardingWizard({ initialStep = 0, onComplete, onBack, onQuickS
                   disabled={!newStaffName.trim() || newStaffPin.length !== 4}
                   className="px-4 py-1.5 rounded-lg bg-[#7bb7ef] text-white text-sm font-medium disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#7bb7ef] transition-colors flex items-center gap-1.5"
                 >
-                  <Plus className="w-4 h-4" />
+                  <IconPlus className="w-4 h-4" />
                   Hinzufuegen
                 </button>
               </div>
@@ -484,7 +484,7 @@ export function OnboardingWizard({ initialStep = 0, onComplete, onBack, onQuickS
                     onClick={() => removeStaffMember(member.id)}
                     className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <IconTrash className="w-4 h-4" />
                   </button>
                 </div>
               ))}
@@ -508,11 +508,11 @@ export function OnboardingWizard({ initialStep = 0, onComplete, onBack, onQuickS
           {step < 3 ? (
             <>
               Weiter
-              <ArrowRight className="w-5 h-5" />
+              <IconArrowRight className="w-5 h-5" />
             </>
           ) : (
             <>
-              <Check className="w-5 h-5" />
+              <IconCheck className="w-5 h-5" />
               Fertig – Restaurant starten
             </>
           )}

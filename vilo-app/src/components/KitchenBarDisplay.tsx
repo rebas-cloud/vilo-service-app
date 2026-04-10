@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { AlertTriangle, Bell, CheckCircle, ChefHat, Clock, Wine } from 'lucide-react';
+import { IconAlertTriangle, IconBell, IconCircleCheck, IconChefHat, IconClock, IconGlass } from '@tabler/icons-react';
 
 import { useApp } from '../context/AppContext';
 import { OrderItem } from '../types';
@@ -194,9 +194,9 @@ export function KitchenBarDisplay({ onBack: _onBack }: { onBack: () => void }) {
       <div className="flex items-center justify-between px-3 py-2 border-b border-[#333355]" style={{ background: '#1a1a2e' }}>
         <div className="flex items-center gap-2">
           {mode === 'kitchen' ? (
-            <ChefHat className="w-5 h-5 text-orange-400" />
+            <IconChefHat className="w-5 h-5 text-orange-400" />
           ) : (
-            <Wine className="w-5 h-5 text-blue-400" />
+            <IconGlass className="w-5 h-5 text-blue-400" />
           )}
           <span className="text-white font-bold">
             {mode === 'kitchen' ? 'Küche' : 'Bar'}
@@ -219,7 +219,7 @@ export function KitchenBarDisplay({ onBack: _onBack }: { onBack: () => void }) {
                 : 'text-[#b0b0cc] hover:text-[#ddd]'
             }`}
           >
-            <ChefHat className="w-3.5 h-3.5" />
+            <IconChefHat className="w-3.5 h-3.5" />
             Küche
           </button>
           <button
@@ -230,7 +230,7 @@ export function KitchenBarDisplay({ onBack: _onBack }: { onBack: () => void }) {
                 : 'text-[#b0b0cc] hover:text-[#ddd]'
             }`}
           >
-            <Wine className="w-3.5 h-3.5" />
+            <IconGlass className="w-3.5 h-3.5" />
             Bar
           </button>
         </div>
@@ -241,9 +241,9 @@ export function KitchenBarDisplay({ onBack: _onBack }: { onBack: () => void }) {
         {orderGroups.length === 0 && readyOrders.length === 0 && problemOrders.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-[#8888aa]">
             {mode === 'kitchen' ? (
-              <ChefHat className="w-16 h-16 mb-4 opacity-30" />
+              <IconChefHat className="w-16 h-16 mb-4 opacity-30" />
             ) : (
-              <Wine className="w-16 h-16 mb-4 opacity-30" />
+              <IconGlass className="w-16 h-16 mb-4 opacity-30" />
             )}
             <p className="text-lg font-medium">Keine offenen Bestellungen</p>
             <p className="text-sm mt-1">Neue Bestellungen erscheinen hier automatisch</p>
@@ -267,7 +267,7 @@ export function KitchenBarDisplay({ onBack: _onBack }: { onBack: () => void }) {
                   <div className="flex items-center gap-2">
                     <span className="text-white font-bold">{group.tableName}</span>
                     <span className={`text-xs ${getWaitColor(group.oldestTimestamp)}`}>
-                      <Clock className="w-3 h-3 inline mr-0.5" />
+                      <IconClock className="w-3 h-3 inline mr-0.5" />
                       {getWaitTime(group.oldestTimestamp)}
                     </span>
                   </div>
@@ -322,14 +322,14 @@ export function KitchenBarDisplay({ onBack: _onBack }: { onBack: () => void }) {
                           className="p-2.5 rounded-xl bg-[#ec4899]/18 text-[#ec4899] hover:bg-[#ec4899]/28 active:bg-[#ec4899]/40 transition-colors"
                           title="Problem melden"
                         >
-                          <AlertTriangle className="w-5 h-5" />
+                          <IconAlertTriangle className="w-5 h-5" />
                         </button>
                         <button
                           onClick={() => handleMarkReady(order.id)}
                           className="p-2.5 rounded-xl bg-green-500/20 text-green-400 hover:bg-green-500/30 active:bg-green-500/50 transition-colors"
                           title="Als fertig markieren"
                         >
-                          <CheckCircle className="w-5 h-5" />
+                          <IconCircleCheck className="w-5 h-5" />
                         </button>
                       </div>
                     </div>
@@ -341,7 +341,7 @@ export function KitchenBarDisplay({ onBack: _onBack }: { onBack: () => void }) {
             {problemOrders.length > 0 && (
               <div className="mt-4">
                 <div className="flex items-center gap-2 mb-2 px-1">
-                  <AlertTriangle className="w-4 h-4 text-[#ec4899]" />
+                  <IconAlertTriangle className="w-4 h-4 text-[#ec4899]" />
                   <h3 className="text-[#ec4899] text-sm font-bold">Problem gemeldet</h3>
                 </div>
                 {problemOrders.map((group, idx) => (
@@ -353,7 +353,7 @@ export function KitchenBarDisplay({ onBack: _onBack }: { onBack: () => void }) {
                       {group.orders.map(order => (
                         <div key={order.id} className="flex items-center justify-between gap-2 px-4 py-2">
                           <div className="flex items-center gap-2 min-w-0">
-                            <AlertTriangle className="w-4 h-4 text-[#ec4899] flex-shrink-0" />
+                            <IconAlertTriangle className="w-4 h-4 text-[#ec4899] flex-shrink-0" />
                             <span className="text-[#ffd1ea] text-sm font-medium truncate">
                               {order.quantity}x {order.name}
                             </span>
@@ -380,7 +380,7 @@ export function KitchenBarDisplay({ onBack: _onBack }: { onBack: () => void }) {
             {readyOrders.length > 0 && (
               <div className="mt-4">
                 <div className="flex items-center gap-2 mb-2 px-1">
-                  <Bell className="w-4 h-4 text-green-400" />
+                  <IconBell className="w-4 h-4 text-green-400" />
                   <h3 className="text-green-400 text-sm font-bold">Fertig - Abholung</h3>
                 </div>
                 {readyOrders.map((group, idx) => (
@@ -391,7 +391,7 @@ export function KitchenBarDisplay({ onBack: _onBack }: { onBack: () => void }) {
                     <div className="divide-y divide-green-500/20">
                       {group.orders.map(order => (
                         <div key={order.id} className="flex items-center gap-2 px-4 py-2">
-                          <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
+                          <IconCircleCheck className="w-4 h-4 text-green-400 flex-shrink-0" />
                           <span className="text-green-300 text-sm font-medium">
                             {order.quantity}x {order.name}
                           </span>

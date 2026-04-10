@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Armchair, CalendarCheck, ChevronLeft, Clock, Edit3, History, Lightbulb, Phone, Plus, Search, Star, Tag, Trash2, User, Users, UtensilsCrossed, X } from 'lucide-react';
+import { IconArmchair, IconCalendarCheck, IconChevronLeft, IconClock, IconEdit, IconHistory, IconBulb, IconPhone, IconPlus, IconSearch, IconStar, IconTag, IconTrash, IconUser, IconUsers, IconToolsKitchen, IconX } from '@tabler/icons-react';
 
 import { Guest, GuestTag, GuestNote, Reservation } from '../types';
 import {
@@ -24,13 +24,13 @@ const ALL_TAGS: { value: GuestTag; label: string; color: string }[] = [
   { value: 'presse', label: 'Presse', color: '#a78bfa' },
 ];
 
-const NOTE_CATEGORIES: { value: GuestNote['category']; label: string; icon: typeof Star }[] = [
-  { value: 'general', label: 'Allgemein', icon: Edit3 },
-  { value: 'status', label: 'Gaststatus', icon: Star },
-  { value: 'food', label: 'Speisen & Getränke', icon: UtensilsCrossed },
-  { value: 'seating', label: 'Sitzplaetze', icon: Armchair },
-  { value: 'info', label: 'Gästeinformation', icon: Lightbulb },
-  { value: 'history', label: 'Verlauf', icon: History },
+const NOTE_CATEGORIES: { value: GuestNote['category']; label: string; icon: typeof IconStar }[] = [
+  { value: 'general', label: 'Allgemein', icon: IconEdit },
+  { value: 'status', label: 'Gaststatus', icon: IconStar },
+  { value: 'food', label: 'Speisen & Getränke', icon: IconToolsKitchen },
+  { value: 'seating', label: 'Sitzplaetze', icon: IconArmchair },
+  { value: 'info', label: 'Gästeinformation', icon: IconBulb },
+  { value: 'history', label: 'Verlauf', icon: IconHistory },
 ];
 
 interface GuestProfileProps {
@@ -109,7 +109,7 @@ export function GuestProfile({ guest, onClose, onUpdated, onReserve }: GuestProf
       {/* Header */}
       <div className="px-4 py-2.5 flex items-center justify-between" style={{ background: '#1a1a2e' }}>
         <button onClick={requestClose} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0] transition-colors">
-          <ChevronLeft className="w-5 h-5" />
+          <IconChevronLeft className="w-5 h-5" />
         </button>
         <h1 className="text-white font-bold text-[16px] tracking-tight">Gast-Profil</h1>
         <div className="w-8" />
@@ -127,7 +127,7 @@ export function GuestProfile({ guest, onClose, onUpdated, onReserve }: GuestProf
               {guest.phone && (
                 <div className="mt-1 min-w-0">
                   <a href={'tel:' + guest.phone} className="flex min-w-0 items-center gap-1.5 text-[#d8c7ff] text-[10px]">
-                    <Phone className="w-3 h-3 shrink-0" />
+                    <IconPhone className="w-3 h-3 shrink-0" />
                     <span className="truncate">{maskPhone(guest.phone)}</span>
                   </a>
                 </div>
@@ -174,7 +174,7 @@ export function GuestProfile({ guest, onClose, onUpdated, onReserve }: GuestProf
         <div className="px-4 py-2.5 border-b border-slate-800">
           <div className="flex items-center justify-between mb-1.5">
             <div className="flex items-center gap-1.5 text-[#b0b0cc] text-[11px] font-medium">
-              <Tag className="w-3.5 h-3.5" /> Etiketten
+              <IconTag className="w-3.5 h-3.5" /> Etiketten
             </div>
             <button onClick={() => setShowTagPicker(!showTagPicker)}
               className="text-[11px] text-[#d8c7ff] hover:text-white transition-colors">
@@ -251,7 +251,7 @@ export function GuestProfile({ guest, onClose, onUpdated, onReserve }: GuestProf
             </p>
             <button onClick={() => setShowAddNote(true)}
               className="flex items-center gap-1 text-[11px] text-[#d8c7ff] hover:text-white transition-colors">
-              <Plus className="w-3 h-3" /> Hinzufuegen
+              <IconPlus className="w-3 h-3" /> Hinzufuegen
             </button>
           </div>
 
@@ -287,7 +287,7 @@ export function GuestProfile({ guest, onClose, onUpdated, onReserve }: GuestProf
               </div>
               <button onClick={() => handleRemoveNote(note.id)}
                 className="p-1 text-[#777] hover:text-red-400 transition-colors shrink-0 ml-2">
-                  <Trash2 className="w-3 h-3" />
+                  <IconTrash className="w-3 h-3" />
                 </button>
               </div>
             ))}
@@ -297,7 +297,7 @@ export function GuestProfile({ guest, onClose, onUpdated, onReserve }: GuestProf
         {guest.visits.length > 0 && (
           <div className="px-4 py-2.5 border-t border-slate-800">
             <p className="text-[#b0b0cc] text-[11px] font-medium mb-2 flex items-center gap-1.5">
-              <History className="w-3 h-3" /> Besuchshistorie
+              <IconHistory className="w-3 h-3" /> Besuchshistorie
             </p>
             <div className="space-y-1.5">
               {guest.visits.slice(-10).reverse().map((v, i) => (
@@ -306,7 +306,7 @@ export function GuestProfile({ guest, onClose, onUpdated, onReserve }: GuestProf
                     <span className="text-[#c0c0dd]">{formatDate(v.date)}</span>
                     <span className="text-[#8888aa]">{v.tableName}</span>
                     <span className="text-[#8888aa] flex items-center gap-0.5">
-                      <Users className="w-3 h-3" />{v.partySize}
+                      <IconUsers className="w-3 h-3" />{v.partySize}
                     </span>
                   </div>
                   <span className="text-[#c0c0dd] text-[11px] font-medium">{v.revenue.toFixed(2)}€</span>
@@ -320,7 +320,7 @@ export function GuestProfile({ guest, onClose, onUpdated, onReserve }: GuestProf
         {guestReservations.filter(r => r.status === 'confirmed').length > 0 && (
           <div className="px-4 py-2.5 border-t border-slate-800">
             <p className="text-[#b0b0cc] text-[11px] font-medium mb-2 flex items-center gap-1.5">
-              <CalendarCheck className="w-3 h-3" /> Reservierungen
+              <IconCalendarCheck className="w-3 h-3" /> Reservierungen
             </p>
             <div className="space-y-1.5">
               {guestReservations.filter(r => r.status === 'confirmed').map(r => (
@@ -328,10 +328,10 @@ export function GuestProfile({ guest, onClose, onUpdated, onReserve }: GuestProf
                   <div className="min-w-0 flex items-center gap-2 text-[11px] font-medium">
                     <span className="text-[#d8c7ff] whitespace-nowrap">{formatDate(r.date)}</span>
                     <span className="text-[#c7c1dd] flex items-center gap-1 whitespace-nowrap">
-                      <Clock className="w-3 h-3" />{r.time}
+                      <IconClock className="w-3 h-3" />{r.time}
                     </span>
                     <span className="text-[#ec78ff] flex items-center gap-1 whitespace-nowrap">
-                      <Users className="w-3 h-3" />{r.partySize}
+                      <IconUsers className="w-3 h-3" />{r.partySize}
                     </span>
                   </div>
                   <span className="shrink-0 bg-[#312e52] px-2 py-1 text-[10px] font-semibold text-[#d8c7ff]">
@@ -425,13 +425,13 @@ export function GuestList({ onClose, onSelectGuest }: GuestListProps) {
       <div className="px-4 py-3 flex items-center justify-between border-b border-[#333355]" style={{ background: '#1a1a2e' }}>
         <div className="flex items-center gap-3">
           <button onClick={onClose} className="p-1.5 rounded-lg text-[#b0b0cc] hover:text-[#e0e0f0] transition-colors">
-            <X className="w-5 h-5" />
+            <IconX className="w-5 h-5" />
           </button>
           <h1 className="text-white font-bold text-lg">Gäste</h1>
         </div>
         <button onClick={() => setShowCreateForm(true)}
           className="flex items-center gap-1.5 bg-[#7bb7ef] text-white rounded-lg px-3 py-1.5 text-sm font-medium hover:bg-[#7bb7ef] transition-colors">
-          <Plus className="w-4 h-4" /> Neuer Gast
+          <IconPlus className="w-4 h-4" /> Neuer Gast
         </button>
       </div>
 
@@ -447,7 +447,7 @@ export function GuestList({ onClose, onSelectGuest }: GuestListProps) {
       {/* Search */}
       <div className="px-4 py-2 border-b border-slate-800" style={{ background: '#1a1a2e' }}>
         <div className="flex items-center gap-2 rounded-lg bg-[#2a2a42] px-3 py-2">
-          <Search className="w-4 h-4 text-[#8888aa]" />
+          <IconSearch className="w-4 h-4 text-[#8888aa]" />
           <input type="text" value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Name, Telefon, E-Mail oder Tag suchen..."
@@ -475,7 +475,7 @@ export function GuestList({ onClose, onSelectGuest }: GuestListProps) {
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-[#8888aa]">
-            <User className="w-12 h-12 mb-3 opacity-50" />
+            <IconUser className="w-12 h-12 mb-3 opacity-50" />
             <p className="text-sm font-medium">{searchQuery ? 'Kein Gast gefunden' : 'Noch keine Gäste'}</p>
             <p className="text-xs mt-1">Gäste werden automatisch bei Reservierungen angelegt</p>
           </div>
@@ -485,7 +485,7 @@ export function GuestList({ onClose, onSelectGuest }: GuestListProps) {
               className="rounded-xl p-3 flex items-center gap-3 cursor-pointer active:bg-[#353558]/50 transition-colors"
               style={{ background: '#1a1a2e' }}>
               <div className="w-10 h-10 rounded-full bg-[#353558] flex items-center justify-center shrink-0">
-                <User className="w-5 h-5 text-[#b0b0cc]" />
+                <IconUser className="w-5 h-5 text-[#b0b0cc]" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
@@ -501,14 +501,14 @@ export function GuestList({ onClose, onSelectGuest }: GuestListProps) {
                   })}
                 </div>
                 <div className="flex items-center gap-3 text-xs text-[#8888aa] mt-0.5">
-                  {g.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{g.phone}</span>}
+                  {g.phone && <span className="flex items-center gap-1"><IconPhone className="w-3 h-3" />{g.phone}</span>}
                   <span>{g.totalVisits} Besuche</span>
                   {g.totalSpend > 0 && <span>{g.totalSpend.toFixed(0)}€</span>}
                 </div>
               </div>
               <button onClick={(e) => handleDelete(e, g.id)}
                 className="p-1.5 rounded-lg text-[#777] hover:text-red-400 transition-colors">
-                <Trash2 className="w-3.5 h-3.5" />
+                <IconTrash className="w-3.5 h-3.5" />
               </button>
             </div>
           ))
@@ -523,7 +523,7 @@ export function GuestList({ onClose, onSelectGuest }: GuestListProps) {
               <h2 className="text-white font-bold text-lg">Neuer Gast</h2>
               <button onClick={() => setShowCreateForm(false)}
                 className="p-1.5 text-[#b0b0cc] hover:text-[#e0e0f0] transition-colors">
-                <X className="w-5 h-5" />
+                <IconX className="w-5 h-5" />
               </button>
             </div>
             <div className="space-y-3">

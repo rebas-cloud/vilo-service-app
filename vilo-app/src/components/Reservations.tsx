@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo, type ComponentType } from 'react';
-import { AlertCircle, Armchair, BarChart3, Calendar, Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Edit3, MessageSquare, Plus, Search, Sparkles, Star, Trash2, User, UserPlus, Users, X } from 'lucide-react';
-import { IconAlertTriangleFilled, IconBabyCarriage, IconBriefcaseFilled, IconCake, IconCircleCheckFilled, IconCoinFilled, IconConfetti, IconGiftFilled, IconGlobeFilled, IconHeartFilled, IconHeartHandshake, IconLeaf, IconMasksTheater, IconNews, IconPhoneFilled, IconPlant2, IconSchool, IconStarFilled, IconWalk, IconWheelchair } from '@tabler/icons-react';
+import { IconAlertCircle, IconArmchair, IconChartBar, IconCalendar, IconCheck, IconChevronDown, IconChevronLeft, IconChevronRight, IconChevronUp, IconEdit, IconMessage, IconPlus, IconSearch, IconSparkles, IconStar, IconTrash, IconUser, IconUserPlus, IconUsers, IconX, IconAlertTriangleFilled, IconBabyCarriage, IconBriefcaseFilled, IconCake, IconCircleCheckFilled, IconCoinFilled, IconConfetti, IconGiftFilled, IconGlobeFilled, IconHeartFilled, IconHeartHandshake, IconLeaf, IconMasksTheater, IconNews, IconPhoneFilled, IconPlant2, IconSchool, IconStarFilled, IconWalk, IconWheelchair } from '@tabler/icons-react';
 
 import { Reservation, ReservationStatus, Guest, SeatLabel, OccasionLabel } from '../types';
 import { loadReservations, addReservation, updateReservation, deleteReservation, findGuestByPhone, addGuest, loadGuests } from '../utils/storage';
@@ -88,7 +87,7 @@ type ReservationIconComponent = ComponentType<{ size?: string | number; color?: 
 const OCCASION_ICONS: Record<OccasionLabel, { Icon: ReservationIconComponent; color: string }> = {
   geburtstag: { Icon: IconConfetti, color: '#22c55e' },
   jahrestag: { Icon: IconHeartFilled, color: '#22c55e' },
-  besonderer_anlass: { Icon: Sparkles, color: '#a855f7' },
+  besonderer_anlass: { Icon: IconSparkles, color: '#a855f7' },
   date: { Icon: IconHeartHandshake, color: '#ec4899' },
   geschaeftsessen: { Icon: IconBriefcaseFilled, color: '#a855f7' },
   gratis_extra: { Icon: IconGiftFilled, color: '#22c55e' },
@@ -98,7 +97,7 @@ const OCCASION_ICONS: Record<OccasionLabel, { Icon: ReservationIconComponent; co
 
 const ALL_TAGS_MAP: Record<string, { label: string; color: string; Icon: ReservationIconComponent; }> = {
   vip: { label: 'VIP', color: '#eab308', Icon: IconStarFilled },
-  stammgast: { label: 'Stammgast', color: '#22d3ee', Icon: UserPlus },
+  stammgast: { label: 'Stammgast', color: '#22d3ee', Icon: IconUserPlus },
   allergiker: { label: 'Allergiker', color: '#ef4444', Icon: IconAlertTriangleFilled },
   vegetarier: { label: 'Vegetarier', color: '#22c55e', Icon: IconLeaf },
   vegan: { label: 'Vegan', color: '#16a34a', Icon: IconPlant2 },
@@ -630,7 +629,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
             }}
             className="absolute right-0 top-1/2 -translate-y-1/2 p-1.5 text-[#b0b0cc] hover:text-[#e0e0f0] transition-colors"
           >
-            <X className="w-5 h-5" />
+            <IconX className="w-5 h-5" />
           </button>
         </div>
         <div className="flex items-center justify-between mb-3">
@@ -640,7 +639,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
             className="w-10 h-10 flex items-center justify-center text-white transition-colors"
             style={{ background: '#312e4f' }}
           >
-            <ChevronLeft className="w-4 h-4" />
+            <IconChevronLeft className="w-4 h-4" />
           </button>
           <div className="flex items-center gap-2">
             <div className="px-2 py-2 text-[15px] font-semibold text-white">{monthNames[month]}</div>
@@ -652,7 +651,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
             className="w-10 h-10 flex items-center justify-center text-white transition-colors"
             style={{ background: '#312e4f' }}
           >
-            <ChevronRight className="w-4 h-4" />
+            <IconChevronRight className="w-4 h-4" />
           </button>
         </div>
 
@@ -733,7 +732,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
               onClick={() => setShowGuestList(true)}
               className={'flex items-center gap-1.5 text-[#c0c0dd] font-medium border border-[#3d3d5c] hover:bg-[#2a2a42] transition-colors ' + (embedded ? 'px-2.5 py-2 rounded-lg text-[13px]' : 'px-3 py-2 rounded-xl text-sm')}
             >
-              <Users className="w-4 h-4" />
+              <IconUsers className="w-4 h-4" />
               Gästeliste
             </button>
             <button
@@ -741,11 +740,11 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
               className={'flex items-center gap-1.5 text-white font-semibold ' + (embedded ? 'px-2.5 py-2 rounded-lg text-[13px]' : 'px-3 py-2 rounded-xl text-sm')}
               style={{ background: 'var(--vilo-accent-secondary)' }}
             >
-              <Plus className="w-4 h-4" />
+              <IconPlus className="w-4 h-4" />
               Hinzufügen
             </button>
             <button onClick={onClose} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0] transition-colors">
-              <X className="w-6 h-6" />
+              <IconX className="w-6 h-6" />
             </button>
           </div>
         </div>
@@ -755,24 +754,24 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
           <div className={'min-w-0 ' + (embedded ? 'space-y-2' : 'flex items-center gap-4')}>
             <div className="flex items-center gap-1.5">
               <button onClick={() => navigateDate(-1)} className="p-1 -ml-1 text-[#555577] hover:text-white transition-colors">
-                <ChevronLeft className="w-4 h-4" />
+                <IconChevronLeft className="w-4 h-4" />
               </button>
               <span className="font-semibold text-white whitespace-nowrap">
                 {isToday ? 'Heute' : formatDateDisplay(selectedDate)}
               </span>
               <button onClick={() => navigateDate(1)} className="p-1 -mr-1 text-[#555577] hover:text-white transition-colors">
-                <ChevronRight className="w-4 h-4" />
+                <IconChevronRight className="w-4 h-4" />
               </button>
             </div>
             <div className={'gap-3 ' + (embedded ? 'grid grid-cols-2' : 'flex items-center')}>
-              <span className="flex items-center gap-1.5 whitespace-nowrap"><Armchair className="w-4 h-4 text-[#8888aa]" /> {dayReservations.length} Gruppen</span>
-              <span className="flex items-center gap-1.5 whitespace-nowrap"><Users className="w-4 h-4 text-[#8888aa]" /> {totalGuests} Gäste</span>
+              <span className="flex items-center gap-1.5 whitespace-nowrap"><IconArmchair className="w-4 h-4 text-[#8888aa]" /> {dayReservations.length} Gruppen</span>
+              <span className="flex items-center gap-1.5 whitespace-nowrap"><IconUsers className="w-4 h-4 text-[#8888aa]" /> {totalGuests} Gäste</span>
             </div>
           </div>
           <div className={'flex items-center gap-3 shrink-0 ' + (embedded ? 'justify-between' : '')}>
             <button onClick={() => setShowShiftOverview(!showShiftOverview)}
               className={'p-1 rounded transition-colors ' + (showShiftOverview ? 'text-[#7bb7ef] bg-[#7bb7ef]/10' : 'text-[#8888aa] hover:text-white')}>
-              <BarChart3 className="w-4 h-4" />
+              <IconChartBar className="w-4 h-4" />
             </button>
             <div className="flex items-center gap-1.5">
               <div className="w-2 h-2 rounded-full bg-emerald-500" />
@@ -844,7 +843,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                 {shiftStats.largeParties.length > 0 && (
                   <div className="mb-2">
                     <div className="flex items-center gap-1.5 mb-1">
-                      <Users className="w-3 h-3 text-[#8888aa]" />
+                      <IconUsers className="w-3 h-3 text-[#8888aa]" />
                       <span className="text-[#b0b0cc] text-[10px] font-semibold">Große Gruppen ({shiftStats.largeParties.length})</span>
                     </div>
                     {shiftStats.largeParties.map(r => (
@@ -861,7 +860,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                 {shiftStats.guestRequests.length > 0 && (
                   <div className="mb-2">
                     <div className="flex items-center gap-1.5 mb-1">
-                      <MessageSquare className="w-3 h-3 text-[#8888aa]" />
+                      <IconMessage className="w-3 h-3 text-[#8888aa]" />
                       <span className="text-[#b0b0cc] text-[10px] font-semibold">Gästewünsche ({shiftStats.guestRequests.length})</span>
                     </div>
                     {shiftStats.guestRequests.map(r => (
@@ -878,7 +877,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                 {shiftStats.specialEvents.length > 0 && (
                   <div className="mb-2">
                     <div className="flex items-center gap-1.5 mb-1">
-                      <Sparkles className="w-3 h-3 text-[#8888aa]" />
+                      <IconSparkles className="w-3 h-3 text-[#8888aa]" />
                       <span className="text-[#b0b0cc] text-[10px] font-semibold">Besondere Anlässe ({shiftStats.specialEvents.length})</span>
                     </div>
                     {shiftStats.specialEvents.map(r => (
@@ -903,7 +902,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                 {shiftStats.seatingPrefs.length > 0 && (
                   <div className="mb-2">
                     <div className="flex items-center gap-1.5 mb-1">
-                      <Armchair className="w-3 h-3 text-[#8888aa]" />
+                      <IconArmchair className="w-3 h-3 text-[#8888aa]" />
                       <span className="text-[#b0b0cc] text-[10px] font-semibold">Sitzplatzwünsche ({shiftStats.seatingPrefs.length})</span>
                     </div>
                     {shiftStats.seatingPrefs.map(r => (
@@ -925,7 +924,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                 {shiftStats.referrals.length > 0 && (
                   <div className="mb-2">
                     <div className="flex items-center gap-1.5 mb-1">
-                      <Star className="w-3 h-3 text-[#8888aa]" />
+                      <IconStar className="w-3 h-3 text-[#8888aa]" />
                       <span className="text-[#b0b0cc] text-[10px] font-semibold">Empfehlungen ({shiftStats.referrals.length})</span>
                     </div>
                     <div className="flex flex-wrap gap-1 pl-5 mb-1">
@@ -962,7 +961,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
       <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-2">
         {dayReservations.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-[#555577]">
-            <Calendar className="w-12 h-12 mb-3 opacity-40" />
+            <IconCalendar className="w-12 h-12 mb-3 opacity-40" />
             <p className="text-sm font-medium text-[#777]">Keine Reservierungen</p>
             <p className="text-xs mt-1 text-[#6b6b8a]">Tippe auf "Hinzufügen" um eine Reservierung anzulegen</p>
           </div>
@@ -983,12 +982,12 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                   <div className="flex items-center gap-3">
                     <span className="text-[#8888aa] text-[11px]"><span className="text-white font-bold">{upcomingReservations.length}</span> Gruppen</span>
                     <span className="text-[#8888aa] text-[11px]"><span className="text-white font-bold">{upcomingGuests}</span> Gäste</span>
-                    {showUpcoming ? <ChevronUp className="w-4 h-4 text-[#8888aa]" /> : <ChevronDown className="w-4 h-4 text-[#8888aa]" />}
+                    {showUpcoming ? <IconChevronUp className="w-4 h-4 text-[#8888aa]" /> : <IconChevronDown className="w-4 h-4 text-[#8888aa]" />}
                   </div>
                 </button>
                 {showUpcoming && upcomingReservations.map((r) => {
                   const sourceColor = SOURCE_COLORS[r.source] || '#8888aa';
-                  const SourceIcon = SOURCE_ICONS[r.source as keyof typeof SOURCE_ICONS] || Users;
+                  const SourceIcon = SOURCE_ICONS[r.source as keyof typeof SOURCE_ICONS] || IconUsers;
                   const assignedTable = r.tableId ? state.tables.find(t => t.id === r.tableId) : null;
                   const guestProfile = getGuestForReservation(r);
                   const isMenuOpen = openMenuId === r.id;
@@ -1067,7 +1066,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                               return (
                                 <div className="flex items-center justify-center rounded-[4px]"
                                   style={{ background: '#222238', width: '40px', height: '40px' }}>
-                                  <Armchair className="w-5 h-5 text-[#555577]" />
+                                  <IconArmchair className="w-5 h-5 text-[#555577]" />
                                 </div>
                               );
                             }
@@ -1088,21 +1087,21 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                   <div className="mt-auto w-full rounded-t-2xl overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto" style={{ background: '#1a1a2e' }} onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-between px-5 py-4">
                       <span className="text-2xl font-bold text-white">{r.guestName}</span>
-                      <button onClick={() => setOpenMenuId(null)} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0]"><X className="w-6 h-6" /></button>
+                      <button onClick={() => setOpenMenuId(null)} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0]"><IconX className="w-6 h-6" /></button>
                     </div>
                     <div className="px-5 py-2 space-y-2">
                       <button onClick={() => { handleStatusChange(r.id, 'seated'); setOpenMenuId(null); }}
                         className="w-full flex items-center gap-3 py-4 px-4 rounded-xl text-white font-semibold text-base transition-colors" style={{ background: '#7c3aed' }}>
-                        <Check className="w-5 h-5" /> Platzieren
+                        <IconCheck className="w-5 h-5" /> Platzieren
                       </button>
                       <button onClick={() => { handleEditReservation(r); setOpenMenuId(null); }}
                         className="w-full flex items-center gap-3 py-4 px-4 rounded-xl border border-[#3d3d5c] text-[#c0c0dd] font-medium text-base hover:bg-[#2a2a42] active:bg-[#353558] transition-colors">
-                        <Edit3 className="w-5 h-5 text-[#b0b0cc]" /> Bearbeiten
+                        <IconEdit className="w-5 h-5 text-[#b0b0cc]" /> Bearbeiten
                       </button>
                       {guestProfile && (
                         <button onClick={() => { setShowGuestProfile(guestProfile); setOpenMenuId(null); }}
                           className="w-full flex items-center gap-3 py-4 px-4 rounded-xl border border-[#3d3d5c] text-[#c0c0dd] font-medium text-base hover:bg-[#2a2a42] active:bg-[#353558] transition-colors">
-                          <User className="w-5 h-5 text-[#b0b0cc]" /> Gast-Profil
+                          <IconUser className="w-5 h-5 text-[#b0b0cc]" /> Gast-Profil
                         </button>
                       )}
                     </div>
@@ -1147,11 +1146,11 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                     <div className="px-5 py-3 pb-20 space-y-1">
                       <button onClick={() => { handleStatusChange(r.id, 'cancelled'); setOpenMenuId(null); }}
                         className="w-full flex items-center gap-3 py-4 px-4 text-[#ef4444] font-semibold text-base hover:bg-[#3a1a1a] transition-colors rounded-xl">
-                        <X className="w-5 h-5" /> Stornieren
+                        <IconX className="w-5 h-5" /> Stornieren
                       </button>
                       <button onClick={() => { handleDelete(r.id); setOpenMenuId(null); }}
                         className="w-full flex items-center gap-3 py-4 px-4 text-[#ef4444] font-semibold text-base hover:bg-[#3a1a1a] transition-colors rounded-xl">
-                        <Trash2 className="w-5 h-5" /> Loeschen
+                        <IconTrash className="w-5 h-5" /> Loeschen
                       </button>
                     </div>
                   </div>
@@ -1174,12 +1173,12 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                   <div className="flex items-center gap-3">
                     <span className="text-[#8888aa] text-[11px]"><span className="text-white font-bold">{seatedReservations.length}</span> Gruppen</span>
                     <span className="text-[#8888aa] text-[11px]"><span className="text-white font-bold">{seatedGuests}</span> Gäste</span>
-                    {showSeated ? <ChevronUp className="w-4 h-4 text-[#8888aa]" /> : <ChevronDown className="w-4 h-4 text-[#8888aa]" />}
+                    {showSeated ? <IconChevronUp className="w-4 h-4 text-[#8888aa]" /> : <IconChevronDown className="w-4 h-4 text-[#8888aa]" />}
                   </div>
                 </button>
                 {showSeated && seatedReservations.map((r) => {
                   const sourceColor = SOURCE_COLORS[r.source] || '#8888aa';
-                  const SourceIcon = SOURCE_ICONS[r.source as keyof typeof SOURCE_ICONS] || Users;
+                  const SourceIcon = SOURCE_ICONS[r.source as keyof typeof SOURCE_ICONS] || IconUsers;
                   const assignedTable = r.tableId ? state.tables.find(t => t.id === r.tableId) : null;
                   const guestProfile = getGuestForReservation(r);
                   const isMenuOpen = openMenuId === r.id;
@@ -1259,7 +1258,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                               return (
                                 <div className="flex items-center justify-center rounded-[4px]"
                                   style={{ background: '#222238', width: '40px', height: '40px' }}>
-                                  <Armchair className="w-5 h-5 text-[#555577]" />
+                                  <IconArmchair className="w-5 h-5 text-[#555577]" />
                                 </div>
                               );
                             }
@@ -1281,30 +1280,30 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                   <div className="mt-auto w-full rounded-t-2xl overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto" style={{ background: '#1a1a2e' }} onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-between px-5 py-4">
                       <span className="text-2xl font-bold text-white">{r.guestName}</span>
-                      <button onClick={() => setOpenMenuId(null)} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0]"><X className="w-6 h-6" /></button>
+                      <button onClick={() => setOpenMenuId(null)} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0]"><IconX className="w-6 h-6" /></button>
                     </div>
                     <div className="px-5 py-2 space-y-2">
                       <button onClick={() => { handleEditReservation(r); setOpenMenuId(null); }}
                         className="w-full flex items-center gap-3 py-4 px-4 rounded-xl border border-[#3d3d5c] text-[#c0c0dd] font-medium text-base hover:bg-[#2a2a42] active:bg-[#353558] transition-colors">
-                        <Edit3 className="w-5 h-5 text-[#b0b0cc]" /> Bearbeiten
+                        <IconEdit className="w-5 h-5 text-[#b0b0cc]" /> Bearbeiten
                       </button>
                       {guestProfile && (
                         <button onClick={() => { setShowGuestProfile(guestProfile); setOpenMenuId(null); }}
                           className="w-full flex items-center gap-3 py-4 px-4 rounded-xl border border-[#3d3d5c] text-[#c0c0dd] font-medium text-base hover:bg-[#2a2a42] active:bg-[#353558] transition-colors">
-                          <User className="w-5 h-5 text-[#b0b0cc]" /> Gast-Profil
+                          <IconUser className="w-5 h-5 text-[#b0b0cc]" /> Gast-Profil
                         </button>
                       )}
                       {assignedTable && onSeatReservation && (
                         <button onClick={() => { onSeatReservation(assignedTable.id); setOpenMenuId(null); }}
                           className="w-full flex items-center gap-3 py-4 px-4 rounded-xl text-white font-semibold text-base transition-colors" style={{ background: '#7c3aed' }}>
-                          <Armchair className="w-5 h-5" /> Zum Tisch
+                          <IconArmchair className="w-5 h-5" /> Zum Tisch
                         </button>
                       )}
                     </div>
                     <div className="px-5 py-3 pb-20">
                       <button onClick={() => { handleDelete(r.id); setOpenMenuId(null); }}
                         className="w-full flex items-center gap-3 py-4 px-4 text-[#ef4444] font-semibold text-base hover:bg-[#3a1a1a] transition-colors rounded-xl">
-                        <Trash2 className="w-5 h-5" /> Loeschen
+                        <IconTrash className="w-5 h-5" /> Loeschen
                       </button>
                     </div>
                   </div>
@@ -1340,7 +1339,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
               }
             }}
               className="p-1.5 text-[#b0b0cc] hover:text-[#e0e0f0] transition-colors">
-              {wizardStep === 'date' || editingId ? <X className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+              {wizardStep === 'date' || editingId ? <IconX className="w-5 h-5" /> : <IconChevronLeft className="w-5 h-5" />}
             </button>
 
             <div className="flex-1 mx-3">
@@ -1349,10 +1348,10 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                   <span className="text-white font-semibold text-sm">Datum</span>
                 )}
                 {wizardStep === 'guests' && (
-                  <><Users className="w-4 h-4 text-[#b0b0cc]" /><span className="text-white font-semibold text-sm">{formData.partySize} {formData.partySize === 1 ? 'Gast' : 'Gäste'}</span></>
+                  <><IconUsers className="w-4 h-4 text-[#b0b0cc]" /><span className="text-white font-semibold text-sm">{formData.partySize} {formData.partySize === 1 ? 'Gast' : 'Gäste'}</span></>
                 )}
                 {wizardStep === 'guest_info' && (
-                  <><User className="w-4 h-4 text-[#b0b0cc]" /><span className="text-white font-semibold text-sm truncate">{formData.guestName || 'Gast'}</span></>
+                  <><IconUser className="w-4 h-4 text-[#b0b0cc]" /><span className="text-white font-semibold text-sm truncate">{formData.guestName || 'Gast'}</span></>
                 )}
               </div>
             </div>
@@ -1367,7 +1366,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
               }}
               className="p-1.5 text-[#b0b0cc] hover:text-[#e0e0f0] transition-colors"
             >
-              <X className="w-5 h-5" />
+              <IconX className="w-5 h-5" />
             </button>
           </div>
 
@@ -1401,7 +1400,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                           className="w-10 h-10 flex items-center justify-center text-white transition-colors"
                           style={{ background: '#312e4f', borderRadius: 0 }}
                         >
-                          <ChevronLeft className="w-4 h-4" />
+                          <IconChevronLeft className="w-4 h-4" />
                         </button>
                         <div className="flex items-center gap-2">
                           <div className="px-2 py-2 text-[15px] font-semibold text-white">
@@ -1417,7 +1416,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                           className="w-10 h-10 flex items-center justify-center text-white transition-colors"
                           style={{ background: '#312e4f', borderRadius: 0 }}
                         >
-                          <ChevronRight className="w-4 h-4" />
+                          <IconChevronRight className="w-4 h-4" />
                         </button>
                       </div>
 
@@ -1546,7 +1545,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                 {/* Pacing limit warning */}
                 {isPacingExceeded && (
                   <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#f59e0b]/15 border border-[#f59e0b]/30">
-                    <AlertCircle className="w-4 h-4 text-[#f59e0b] shrink-0" />
+                    <IconAlertCircle className="w-4 h-4 text-[#f59e0b] shrink-0" />
                     <p className="text-[11px] text-[#f59e0b]">Pacing Limit erreicht: {currentSlotCount}/{pacingLimit} Reservierungen in diesem Zeitslot</p>
                   </div>
                 )}
@@ -1575,7 +1574,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                         (formData.tableId ? 'bg-[#26243f]' : 'border border-dashed border-[#6f5c9a] bg-transparent')}
                       style={{ borderRadius: 0 }}
                     >
-                      <Armchair className="w-5 h-5 text-[#c7c0e8] shrink-0" />
+                      <IconArmchair className="w-5 h-5 text-[#c7c0e8] shrink-0" />
                       <div className="min-w-0 flex-1">
                         <div className="text-white text-sm font-semibold leading-tight">
                           {formData.tableId
@@ -1595,7 +1594,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                             : 'Automatisch zuweisen'}
                         </div>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-[#9f93ca] shrink-0" />
+                      <IconChevronRight className="w-4 h-4 text-[#9f93ca] shrink-0" />
                     </div>
                     <select
                       value={formData.tableId}
@@ -1625,7 +1624,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                 {/* Search bar */}
                 <div className="px-4 py-2">
                   <div className="relative">
-                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8888aa]" />
+                    <IconSearch className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8888aa]" />
                     <input
                       type="text"
                       value={guestSearch}
@@ -1642,7 +1641,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                         <button key={g.id} onClick={() => handleSelectSearchGuest(g)}
                           className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-[#302d4a] text-left border-b border-[#26243f] last:border-0 bg-[#26243f]">
                           <div className="w-8 h-8 bg-[#31224d] flex items-center justify-center" style={{ borderRadius: 0 }}>
-                            <User className="w-4 h-4 text-[#d8c7ff]" />
+                            <IconUser className="w-4 h-4 text-[#d8c7ff]" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-white truncate">{g.name}</p>
@@ -1816,7 +1815,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                       <div className="mt-3 space-y-3 p-3 bg-[#26243f]" style={{ borderRadius: 0 }}>
                         <div>
                           <p className="text-[10px] text-[#b0b0cc] font-semibold uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                            <Armchair className="w-3 h-3" /> Sitzplatz-Präferenzen
+                            <IconArmchair className="w-3 h-3" /> Sitzplatz-Präferenzen
                           </p>
                           <div className="flex flex-wrap gap-1.5">
                             {(Object.entries(SEAT_LABELS_MAP) as [SeatLabel, { label: string; icon: string }][]).map(([key, val]) => {
@@ -1838,7 +1837,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                         </div>
                         <div>
                           <p className="text-[10px] text-[#b0b0cc] font-semibold uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                            <Sparkles className="w-3 h-3" /> Anlass
+                            <IconSparkles className="w-3 h-3" /> Anlass
                           </p>
                           <div className="flex flex-wrap gap-1.5">
                             {(Object.entries(OCCASION_LABELS_MAP) as [OccasionLabel, { label: string; icon: string }][]).map(([key, val]) => {

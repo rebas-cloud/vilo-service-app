@@ -123,7 +123,6 @@ export function useVoice(onCommand: (command: string) => void): UseVoiceReturn {
   const processCommand = useCallback((command: string) => {
     const trimmed = command.trim();
     if (!trimmed) return;
-    console.log('[VILO] Processing command:', trimmed);
     setLastCommand(trimmed);
     setMode('processing');
     modeRef.current = 'processing';
@@ -158,12 +157,9 @@ export function useVoice(onCommand: (command: string) => void): UseVoiceReturn {
 
       const currentTranscript = (finalTranscript || interimTranscript).trim();
       setTranscript(currentTranscript);
-      console.log('[VILO] Transcript:', currentTranscript, 'final:', !!finalTranscript, 'forCommand:', forCommand);
-
       if (!forCommand) {
         // Wake phrase detection - uses fuzzy matching for all "Vilo" variants
         if (detectWakePhrase(currentTranscript)) {
-          console.log('[VILO] Wake phrase detected!', currentTranscript);
           setMode('listening_command');
           modeRef.current = 'listening_command';
           setTranscript('');
@@ -260,7 +256,6 @@ export function useVoice(onCommand: (command: string) => void): UseVoiceReturn {
 
     recognition.onerror = (event) => {
       if (event.error === 'aborted') return;
-      console.log('[VILO] Speech error:', event.error);
       if (event.error === 'no-speech') {
         if (forCommand) {
           if (isStoppedRef.current) return;
@@ -289,7 +284,6 @@ export function useVoice(onCommand: (command: string) => void): UseVoiceReturn {
     try {
       recognition.start();
       recognitionRef.current = recognition;
-      console.log('[VILO] Recognition started:', forCommand ? 'command' : 'wake');
     } catch (e) {
       console.error('[VILO] Failed to start:', e);
     }

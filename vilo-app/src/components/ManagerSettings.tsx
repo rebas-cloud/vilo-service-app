@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Check, ChevronDown, ChevronUp, Copy, Edit3, GripVertical, LayoutGrid, Plus, Receipt, Store, Trash2, Users, UtensilsCrossed, X } from 'lucide-react';
+import { IconArrowLeft, IconCheck, IconChevronDown, IconChevronUp, IconCopy, IconEdit, IconGripVertical, IconLayoutGrid, IconPlus, IconReceipt, IconBuildingStore, IconTrash, IconUsers, IconToolsKitchen, IconX } from '@tabler/icons-react';
 
 import { Restaurant, Zone, Table, MenuItem, MenuCategory, Staff } from '../types';
 import { loadStorage, saveStorage } from '../utils/storage';
@@ -177,7 +177,7 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
             className="p-2.5 rounded-xl bg-[#353558] text-[#c0c0dd] hover:bg-[#555] transition-colors"
             title="Code kopieren"
           >
-            <Copy className="w-4 h-4" />
+            <IconCopy className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -255,7 +255,7 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
                 onClick={() => toggleZoneExpanded(zone.id)}
                 className="flex items-center gap-2 flex-1 text-left"
               >
-                {isExpanded ? <ChevronUp className="w-4 h-4 text-[#b0b0cc]" /> : <ChevronDown className="w-4 h-4 text-[#b0b0cc]" />}
+                {isExpanded ? <IconChevronUp className="w-4 h-4 text-[#b0b0cc]" /> : <IconChevronDown className="w-4 h-4 text-[#b0b0cc]" />}
                 {editingZone === zone.id ? (
                   <input
                     type="text"
@@ -277,13 +277,13 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
                   onClick={() => { setEditingZone(zone.id); setNewZoneName(zone.name); }}
                   className="p-1.5 rounded-lg text-[#b0b0cc] hover:text-[#e0e0f0] hover:bg-[#353558] transition-colors"
                 >
-                  <Edit3 className="w-3.5 h-3.5" />
+                  <IconEdit className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => handleDeleteZone(zone.id)}
                   className="p-1.5 rounded-lg text-[#b0b0cc] hover:text-red-400 hover:bg-[#353558] transition-colors"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <IconTrash className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
@@ -294,14 +294,14 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
                 {zoneTables.map(table => (
                   <div key={table.id} className="flex items-center justify-between px-3 py-2 rounded-lg bg-[#353558]/30 group">
                     <div className="flex items-center gap-2">
-                      <GripVertical className="w-3.5 h-3.5 text-[#777]" />
+                      <IconGripVertical className="w-3.5 h-3.5 text-[#777]" />
                       <span className="text-[#ddd] text-sm">{table.name}</span>
                     </div>
                     <button
                       onClick={() => handleDeleteTable(table.id)}
                       className="p-1 rounded text-[#8888aa] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <IconTrash className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 ))}
@@ -319,10 +319,10 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
                       className="flex-1 px-3 py-2 rounded-lg bg-[#353558] text-white text-sm placeholder:text-[#8888aa] outline-none focus:ring-1 focus:ring-violet-500"
                     />
                     <button onClick={() => handleAddTable(zone.id)} className="p-2 rounded-lg bg-[#7bb7ef] text-white hover:bg-[#7bb7ef] transition-colors">
-                      <Check className="w-4 h-4" />
+                      <IconCheck className="w-4 h-4" />
                     </button>
                     <button onClick={() => setAddingTable(null)} className="p-2 rounded-lg bg-[#353558] text-[#c0c0dd] hover:bg-[#555] transition-colors">
-                      <X className="w-4 h-4" />
+                      <IconX className="w-4 h-4" />
                     </button>
                   </div>
                 ) : (
@@ -330,7 +330,7 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
                     onClick={() => { setAddingTable(zone.id); setAddTableName(''); }}
                     className="flex items-center gap-2 px-3 py-2 rounded-lg text-[#b0b0cc] hover:text-[#e0e0f0] hover:bg-[#353558]/50 transition-colors w-full text-left text-sm"
                   >
-                    <Plus className="w-3.5 h-3.5" /> Tisch hinzufuegen
+                    <IconPlus className="w-3.5 h-3.5" /> Tisch hinzufuegen
                   </button>
                 )}
               </div>
@@ -352,10 +352,10 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
             className="flex-1 px-3 py-2.5 rounded-xl bg-[#353558] text-white text-sm placeholder:text-[#8888aa] outline-none focus:ring-1 focus:ring-violet-500"
           />
           <button onClick={handleAddZone} className="p-2.5 rounded-xl bg-[#7bb7ef] text-white hover:bg-[#7bb7ef] transition-colors">
-            <Check className="w-4 h-4" />
+            <IconCheck className="w-4 h-4" />
           </button>
           <button onClick={() => setAddingZone(false)} className="p-2.5 rounded-xl bg-[#353558] text-[#c0c0dd] hover:bg-[#555] transition-colors">
-            <X className="w-4 h-4" />
+            <IconX className="w-4 h-4" />
           </button>
         </div>
       ) : (
@@ -363,7 +363,7 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
           onClick={() => { setAddingZone(true); setAddZoneValue(''); }}
           className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-[#333355] text-[#b0b0cc] hover:text-[#e0e0f0] hover:border-violet-500 transition-colors text-sm"
         >
-          <Plus className="w-4 h-4" /> Neue Zone
+          <IconPlus className="w-4 h-4" /> Neue Zone
         </button>
       )}
     </div>
@@ -492,7 +492,7 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
               className="w-full flex items-center justify-between p-3"
             >
               <div className="flex items-center gap-2">
-                {isExpanded ? <ChevronUp className="w-4 h-4 text-[#b0b0cc]" /> : <ChevronDown className="w-4 h-4 text-[#b0b0cc]" />}
+                {isExpanded ? <IconChevronUp className="w-4 h-4 text-[#b0b0cc]" /> : <IconChevronDown className="w-4 h-4 text-[#b0b0cc]" />}
                 <span className="text-white text-sm font-medium">{categoryLabels[cat]}</span>
                 <span className="text-[#8888aa] text-xs">({items.length})</span>
               </div>
@@ -519,13 +519,13 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
                           onClick={() => startEditMenuItem(item)}
                           className="p-1 rounded text-[#8888aa] hover:text-[#e0e0f0] opacity-0 group-hover:opacity-100 transition-all"
                         >
-                          <Edit3 className="w-3.5 h-3.5" />
+                          <IconEdit className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDeleteMenuItem(item.id)}
                           className="p-1 rounded text-[#8888aa] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <IconTrash className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
@@ -540,7 +540,7 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
                     onClick={() => { setAddingMenuItem(true); setMenuForm({ name: '', price: '', category: cat, routing: cat === 'drinks' ? 'bar' : 'kitchen' }); }}
                     className="flex items-center gap-2 px-3 py-2 rounded-lg text-[#b0b0cc] hover:text-[#e0e0f0] hover:bg-[#353558]/50 transition-colors w-full text-left text-sm"
                   >
-                    <Plus className="w-3.5 h-3.5" /> Item hinzufuegen
+                    <IconPlus className="w-3.5 h-3.5" /> Item hinzufuegen
                   </button>
                 )}
               </div>
@@ -668,13 +668,13 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
                 onClick={() => startEditStaff(s)}
                 className="p-1.5 rounded-lg text-[#b0b0cc] hover:text-[#e0e0f0] hover:bg-[#353558] opacity-0 group-hover:opacity-100 transition-all"
               >
-                <Edit3 className="w-3.5 h-3.5" />
+                <IconEdit className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => handleDeleteStaff(s.id)}
                 className="p-1.5 rounded-lg text-[#b0b0cc] hover:text-red-400 hover:bg-[#353558] opacity-0 group-hover:opacity-100 transition-all"
               >
-                <Trash2 className="w-3.5 h-3.5" />
+                <IconTrash className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
@@ -688,7 +688,7 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
           onClick={() => { setAddingStaff(true); setStaffForm({ name: '', pin: '', role: 'waiter' }); }}
           className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-[#333355] text-[#b0b0cc] hover:text-[#e0e0f0] hover:border-violet-500 transition-colors text-sm"
         >
-          <Plus className="w-4 h-4" /> Mitarbeiter hinzufuegen
+          <IconPlus className="w-4 h-4" /> Mitarbeiter hinzufuegen
         </button>
       )}
     </div>
@@ -696,11 +696,11 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
 
   // ======== MAIN RENDER ========
   const tabs: { id: SettingsTab; label: string; icon: React.ReactNode }[] = [
-    { id: 'restaurant', label: 'Restaurant', icon: <Store className="w-4 h-4" /> },
-    { id: 'tables', label: 'Tische', icon: <LayoutGrid className="w-4 h-4" /> },
-    { id: 'menu', label: 'Speisekarte', icon: <UtensilsCrossed className="w-4 h-4" /> },
-    { id: 'staff', label: 'Team', icon: <Users className="w-4 h-4" /> },
-    { id: 'history', label: 'Historie', icon: <Receipt className="w-4 h-4" /> },
+    { id: 'restaurant', label: 'Restaurant', icon: <IconBuildingStore className="w-4 h-4" /> },
+    { id: 'tables', label: 'Tische', icon: <IconLayoutGrid className="w-4 h-4" /> },
+    { id: 'menu', label: 'Speisekarte', icon: <IconToolsKitchen className="w-4 h-4" /> },
+    { id: 'staff', label: 'Team', icon: <IconUsers className="w-4 h-4" /> },
+    { id: 'history', label: 'Historie', icon: <IconReceipt className="w-4 h-4" /> },
   ];
 
   return (
@@ -709,7 +709,7 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
       <header className="bg-[#2a2a42]/80 backdrop-blur border-b border-[#333355] px-4 py-3">
         <div className="flex items-center gap-3">
           <button onClick={onBack} className="p-1.5 rounded-lg bg-[#353558] text-[#c0c0dd] hover:bg-[#555] transition-colors">
-            <ArrowLeft className="w-5 h-5" />
+            <IconArrowLeft className="w-5 h-5" />
           </button>
           <h1 className="text-white font-semibold text-lg">Einstellungen</h1>
         </div>

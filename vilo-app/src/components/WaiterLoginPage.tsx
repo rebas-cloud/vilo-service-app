@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Hash, KeyRound } from 'lucide-react';
+import { IconArrowLeft, IconHash, IconKey } from '@tabler/icons-react';
 
 import viloLogo from '../assets/VILO.svg';
 import { findRestaurantByCode, loadStorage } from '../utils/storage';
@@ -110,7 +110,7 @@ export function WaiterLoginPage({ onBack, onLogin }: WaiterLoginPageProps) {
           }}
           className="p-2 rounded-lg hover:bg-[#353558]/50 transition-colors"
         >
-          <ArrowLeft className="w-5 h-5 text-[#b0b0cc]" />
+          <IconArrowLeft className="w-5 h-5 text-[#b0b0cc]" />
         </button>
         <h2 className="text-lg font-semibold text-white">
           {phase === 'code' ? 'Restaurant finden' : restaurantName}
@@ -150,7 +150,7 @@ export function WaiterLoginPage({ onBack, onLogin }: WaiterLoginPageProps) {
               ))}
             </div>
             <div className="flex items-center justify-center gap-1.5 text-[#8888aa] text-xs">
-              <Hash className="w-3 h-3" />
+              <IconHash className="w-3 h-3" />
               6-stelliger Restaurant-Code
             </div>
             {error && <p className="text-red-400 text-sm text-center mt-2">{error}</p>}
@@ -180,7 +180,7 @@ export function WaiterLoginPage({ onBack, onLogin }: WaiterLoginPageProps) {
               disabled={code.length !== 6}
               className="flex-1 h-11 rounded-lg bg-[#7bb7ef] text-white text-sm font-semibold disabled:opacity-30 disabled:cursor-not-allowed active:bg-violet-700 transition-colors flex items-center justify-center gap-1.5"
             >
-              <KeyRound className="w-4 h-4" />
+              <IconKey className="w-4 h-4" />
               Einloggen
             </button>
           </div>

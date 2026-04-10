@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { LogOut } from 'lucide-react';
+import { IconLogout } from '@tabler/icons-react';
 
 import { useApp } from '../context/AppContext';
 import viloLogo from '../assets/VILO.svg';
@@ -115,7 +115,7 @@ export function LoginPage({ onLogout }: LoginPageProps) {
           onClick={onLogout}
           className="mt-6 flex items-center gap-2 px-4 py-2 rounded-lg text-[#9b96b8] hover:text-[#d3ceed] hover:bg-[#2b2944] transition-colors text-sm"
         >
-          <LogOut className="w-4 h-4" />
+          <IconLogout className="w-4 h-4" />
           Anderes Restaurant
         </button>
       )}

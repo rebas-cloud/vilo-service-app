@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { UserCircle, UtensilsCrossed } from 'lucide-react';
+import { IconUserCircle, IconToolsKitchen } from '@tabler/icons-react';
 
 import viloLogo from '../assets/VILO.svg';
 import { AboutVilo } from './AboutVilo';
@@ -31,7 +31,7 @@ export function WelcomePage({ onCreateRestaurant, onWaiterLogin }: WelcomePagePr
           className="w-full flex items-center gap-4 p-5 rounded-2xl bg-[#7bb7ef] hover:bg-[#7bb7ef] active:bg-violet-700 transition-colors text-white"
         >
           <div className="w-12 h-12 rounded-xl bg-[#7bb7ef]/50 flex items-center justify-center flex-shrink-0">
-            <UtensilsCrossed className="w-6 h-6" />
+            <IconToolsKitchen className="w-6 h-6" />
           </div>
           <div className="text-left">
             <div className="font-semibold text-lg">Restaurant erstellen</div>
@@ -44,7 +44,7 @@ export function WelcomePage({ onCreateRestaurant, onWaiterLogin }: WelcomePagePr
           className="w-full flex items-center gap-4 p-5 rounded-2xl bg-[#353558]/80 hover:bg-[#555]/80 active:bg-[#353558] transition-colors text-white"
         >
           <div className="w-12 h-12 rounded-xl bg-[#555]/50 flex items-center justify-center flex-shrink-0">
-            <UserCircle className="w-6 h-6" />
+            <IconUserCircle className="w-6 h-6" />
           </div>
           <div className="text-left">
             <div className="font-semibold text-lg">Als Kellner einloggen</div>

@@ -110,8 +110,6 @@ ${menuText}
 
 Kellner sagt: "${text}"`;
 
-  console.log('[VILO LLM] Sending to GPT-4o-mini:', text);
-
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -147,8 +145,6 @@ Kellner sagt: "${text}"`;
     raw = raw.slice(0, -3);
   }
   raw = raw.trim();
-
-  console.log('[VILO LLM] Response:', raw);
 
   const parsed = JSON.parse(raw);
 

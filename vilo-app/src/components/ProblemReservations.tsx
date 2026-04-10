@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { AlertTriangle, CalendarX, ChevronDown, ChevronUp, Clock, UserX, Users, XCircle } from 'lucide-react';
+import { IconAlertTriangle, IconCalendarX, IconChevronDown, IconChevronUp, IconClock, IconUserX, IconUsers, IconCircleX } from '@tabler/icons-react';
 
 import { Reservation, Table } from '../types';
 import { loadReservations, loadStorage } from '../utils/storage';
@@ -23,12 +23,12 @@ function getTodayStr(): string {
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
 
-const PROBLEM_CONFIG: Record<ProblemType, { label: string; color: string; Icon: typeof AlertTriangle }> = {
-  conflict: { label: 'Konflikt', color: '#ef4444', Icon: AlertTriangle },
-  no_show: { label: 'No-Show', color: '#f59e0b', Icon: UserX },
-  overbooking: { label: 'Ueberbuchung', color: '#f97316', Icon: Users },
-  no_table: { label: 'Kein Tisch', color: '#8b5cf6', Icon: CalendarX },
-  cancelled: { label: 'Storniert', color: '#6b7280', Icon: XCircle },
+const PROBLEM_CONFIG: Record<ProblemType, { label: string; color: string; Icon: typeof IconAlertTriangle }> = {
+  conflict: { label: 'Konflikt', color: '#ef4444', Icon: IconAlertTriangle },
+  no_show: { label: 'No-Show', color: '#f59e0b', Icon: IconUserX },
+  overbooking: { label: 'Ueberbuchung', color: '#f97316', Icon: IconUsers },
+  no_table: { label: 'Kein Tisch', color: '#8b5cf6', Icon: IconCalendarX },
+  cancelled: { label: 'Storniert', color: '#6b7280', Icon: IconCircleX },
 };
 
 export function ProblemReservations({ onSelectTable }: ProblemReservationsProps) {
@@ -149,7 +149,7 @@ export function ProblemReservations({ onSelectTable }: ProblemReservationsProps)
       <div className="flex items-center justify-between px-3 py-2.5">
         <div>
           <h2 className="text-white font-bold text-[15px] flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-red-400" />
+            <IconAlertTriangle className="w-4 h-4 text-red-400" />
             Probleme
           </h2>
           <p className="text-[#8888aa] text-[10px]">
@@ -162,7 +162,7 @@ export function ProblemReservations({ onSelectTable }: ProblemReservationsProps)
           onClick={() => setCollapsed(!collapsed)}
           className="p-0.5 text-[#8888aa] hover:text-white transition-colors"
         >
-          {collapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+          {collapsed ? <IconChevronDown className="w-4 h-4" /> : <IconChevronUp className="w-4 h-4" />}
         </button>
       </div>
 
@@ -201,7 +201,7 @@ export function ProblemReservations({ onSelectTable }: ProblemReservationsProps)
           <div className="px-2">
             {filteredProblems.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-[#555577]">
-                <AlertTriangle className="w-10 h-10 mb-3 opacity-30" />
+                <IconAlertTriangle className="w-10 h-10 mb-3 opacity-30" />
                 <p className="text-sm font-medium text-[#777]">
                   {problems.length === 0 ? 'Keine Probleme gefunden' : 'Keine Probleme in dieser Kategorie'}
                 </p>
@@ -259,7 +259,7 @@ export function ProblemReservations({ onSelectTable }: ProblemReservationsProps)
                         ) : (
                           <div className="flex items-center justify-center rounded-[4px]"
                             style={{ background: '#222238', width: '45px', height: '45px' }}>
-                            <Clock className="w-5 h-5 text-[#555577]" />
+                            <IconClock className="w-5 h-5 text-[#555577]" />
                           </div>
                         )}
                       </div>

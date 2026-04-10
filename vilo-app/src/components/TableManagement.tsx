@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { AlertTriangle, ArrowRightLeft, Ban, Check, CheckCircle, ChevronDown, ChevronUp, RotateCcw, Search, User, UserPlus, Users, UtensilsCrossed, X } from 'lucide-react';
+import { IconAlertTriangle, IconArrowsRightLeft, IconBan, IconCheck, IconCircleCheck, IconChevronDown, IconChevronUp, IconRotate, IconSearch, IconUser, IconUserPlus, IconUsers, IconToolsKitchen, IconX } from '@tabler/icons-react';
 
 import { Table, Reservation, Guest } from '../types';
 import { useApp } from '../context/AppContext';
@@ -317,7 +317,7 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs font-bold text-white tracking-wider">ZEITPLAN</span>
           <button onClick={() => setTimelineExpanded(!timelineExpanded)} className="text-[#b0b0cc] hover:text-[#e0e0f0] transition-colors">
-            {timelineExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+            {timelineExpanded ? <IconChevronUp className="w-5 h-5" /> : <IconChevronDown className="w-5 h-5" />}
           </button>
         </div>
         <div className="flex items-end gap-0 overflow-x-auto pb-1">
@@ -358,7 +358,7 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
         <div className="flex items-center justify-between mb-3">
           <span className="text-xs font-bold text-white tracking-wider">ZEITPLAN</span>
           <button onClick={() => setTimelineExpanded(false)} className="text-[#b0b0cc] hover:text-[#e0e0f0] transition-colors">
-            <ChevronUp className="w-5 h-5" />
+            <IconChevronUp className="w-5 h-5" />
           </button>
         </div>
         <div className="relative" style={{ minHeight: hours.length * 48 }}>
@@ -427,7 +427,7 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
         <div className={panelShellClass} onClick={e => e.stopPropagation()}>
           <div className={panelHeaderClass}>
             <h2 className="text-lg font-bold text-white">Walk-In · {table.name}</h2>
-            <button onClick={() => setSubView('main')} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0]"><X className="w-6 h-6" /></button>
+            <button onClick={() => setSubView('main')} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0]"><IconX className="w-6 h-6" /></button>
           </div>
 
           <div className="px-5 py-5 space-y-5">
@@ -502,15 +502,15 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
             <button onClick={() => {
               if (reserveStep === 'guests') { resetResForm(); setSubView('main'); }
               else { setReserveStep('guests'); }
-            }} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0]"><X className="w-5 h-5" /></button>
+            }} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0]"><IconX className="w-5 h-5" /></button>
 
             <div className="flex-1 mx-3">
               <div className="flex items-center justify-center gap-2 px-4 py-2">
                 {reserveStep === 'guests' && (
-                  <><Users className="w-4 h-4 text-[#b0b0cc]" /><span className="text-white font-semibold text-sm">{resFormData.partySize} {resFormData.partySize === 1 ? 'Gast' : 'Gäste'} · {table.name}</span></>
+                  <><IconUsers className="w-4 h-4 text-[#b0b0cc]" /><span className="text-white font-semibold text-sm">{resFormData.partySize} {resFormData.partySize === 1 ? 'Gast' : 'Gäste'} · {table.name}</span></>
                 )}
                 {reserveStep === 'guest_info' && (
-                  <><User className="w-4 h-4 text-[#b0b0cc]" /><span className="text-white font-semibold text-sm truncate">{resFormData.guestName || 'Gast'}</span></>
+                  <><IconUser className="w-4 h-4 text-[#b0b0cc]" /><span className="text-white font-semibold text-sm truncate">{resFormData.guestName || 'Gast'}</span></>
                 )}
               </div>
             </div>
@@ -595,7 +595,7 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
                 {/* Search */}
                 <div className="px-4 py-3 border-b border-[#333355]">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8888aa]" />
+                    <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8888aa]" />
                     <input type="text" value={resGuestSearch}
                       onChange={e => handleResGuestSearch(e.target.value)}
                       placeholder="Nach Telefonnummer oder Namen suchen"
@@ -607,7 +607,7 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
                         <button key={g.id} onClick={() => handleResSelectGuest(g)}
                           className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-[#353558] text-left border-b border-[#333355] last:border-0 bg-[#2a2a42]">
                           <div className="w-8 h-8 rounded-full bg-purple-900/40 flex items-center justify-center">
-                            <User className="w-4 h-4 text-[#7bb7ef]" />
+                            <IconUser className="w-4 h-4 text-[#7bb7ef]" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-white truncate">{g.name}</p>
@@ -623,7 +623,7 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
                 <div className="px-4 py-3 space-y-3">
                   {resMatchedGuest && (
                     <div className="rounded-lg bg-[#7bb7ef]/15 border border-purple-700/30 p-3 flex items-center gap-2">
-                      <User className="w-4 h-4 text-[#7bb7ef] shrink-0" />
+                      <IconUser className="w-4 h-4 text-[#7bb7ef] shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-[#b1d9ff]">{resMatchedGuest.name}</p>
                         <p className="text-xs text-[#7bb7ef]">{resMatchedGuest.totalVisits || 0} Besuche</p>
@@ -684,7 +684,7 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
                     disabled={!resFormData.guestName.trim()}
                     className="w-full py-3 rounded-xl font-semibold text-white text-base flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{ background: '#7c3aed' }}>
-                    <Check className="w-5 h-5" />
+                    <IconCheck className="w-5 h-5" />
                     Reservieren
                   </button>
                 </div>
@@ -703,7 +703,7 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
         <div className={panelShellClass} onClick={e => e.stopPropagation()}>
           <div className={panelHeaderClass}>
             <h2 className="text-xl font-bold text-white">Umsetzen - Tisch waehlen</h2>
-            <button onClick={() => setSubView('main')} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0]"><X className="w-6 h-6" /></button>
+            <button onClick={() => setSubView('main')} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0]"><IconX className="w-6 h-6" /></button>
           </div>
 
           <div className="px-5 py-4">
@@ -751,16 +751,16 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
         {/* Header */}
         <div className={panelHeaderClass}>
           <h2 className="text-2xl font-bold text-white">{table.name}</h2>
-          <button onClick={onClose} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0]"><X className="w-6 h-6" /></button>
+          <button onClick={onClose} className="p-1 text-[#b0b0cc] hover:text-[#e0e0f0]"><IconX className="w-6 h-6" /></button>
         </div>
 
         <div className="flex items-center justify-between px-5 py-4 text-white" style={{ background: statusBackground }}>
           <div className="flex items-center gap-3">
-            <Check className="h-5 w-5" />
+            <IconCheck className="h-5 w-5" />
             <span className="text-xl font-semibold">{statusLabel}</span>
           </div>
           <button onClick={() => setTimelineExpanded(!timelineExpanded)} className="text-white/85 hover:text-white">
-            {timelineExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+            {timelineExpanded ? <IconChevronUp className="h-5 w-5" /> : <IconChevronDown className="h-5 w-5" />}
           </button>
         </div>
 
@@ -807,21 +807,21 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
                 onClose();
               }}
                 className={orangeActionClass}>
-                <UtensilsCrossed className="w-5 h-5" />
+                <IconToolsKitchen className="w-5 h-5" />
                 Abraeumen erforderlich
               </button>
 
               {/* Abschliessen */}
               <button onClick={handleCloseTable}
                 className={secondaryActionClass}>
-                <CheckCircle className="w-5 h-5 text-[#cfc5ff]" />
+                <IconCircleCheck className="w-5 h-5 text-[#cfc5ff]" />
                 Abschliessen
               </button>
 
               {/* Beenden & Walk-In platzieren */}
               <button onClick={handleFinishAndSeatNew}
                 className={secondaryActionClass}>
-                <CheckCircle className="w-5 h-5 text-[#d946ef]" />
+                <IconCircleCheck className="w-5 h-5 text-[#d946ef]" />
                 Beenden & Walk-In platzieren
               </button>
 
@@ -835,21 +835,21 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
                   {/* Umsetzen */}
                   <button onClick={() => setSubView('move_picker')}
                     className={secondaryActionClass}>
-                    <ArrowRightLeft className="w-5 h-5 text-[#cfc5ff]" />
+                    <IconArrowsRightLeft className="w-5 h-5 text-[#cfc5ff]" />
                     Umsetzen
                   </button>
 
                   {/* Platzierung rueckgaengig machen */}
                   <button onClick={handleUndoPlacement}
                     className={secondaryActionClass}>
-                    <RotateCcw className="w-5 h-5 text-[#cfc5ff]" />
+                    <IconRotate className="w-5 h-5 text-[#cfc5ff]" />
                     Platzierung rueckgaengig machen
                   </button>
 
                   {/* Tisch sperren */}
                   <button onClick={handleBlockTable}
                     className={secondaryActionClass}>
-                    <Ban className="w-5 h-5 text-[#cfc5ff]" />
+                    <IconBan className="w-5 h-5 text-[#cfc5ff]" />
                     Tisch sperren
                   </button>
 
@@ -867,7 +867,7 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
             <>
               {/* Warning */}
               <div className="flex items-center gap-2 py-2">
-                <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
+                <IconAlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
                 <p className="text-sm font-semibold text-red-500">
                   {table.name} ist anderen Gästen zugewiesen
                 </p>
@@ -888,7 +888,7 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
               {/* Tisch sperren */}
               <button onClick={handleBlockTable}
                 className={secondaryActionClass}>
-                <Ban className="w-5 h-5 text-[#cfc5ff]" />
+                <IconBan className="w-5 h-5 text-[#cfc5ff]" />
                 Tisch sperren
               </button>
             </>
@@ -900,14 +900,14 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
               {/* Walk-In platzieren */}
               <button onClick={() => setSubView('walkin_count')}
                 className={primaryActionClass}>
-                <UserPlus className="w-5 h-5" />
+                <IconUserPlus className="w-5 h-5" />
                 Walk-In platzieren
               </button>
 
               {/* Tisch sperren */}
               <button onClick={handleBlockTable}
                 className={secondaryActionClass}>
-                <Ban className="w-5 h-5 text-[#cfc5ff]" />
+                <IconBan className="w-5 h-5 text-[#cfc5ff]" />
                 Tisch sperren
               </button>
             </>
@@ -917,7 +917,7 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
           {isBlocked && (
             <>
               <div className="flex items-center gap-2 py-2">
-                <Ban className="w-5 h-5 text-red-400" />
+                <IconBan className="w-5 h-5 text-red-400" />
                 <p className="text-base font-semibold text-red-400">Tisch ist gesperrt</p>
               </div>
 
@@ -933,19 +933,19 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
             <>
               <button onClick={handleCloseTable}
                 className={secondaryActionClass}>
-                <CheckCircle className="w-5 h-5 text-[#cfc5ff]" />
+                <IconCircleCheck className="w-5 h-5 text-[#cfc5ff]" />
                 Tisch freigeben
               </button>
 
               <button onClick={() => setSubView('walkin_count')}
                 className={primaryActionClass}>
-                <UserPlus className="w-5 h-5" />
+                <IconUserPlus className="w-5 h-5" />
                 Walk-In platzieren
               </button>
 
               <button onClick={handleBlockTable}
                 className={secondaryActionClass}>
-                <Ban className="w-5 h-5 text-[#cfc5ff]" />
+                <IconBan className="w-5 h-5 text-[#cfc5ff]" />
                 Tisch sperren
               </button>
             </>
@@ -956,13 +956,13 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
             <>
               <button onClick={() => setSubView('walkin_count')}
                 className={primaryActionClass}>
-                <UserPlus className="w-5 h-5" />
+                <IconUserPlus className="w-5 h-5" />
                 Walk-In platzieren
               </button>
 
               <button onClick={handleBlockTable}
                 className={secondaryActionClass}>
-                <Ban className="w-5 h-5 text-[#cfc5ff]" />
+                <IconBan className="w-5 h-5 text-[#cfc5ff]" />
                 Tisch sperren
               </button>
             </>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertTriangle, Banknote, Check, ChevronDown, ChevronUp, Clock, CreditCard, Euro, FileDown, HandCoins, Receipt, RotateCcw, Shuffle, TrendingUp, Users } from 'lucide-react';
+import { IconAlertTriangle, IconCash, IconCheck, IconChevronDown, IconChevronUp, IconClock, IconCreditCard, IconCurrencyEuro, IconFileDownload, IconCoins, IconReceipt, IconRotate, IconArrowsShuffle, IconTrendingUp, IconUsers } from '@tabler/icons-react';
 
 import { useApp } from '../context/AppContext';
 
@@ -60,9 +60,9 @@ export function OrderHistory({ onSelectTable: _onSelectTable }: OrderHistoryProp
   };
 
   const paymentIcon = (method: 'card' | 'cash' | 'mixed') => {
-    if (method === 'card') return <CreditCard className="w-3.5 h-3.5 text-blue-400" />;
-    if (method === 'cash') return <Banknote className="w-3.5 h-3.5 text-emerald-400" />;
-    return <Shuffle className="w-3.5 h-3.5 text-amber-400" />;
+    if (method === 'card') return <IconCreditCard className="w-3.5 h-3.5 text-blue-400" />;
+    if (method === 'cash') return <IconCash className="w-3.5 h-3.5 text-emerald-400" />;
+    return <IconArrowsShuffle className="w-3.5 h-3.5 text-amber-400" />;
   };
 
   const handleClearShift = () => {
@@ -86,7 +86,7 @@ export function OrderHistory({ onSelectTable: _onSelectTable }: OrderHistoryProp
         <header className="bg-[#2a2a42]/80 backdrop-blur border-b border-[#333355] px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <FileDown className="w-5 h-5 text-[#b1d9ff]" />
+              <IconFileDownload className="w-5 h-5 text-[#b1d9ff]" />
               <h1 className="text-white font-semibold text-lg">Tagesabschluss</h1>
             </div>
             <button
@@ -140,14 +140,14 @@ export function OrderHistory({ onSelectTable: _onSelectTable }: OrderHistoryProp
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-blue-400" />
+                  <IconCreditCard className="w-4 h-4 text-blue-400" />
                   <span className="text-[#c0c0dd] text-sm">Karte</span>
                 </div>
                 <span className="text-white text-sm font-medium">{cardRevenue.toFixed(2)} {state.restaurant.currency}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Banknote className="w-4 h-4 text-emerald-400" />
+                  <IconCash className="w-4 h-4 text-emerald-400" />
                   <span className="text-[#c0c0dd] text-sm">Bar</span>
                 </div>
                 <span className="text-white text-sm font-medium">{cashRevenue.toFixed(2)} {state.restaurant.currency}</span>
@@ -155,7 +155,7 @@ export function OrderHistory({ onSelectTable: _onSelectTable }: OrderHistoryProp
               {mixedRevenue > 0 && (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Shuffle className="w-4 h-4 text-amber-400" />
+                    <IconArrowsShuffle className="w-4 h-4 text-amber-400" />
                     <span className="text-[#c0c0dd] text-sm">Gemischt</span>
                   </div>
                   <span className="text-white text-sm font-medium">{mixedRevenue.toFixed(2)} {state.restaurant.currency}</span>
@@ -184,7 +184,7 @@ export function OrderHistory({ onSelectTable: _onSelectTable }: OrderHistoryProp
           {/* Active tables warning */}
           {activeTables > 0 && (
             <div className="flex items-center gap-3 p-3 rounded-xl bg-amber-900/20 border border-amber-700/30">
-              <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0" />
+              <IconAlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0" />
               <div>
                 <p className="text-amber-300 text-sm font-medium">Offene Tische: {activeTables}</p>
                 <p className="text-amber-400/60 text-xs">Diese Tische sind noch nicht abgerechnet</p>
@@ -203,11 +203,11 @@ export function OrderHistory({ onSelectTable: _onSelectTable }: OrderHistoryProp
           >
             {confirmClear ? (
               <span className="flex items-center justify-center gap-2">
-                <Check className="w-4 h-4" /> Bestaetigen: Schicht zuruecksetzen
+                <IconCheck className="w-4 h-4" /> Bestaetigen: Schicht zuruecksetzen
               </span>
             ) : (
               <span className="flex items-center justify-center gap-2">
-                <RotateCcw className="w-4 h-4" /> Schicht abschliessen & zuruecksetzen
+                <IconRotate className="w-4 h-4" /> Schicht abschliessen & zuruecksetzen
               </span>
             )}
           </button>
@@ -227,7 +227,7 @@ export function OrderHistory({ onSelectTable: _onSelectTable }: OrderHistoryProp
       <header className="bg-[#2a2a42]/80 backdrop-blur border-b border-[#333355] px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Receipt className="w-5 h-5 text-[#b1d9ff]" />
+            <IconReceipt className="w-5 h-5 text-[#b1d9ff]" />
             <div>
               <h1 className="text-white font-semibold text-lg">Bestellhistorie</h1>
               <p className="text-[#8888aa] text-xs">Schicht seit {formatTime(state.shiftStart)}</p>
@@ -247,28 +247,28 @@ export function OrderHistory({ onSelectTable: _onSelectTable }: OrderHistoryProp
         <div className="px-4 py-3 grid grid-cols-4 gap-2">
           <div className="bg-[#2a2a42]/60 rounded-lg p-2.5 text-center border border-[#333355]/50">
             <div className="flex items-center justify-center gap-1 mb-1">
-              <Euro className="w-3 h-3 text-[#b0b0cc]" />
+              <IconCurrencyEuro className="w-3 h-3 text-[#b0b0cc]" />
             </div>
             <p className="text-white text-sm font-bold">{totalRevenue.toFixed(0)}</p>
             <p className="text-[#8888aa] text-[10px]">Umsatz</p>
           </div>
           <div className="bg-[#2a2a42]/60 rounded-lg p-2.5 text-center border border-[#333355]/50">
             <div className="flex items-center justify-center gap-1 mb-1">
-              <HandCoins className="w-3 h-3 text-[#b0b0cc]" />
+              <IconCoins className="w-3 h-3 text-[#b0b0cc]" />
             </div>
             <p className="text-white text-sm font-bold">{totalTips.toFixed(2)}</p>
             <p className="text-[#8888aa] text-[10px]">Trinkgeld</p>
           </div>
           <div className="bg-[#2a2a42]/60 rounded-lg p-2.5 text-center border border-[#333355]/50">
             <div className="flex items-center justify-center gap-1 mb-1">
-              <Users className="w-3 h-3 text-[#b0b0cc]" />
+              <IconUsers className="w-3 h-3 text-[#b0b0cc]" />
             </div>
             <p className="text-white text-sm font-bold">{closedTables.length}</p>
             <p className="text-[#8888aa] text-[10px]">Tische</p>
           </div>
           <div className="bg-[#2a2a42]/60 rounded-lg p-2.5 text-center border border-[#333355]/50">
             <div className="flex items-center justify-center gap-1 mb-1">
-              <Clock className="w-3 h-3 text-[#b0b0cc]" />
+              <IconClock className="w-3 h-3 text-[#b0b0cc]" />
             </div>
             <p className="text-white text-sm font-bold">{shiftHours}:{shiftMinutes.toString().padStart(2, '0')}</p>
             <p className="text-[#8888aa] text-[10px]">Dauer</p>
@@ -278,7 +278,7 @@ export function OrderHistory({ onSelectTable: _onSelectTable }: OrderHistoryProp
         {/* Active tables hint */}
         {activeTables > 0 && (
           <div className="mx-4 mb-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-violet-900/20 border border-violet-700/30">
-            <TrendingUp className="w-4 h-4 text-[#b1d9ff]" />
+            <IconTrendingUp className="w-4 h-4 text-[#b1d9ff]" />
             <p className="text-[#b1d9ff] text-xs">
               {activeTables} aktive{activeTables > 1 ? ' Tische' : 'r Tisch'} &middot; {activeRevenue.toFixed(2)} {state.restaurant.currency} offen
             </p>
@@ -293,7 +293,7 @@ export function OrderHistory({ onSelectTable: _onSelectTable }: OrderHistoryProp
 
           {closedTables.length === 0 ? (
             <div className="text-center py-12">
-              <Receipt className="w-10 h-10 text-slate-700 mx-auto mb-3" />
+              <IconReceipt className="w-10 h-10 text-slate-700 mx-auto mb-3" />
               <p className="text-[#8888aa] text-sm">Noch keine abgeschlossenen Tische</p>
               <p className="text-[#777] text-xs mt-1">Tische erscheinen hier nach dem Bezahlen</p>
             </div>
@@ -326,7 +326,7 @@ export function OrderHistory({ onSelectTable: _onSelectTable }: OrderHistoryProp
                           <p className="text-emerald-400 text-xs">+{table.tips.toFixed(2)} Tip</p>
                         )}
                       </div>
-                      {isExpanded ? <ChevronUp className="w-4 h-4 text-[#b0b0cc]" /> : <ChevronDown className="w-4 h-4 text-[#b0b0cc]" />}
+                      {isExpanded ? <IconChevronUp className="w-4 h-4 text-[#b0b0cc]" /> : <IconChevronDown className="w-4 h-4 text-[#b0b0cc]" />}
                     </div>
                   </button>
 

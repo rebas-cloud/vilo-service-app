@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
+import { IconAlertTriangle, IconChevronDown, IconChevronUp } from '@tabler/icons-react';
 
 import { useApp } from '../context/AppContext';
 import { Reservation } from '../types';
@@ -120,7 +120,7 @@ export function Timeline({ onSelectTable }: TimelineProps) {
         <span className="text-[#b0b0cc] text-xs">{totalCovers} Gäste</span>
         {todayReservations.filter(r => r.status === 'no_show').length > 0 && (
           <span className="flex items-center gap-1 text-[#f59e0b] text-xs">
-            <AlertTriangle className="w-3 h-3" />
+            <IconAlertTriangle className="w-3 h-3" />
             {todayReservations.filter(r => r.status === 'no_show').length} No-Shows
           </span>
         )}
@@ -147,9 +147,9 @@ export function Timeline({ onSelectTable }: TimelineProps) {
               >
                 <span className="text-[#b0b0cc] text-[10px] font-bold truncate flex-1">{zone.name}</span>
                 {collapsedZones.has(zone.id) ? (
-                  <ChevronDown className="w-3 h-3 text-[#666688] shrink-0" />
+                  <IconChevronDown className="w-3 h-3 text-[#666688] shrink-0" />
                 ) : (
-                  <ChevronUp className="w-3 h-3 text-[#666688] shrink-0" />
+                  <IconChevronUp className="w-3 h-3 text-[#666688] shrink-0" />
                 )}
               </button>
               {!collapsedZones.has(zone.id) && tables.map(table => (
