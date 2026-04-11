@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { IconAlertTriangle, IconChevronDown, IconChevronUp } from '@tabler/icons-react';
+import { IconAlertTriangle, IconChevronDown, IconChevronUp, IconTriangleFilled } from '@tabler/icons-react';
 
 import { useApp } from '../context/AppContext';
 import { Reservation } from '../types';
@@ -250,13 +250,17 @@ export function Timeline({ onSelectTable }: TimelineProps) {
               </div>
             ))}
 
-            {/* Current time indicator (red line) */}
+            {/* Current time indicator with triangle arrow */}
             {currentTimePos > 0 && currentTimePos < totalWidth && (
               <div
                 className="absolute top-0 bottom-0 z-20 pointer-events-none"
                 style={{ left: currentTimePos, width: 2, background: '#ef4444' }}
               >
-                <div className="w-2.5 h-2.5 rounded-full absolute -top-1 -left-[3px]" style={{ background: '#ef4444' }} />
+                <IconTriangleFilled
+                  className="absolute -top-3 -left-[7px] text-red-500"
+                  size={20}
+                  style={{ transform: 'rotate(180deg)' }}
+                />
               </div>
             )}
           </div>
