@@ -284,14 +284,14 @@ export function OnboardingWizard({ initialStep = 0, onComplete, onBack, onQuickS
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => updateZone(zone.id, 'tableCount', Math.max(1, zone.tableCount - 1))}
-                      className="w-8 h-8 rounded-lg bg-vilo-elevated text-white flex items-center justify-center hover:bg-[#555]"
+                      className="w-8 h-8 rounded-lg bg-vilo-elevated text-white flex items-center justify-center hover:bg-[#3a365c]"
                     >
                       -
                     </button>
                     <span className="text-white font-semibold w-8 text-center">{zone.tableCount}</span>
                     <button
                       onClick={() => updateZone(zone.id, 'tableCount', Math.min(30, zone.tableCount + 1))}
-                      className="w-8 h-8 rounded-lg bg-vilo-elevated text-white flex items-center justify-center hover:bg-[#555]"
+                      className="w-8 h-8 rounded-lg bg-vilo-elevated text-white flex items-center justify-center hover:bg-[#3a365c]"
                     >
                       +
                     </button>

@@ -174,7 +174,7 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
           </div>
           <button
             onClick={() => navigator.clipboard?.writeText(restaurant.code)}
-            className="p-2.5 rounded-xl bg-vilo-elevated text-vilo-text-soft hover:bg-[#555] transition-colors"
+            className="p-2.5 rounded-xl bg-vilo-elevated text-vilo-text-soft hover:bg-[#3a365c] transition-colors"
             title="Code kopieren"
           >
             <IconCopy className="w-4 h-4" />
@@ -321,7 +321,7 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
                     <button onClick={() => handleAddTable(zone.id)} className="p-2 rounded-lg bg-[#7bb7ef] text-white hover:bg-[#7bb7ef] transition-colors">
                       <IconCheck className="w-4 h-4" />
                     </button>
-                    <button onClick={() => setAddingTable(null)} className="p-2 rounded-lg bg-vilo-elevated text-vilo-text-soft hover:bg-[#555] transition-colors">
+                    <button onClick={() => setAddingTable(null)} className="p-2 rounded-lg bg-vilo-elevated text-vilo-text-soft hover:bg-[#3a365c] transition-colors">
                       <IconX className="w-4 h-4" />
                     </button>
                   </div>
@@ -354,7 +354,7 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
           <button onClick={handleAddZone} className="p-2.5 rounded-xl bg-[#7bb7ef] text-white hover:bg-[#7bb7ef] transition-colors">
             <IconCheck className="w-4 h-4" />
           </button>
-          <button onClick={() => setAddingZone(false)} className="p-2.5 rounded-xl bg-vilo-elevated text-vilo-text-soft hover:bg-[#555] transition-colors">
+          <button onClick={() => setAddingZone(false)} className="p-2.5 rounded-xl bg-vilo-elevated text-vilo-text-soft hover:bg-[#3a365c] transition-colors">
             <IconX className="w-4 h-4" />
           </button>
         </div>
@@ -466,7 +466,7 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
       <div className="flex gap-2 justify-end">
         <button
           onClick={() => { setEditingMenuItem(null); setAddingMenuItem(false); setMenuForm({ name: '', price: '', category: 'mains', routing: 'kitchen' }); }}
-          className="px-3 py-1.5 rounded-lg bg-[#555] text-vilo-text-soft text-sm hover:bg-slate-500 transition-colors"
+          className="px-3 py-1.5 rounded-lg bg-[#8b5cf6]/18 text-vilo-text-soft text-sm hover:bg-[#3a365c] transition-colors"
         >
           Abbrechen
         </button>
@@ -625,7 +625,7 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
         </select>
         <button
           onClick={() => { setEditingStaff(null); setAddingStaff(false); setStaffForm({ name: '', pin: '', role: 'waiter' }); }}
-          className="px-3 py-2 rounded-lg bg-[#555] text-vilo-text-soft text-sm hover:bg-slate-500 transition-colors"
+          className="px-3 py-2 rounded-lg bg-[#8b5cf6]/18 text-vilo-text-soft text-sm hover:bg-[#3a365c] transition-colors"
         >
           Abbrechen
         </button>
@@ -708,7 +708,7 @@ export function ManagerSettings({ onBack, onDataChanged }: ManagerSettingsProps)
       {/* Header */}
       <header className="bg-vilo-surface/80 backdrop-blur border-b border-vilo-border-subtle px-4 py-3">
         <div className="flex items-center gap-3">
-          <button onClick={onBack} className="p-1.5 rounded-lg bg-vilo-elevated text-vilo-text-soft hover:bg-[#555] transition-colors">
+          <button onClick={onBack} className="p-1.5 rounded-lg bg-vilo-elevated text-vilo-text-soft hover:bg-[#3a365c] transition-colors">
             <IconArrowLeft className="w-5 h-5" />
           </button>
           <h1 className="text-white font-semibold text-lg">Einstellungen</h1>

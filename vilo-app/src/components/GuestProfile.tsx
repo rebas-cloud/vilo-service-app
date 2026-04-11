@@ -47,14 +47,9 @@ export function GuestProfile({ guest, onClose, onUpdated, onReserve }: GuestProf
   const [noteText, setNoteText] = useState('');
   const [showTagPicker, setShowTagPicker] = useState(false);
   const [guestReservations, setGuestReservations] = useState<Reservation[]>([]);
-  const [isClosing, setIsClosing] = useState(false);
 
   const requestClose = useCallback(() => {
-    setIsClosing(true);
-    window.setTimeout(() => {
-      onClose();
-      setIsClosing(false);
-    }, 140);
+    onClose();
   }, [onClose]);
 
   useEffect(() => {
@@ -106,7 +101,7 @@ export function GuestProfile({ guest, onClose, onUpdated, onReserve }: GuestProf
   };
 
   return (
-    <div className={`absolute inset-0 z-30 flex flex-col ${isClosing ? 'vilo-panel-exit' : 'vilo-panel-enter'}`} style={{ background: '#1a1a2e' }}>
+    <div className="vilo-no-motion absolute inset-0 z-30 flex flex-col" style={{ background: '#1a1a2e' }}>
       {/* Header */}
       <div className="px-4 py-2.5 flex items-center justify-between" style={{ background: '#1a1a2e' }}>
         <button onClick={requestClose} className="p-1 text-vilo-text-secondary hover:text-vilo-text-primary transition-colors">

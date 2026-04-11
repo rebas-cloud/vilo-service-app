@@ -222,7 +222,7 @@ export function BillingModal() {
           <div className="flex items-center justify-between p-4 border-b border-vilo-border-subtle">
             <button
               onClick={() => setTipScreen(null)}
-              className="p-2 rounded-lg bg-vilo-elevated text-vilo-text-soft hover:bg-[#555] transition-colors"
+              className="p-2 rounded-lg bg-vilo-elevated text-vilo-text-soft hover:bg-[#3a365c] transition-colors"
             >
               <IconArrowLeft className="w-5 h-5" />
             </button>
@@ -249,7 +249,7 @@ export function BillingModal() {
                     className={`py-3 rounded-xl text-center transition-colors ${
                       isSelected
                         ? 'bg-[#8b5cf6] text-white ring-2 ring-[#d946ef]'
-                        : 'bg-vilo-elevated text-vilo-text-soft hover:bg-[#555]'
+                        : 'bg-vilo-elevated text-vilo-text-soft hover:bg-[#3a365c]'
                     }`}
                   >
                     <p className="text-sm font-bold">{pct}%</p>
@@ -266,7 +266,7 @@ export function BillingModal() {
                 className={`py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   roundUpAmount > 0 && Math.abs(tipAmount - roundUpAmount) < 0.005
                     ? 'bg-[#8b5cf6] text-white ring-2 ring-[#d946ef]'
-                    : 'bg-vilo-elevated text-vilo-text-soft hover:bg-[#555]'
+                    : 'bg-vilo-elevated text-vilo-text-soft hover:bg-[#3a365c]'
                 }`}
               >
                 Aufrunden ({Math.ceil(base).toFixed(2)} EUR)
@@ -275,8 +275,8 @@ export function BillingModal() {
                 onClick={() => setTipAmount(0)}
                 className={`py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   tipAmount === 0
-                    ? 'bg-[#555] text-white ring-2 ring-slate-400'
-                    : 'bg-vilo-elevated text-vilo-text-soft hover:bg-[#555]'
+                    ? 'bg-[#8b5cf6] text-white ring-2 ring-[#b794f6]'
+                    : 'bg-vilo-elevated text-vilo-text-soft hover:bg-[#3a365c]'
                 }`}
               >
                 Kein Trinkgeld
@@ -434,7 +434,7 @@ export function BillingModal() {
         <div className="bg-vilo-surface rounded-t-2xl sm:rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-between p-4 border-b border-vilo-border-subtle">
             <h2 className="text-white font-semibold">Items zuweisen</h2>
-            <button onClick={() => setAssigningItems(false)} className="p-2 rounded-lg bg-vilo-elevated text-vilo-text-soft hover:bg-[#555] transition-colors">
+            <button onClick={() => setAssigningItems(false)} className="p-2 rounded-lg bg-vilo-elevated text-vilo-text-soft hover:bg-[#3a365c] transition-colors">
               <IconX className="w-5 h-5" />
             </button>
           </div>
@@ -458,7 +458,7 @@ export function BillingModal() {
                   ))}
                   <button
                     onClick={() => handleAssignToGuest(order.id, (existingSeats.length > 0 ? Math.max(...existingSeats) : 0) + 1)}
-                    className="px-3 py-1.5 rounded-lg bg-[#555] text-vilo-text-soft text-xs hover:bg-slate-500 transition-colors"
+                    className="px-3 py-1.5 rounded-lg bg-[#8b5cf6]/18 text-vilo-text-soft text-xs hover:bg-[#3a365c] transition-colors"
                   >
                     + Neuer Gast
                   </button>
@@ -482,7 +482,7 @@ export function BillingModal() {
           </div>
           <button
             onClick={handleClose}
-            className="p-2 rounded-lg bg-vilo-elevated text-vilo-text-soft hover:bg-[#555] transition-colors"
+            className="p-2 rounded-lg bg-vilo-elevated text-vilo-text-soft hover:bg-[#3a365c] transition-colors"
           >
             <IconX className="w-5 h-5" />
           </button>
@@ -694,7 +694,7 @@ export function BillingModal() {
               <div className="flex items-center justify-center gap-4 mb-4">
                 <button
                   onClick={() => setEqualSplitCount(Math.max(2, equalSplitCount - 1))}
-                  className="w-10 h-10 rounded-full bg-vilo-elevated text-white text-lg font-bold hover:bg-[#555] transition-colors"
+                  className="w-10 h-10 rounded-full bg-vilo-elevated text-white text-lg font-bold hover:bg-[#3a365c] transition-colors"
                 >
                   -
                 </button>
@@ -704,7 +704,7 @@ export function BillingModal() {
                 </div>
                 <button
                   onClick={() => setEqualSplitCount(equalSplitCount + 1)}
-                  className="w-10 h-10 rounded-full bg-vilo-elevated text-white text-lg font-bold hover:bg-[#555] transition-colors"
+                  className="w-10 h-10 rounded-full bg-vilo-elevated text-white text-lg font-bold hover:bg-[#3a365c] transition-colors"
                 >
                   +
                 </button>

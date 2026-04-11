@@ -279,7 +279,7 @@ function UebersichtTab({ occupiedTables: _occupiedTables, freeTables: _freeTable
           { value: seatedCount, label: 'PLATZIERT' },
           { value: walkInCount, label: 'WALK-INS' },
         ].map(stat => (
-          <div key={stat.label} className="rounded-none px-2.5 md:px-3 py-2.5 md:py-3 text-center border border-vilo-border-subtle/40" style={{ background: '#26243f' }}>
+          <div key={stat.label} className="rounded-none px-2.5 md:px-3 py-2.5 md:py-3 text-center border border-vilo-border-subtle" style={{ background: '#26243f' }}>
             <p className="text-white text-[26px] md:text-[28px] font-bold leading-none">{stat.value}</p>
             <p className="text-[#9f9aba] text-[10px] md:text-[11px] font-semibold tracking-[0.18em] mt-1.5">{stat.label}</p>
           </div>
@@ -834,27 +834,27 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
           <ComparisonBar current={totalRevenue} comparison={comp.avgRevenue} color="#8b5cf6" currentLabel="Aktuell" compLabel="Vergleich" />
           <p className="text-vilo-text-secondary text-sm mt-3"><span className="text-white font-bold">{comp.avgRevenue.toFixed(2)} &euro;</span> in den {comp.comparisonLabel}</p>
 
-          <div className="border-t border-vilo-border-subtle/50 my-6" />
+          <div className="border-t border-vilo-border-subtle my-6" />
           <h2 className="text-white text-2xl font-bold mb-4">Durchschnitt</h2>
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-3">
+            <div className="bg-vilo-card border border-vilo-border-subtle px-4 py-3">
               <p className="text-white text-[28px] font-bold leading-none">{avgPerGuest.toFixed(2)} &euro;</p>
               <p className="text-[#9f9aba] text-[13px] mt-2">pro Gast</p>
             </div>
-            <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-3">
+            <div className="bg-vilo-card border border-vilo-border-subtle px-4 py-3">
               <p className="text-white text-[28px] font-bold leading-none">{avgPerGroup.toFixed(2)} &euro;</p>
               <p className="text-[#9f9aba] text-[13px] mt-2">pro Gruppe</p>
             </div>
           </div>
 
-          <div className="border-t border-vilo-border-subtle/50 my-6" />
+          <div className="border-t border-vilo-border-subtle my-6" />
           <h2 className="text-white text-2xl font-bold mb-4">Trinkgeld</h2>
-          <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-3">
+          <div className="bg-vilo-card border border-vilo-border-subtle px-4 py-3">
             <p className="text-white text-[28px] font-bold leading-none">{realTips.toFixed(2)} &euro;</p>
             <p className="text-[#9f9aba] text-[13px] mt-2">{tipCount} Zahlung{tipCount !== 1 ? 'en' : ''} &middot; {tipCount > 0 ? (realTips / tipCount).toFixed(2) : '0.00'} &euro; pro Zahlung</p>
           </div>
 
-          <div className="border-t border-vilo-border-subtle/50 my-6" />
+          <div className="border-t border-vilo-border-subtle my-6" />
           <h2 className="text-white text-2xl font-bold mb-4">Aufschlüsselung</h2>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
@@ -865,7 +865,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
               <span className="text-vilo-text-secondary">Abgeschlossene Tische</span>
               <span className="text-white font-medium">{state.closedTableRevenue.toFixed(2)} &euro;</span>
             </div>
-            <div className="border-t border-vilo-border-subtle/50 pt-3 flex justify-between items-center">
+            <div className="border-t border-vilo-border-subtle pt-3 flex justify-between items-center">
               <span className="text-vilo-text-soft font-medium">Gesamt</span>
               <span className="text-white font-bold">{totalRevenue.toFixed(2)} &euro;</span>
             </div>
@@ -892,7 +892,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
                     <ComparisonBar current={filteredTotalGuests} comparison={comp.avgGuests} color="#8b5cf6" currentLabel="Aktuell" compLabel="Vergleich" />
                     <p className="text-vilo-text-secondary text-sm mt-3"><span className="text-white font-bold">{comp.avgGuests}</span> platzierte Gäste an den {comp.comparisonLabel}</p>
 
-                    <div className="border-t border-vilo-border-subtle/50 my-6" />
+                    <div className="border-t border-vilo-border-subtle my-6" />
                     <h2 className="text-white text-xl font-bold mb-4">Platzierte Gäste nach Quelle</h2>
           <div className="space-y-3">
             <div className="flex items-center gap-3">
@@ -919,18 +919,18 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
             </div>
           )}
 
-          <div className="border-t border-vilo-border-subtle/50 my-6" />
+          <div className="border-t border-vilo-border-subtle my-6" />
           <h2 className="text-white text-xl font-bold mb-4">Tisch-Übersicht</h2>
           <div className="grid grid-cols-3 gap-3">
-            <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-3 text-center">
+            <div className="bg-vilo-card border border-vilo-border-subtle px-4 py-3 text-center">
               <p className="text-white text-[28px] font-bold leading-none">{totalTablesServed}</p>
               <p className="text-[#9f9aba] text-[12px] mt-2">Tische gesamt</p>
             </div>
-            <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-3 text-center">
+            <div className="bg-vilo-card border border-vilo-border-subtle px-4 py-3 text-center">
               <p className="text-[#cf45f3] text-[28px] font-bold leading-none">{freeTables.length}</p>
               <p className="text-[#9f9aba] text-[12px] mt-2">Frei</p>
             </div>
-            <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-3 text-center">
+            <div className="bg-vilo-card border border-vilo-border-subtle px-4 py-3 text-center">
               <p className="text-[#d8c7ff] text-[28px] font-bold leading-none">{occupiedTables.length}</p>
               <p className="text-[#9f9aba] text-[12px] mt-2">Besetzt</p>
             </div>
@@ -961,21 +961,21 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
           </div>
           <HourlyBarChart data={hourlyData} accentColor="#8b5cf6" />
 
-          <div className="border-t border-vilo-border-subtle/50 my-6" />
+          <div className="border-t border-vilo-border-subtle my-6" />
           <h2 className="text-white text-[22px] font-bold mb-3">Gäste-Anzahlbericht</h2>
           <div className="space-y-3">
             {peakHour && (
-              <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-3">
+              <div className="bg-vilo-card border border-vilo-border-subtle px-4 py-3">
                 <p className="text-[#9f9aba] text-[12px]">Spitzenzeit</p>
                 <p className="text-white font-bold text-[24px] mt-2 leading-none">{peakHour.hour} &middot; {peakHour.count} Gäste</p>
               </div>
             )}
-            <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-3">
+            <div className="bg-vilo-card border border-vilo-border-subtle px-4 py-3">
               <p className="text-[#9f9aba] text-[12px]">Durchschnitt pro Stunde</p>
               <p className="text-white font-bold text-[24px] mt-2 leading-none">{hourlyData.length > 0 ? (totalGuests / hourlyData.length).toFixed(1) : '0'} Gäste</p>
             </div>
           </div>
-          <div className="border-t border-vilo-border-subtle/50 my-6" />
+          <div className="border-t border-vilo-border-subtle my-6" />
           <p className="text-vilo-text-muted text-xs text-center">{bigGroups} große Gruppen in dieser Schicht</p>
         </div>
       </div>
@@ -1006,7 +1006,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
                   className={`flex items-center gap-2 px-3 py-3 rounded-xl border transition-all ${
                     statFilters.shift === opt.value
                       ? 'bg-[#7bb7ef]/20 border-violet-500/50 text-[#b1d9ff]'
-                      : 'bg-vilo-surface/60 border-vilo-border-subtle/50 text-vilo-text-secondary'
+                      : 'bg-vilo-surface/60 border-vilo-border-subtle text-vilo-text-secondary'
                   }`}
                 >
                   {opt.icon}
@@ -1027,7 +1027,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
                   className={`flex items-center gap-2 px-3 py-3 rounded-xl border transition-all ${
                     statFilters.timeRange === opt.value
                       ? 'bg-[#7bb7ef]/20 border-violet-500/50 text-[#b1d9ff]'
-                      : 'bg-vilo-surface/60 border-vilo-border-subtle/50 text-vilo-text-secondary'
+                      : 'bg-vilo-surface/60 border-vilo-border-subtle text-vilo-text-secondary'
                   }`}
                 >
                   <IconCalendar className="w-4 h-4" />
@@ -1048,7 +1048,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
                   className={`flex items-center gap-2 px-3 py-3 rounded-xl border transition-all ${
                     statFilters.source === opt.value
                       ? 'bg-[#7bb7ef]/20 border-violet-500/50 text-[#b1d9ff]'
-                      : 'bg-vilo-surface/60 border-vilo-border-subtle/50 text-vilo-text-secondary'
+                      : 'bg-vilo-surface/60 border-vilo-border-subtle text-vilo-text-secondary'
                   }`}
                 >
                   <IconUsers className="w-4 h-4" />
@@ -1069,7 +1069,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
                   className={`px-3 py-3 rounded-xl border transition-all text-center ${
                     statFilters.sort === opt.value
                       ? 'bg-[#7bb7ef]/20 border-violet-500/50 text-[#b1d9ff]'
-                      : 'bg-vilo-surface/60 border-vilo-border-subtle/50 text-vilo-text-secondary'
+                      : 'bg-vilo-surface/60 border-vilo-border-subtle text-vilo-text-secondary'
                   }`}
                 >
                   <span className="text-sm font-medium">{opt.label}</span>
@@ -1114,11 +1114,11 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
                 <div className="flex-1 overflow-y-auto px-4 py-6">
                   <h1 className="text-white text-[32px] leading-none font-bold mb-5">Warteliste</h1>
           <div className="grid grid-cols-2 gap-3 mb-5">
-            <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-3">
+            <div className="bg-vilo-card border border-vilo-border-subtle px-4 py-3">
               <p className="text-[#9f9aba] text-[12px] mb-1">Aktuell wartend</p>
               <p className="text-white text-[24px] font-bold leading-none">{wEntries.length}</p>
             </div>
-            <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-3">
+            <div className="bg-vilo-card border border-vilo-border-subtle px-4 py-3">
               <p className="text-[#9f9aba] text-[12px] mb-1">⌀ Wartezeit</p>
               <p className="text-white text-[24px] font-bold leading-none">{wEntries.length > 0 ? Math.round(wEntries.reduce((s, e) => s + e.estimatedWaitMinutes, 0) / wEntries.length) : 0} Min</p>
             </div>
@@ -1148,7 +1148,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
                 {wEntries.map(e => {
                   const waitMins = Math.floor((Date.now() - e.addedAt) / 60000);
                   return (
-                    <div key={e.id} className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-3 flex items-center justify-between">
+                    <div key={e.id} className="bg-vilo-card border border-vilo-border-subtle px-4 py-3 flex items-center justify-between">
                       <div>
                         <p className="text-white text-[15px] font-semibold leading-none">{e.guestName}</p>
                         <p className="text-[#9f9aba] text-[12px] mt-1">{e.partySize} Pers. {e.seatPreference ? `· ${e.seatPreference}` : ''}</p>
@@ -1185,7 +1185,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
           <div className="py-3 animate-fadeIn">
             {/* Active filter chips */}
             <div className="flex items-center gap-2 mb-4 flex-wrap">
-              <button onClick={() => setShowFilter(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-vilo-surface/60 border border-vilo-border-subtle/50 transition-all active:bg-vilo-elevated">
+              <button onClick={() => setShowFilter(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-vilo-surface/60 border border-vilo-border-subtle transition-all active:bg-vilo-elevated">
                 <IconAdjustments className="w-4 h-4 text-vilo-text-secondary" />
                 <span className="text-vilo-text-soft text-sm">Filter</span>
                 {activeFilterCount > 0 && (
@@ -1231,7 +1231,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
               <ComparisonBar current={statFilters.source !== 'alle' ? filteredRevenue : totalRevenue} comparison={comp.avgRevenue} color="#8b5cf6" currentLabel="Aktuell" compLabel="Vergleich" />
             </button>
 
-            <div className="border-t border-vilo-border-subtle/30 my-2" />
+            <div className="border-t border-vilo-border-subtle my-2" />
 
             {/* Schichtstatistiken */}
             <button onClick={() => setDrillDown('schichtstatistiken')} className="w-full text-left mb-6 mt-4">
@@ -1264,7 +1264,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
               )}
             </button>
 
-            <div className="border-t border-vilo-border-subtle/30 my-2" />
+            <div className="border-t border-vilo-border-subtle my-2" />
 
             {/* Schichtfluss */}
             <button onClick={() => setDrillDown('schichtfluss')} className="w-full text-left mb-6 mt-4">
@@ -1279,23 +1279,23 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
               <HourlyBarChart data={hourlyData} accentColor="#8b5cf6" />
             </button>
 
-            <div className="border-t border-vilo-border-subtle/30 my-2" />
+            <div className="border-t border-vilo-border-subtle my-2" />
 
             {/* Durchschnitt */}
             <div className="mt-4 mb-6">
               <h2 className="text-white text-xl font-bold mb-3">Durchschnitt</h2>
               <div className="grid grid-cols-2 gap-3">
-                <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-3">
+                <div className="bg-vilo-card border border-vilo-border-subtle px-4 py-3">
                   <p className="text-white text-[24px] font-bold leading-none">{avgPerGuest.toFixed(2)} &euro;</p>
                   <p className="text-[#9f9aba] text-[12px] mt-2">pro Gast</p>
                 </div>
-                <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-3">
+                <div className="bg-vilo-card border border-vilo-border-subtle px-4 py-3">
                   <p className="text-white text-[24px] font-bold leading-none">{avgPerGroup.toFixed(2)} &euro;</p>
                   <p className="text-[#9f9aba] text-[12px] mt-2">pro Gruppe</p>
                 </div>
               </div>
               {avgTableDuration > 0 && (
-                <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-3 mt-3">
+                <div className="bg-vilo-card border border-vilo-border-subtle px-4 py-3 mt-3">
                   <div className="flex items-center gap-2">
                     <IconHourglass className="w-4 h-4 text-[#9f9aba]" />
                     <p className="text-white text-[24px] font-bold leading-none">{avgTableDuration} Min</p>
@@ -1308,7 +1308,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
             {/* Tisch-Performance Ranking */}
             {tablePerformance.length > 0 && (
               <>
-                <div className="border-t border-vilo-border-subtle/30 my-2" />
+                <div className="border-t border-vilo-border-subtle my-2" />
                 <div className="mt-4 mb-6">
                   <div className="flex items-center gap-2 mb-3">
                     <IconTrophy className="w-5 h-5 text-amber-400" />
@@ -1316,7 +1316,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
                   </div>
                   <div className="space-y-2">
                     {tablePerformance.slice(0, 5).map((tp, i) => (
-                      <div key={tp.id} className="flex items-center justify-between bg-vilo-surface/60 rounded-xl border border-vilo-border-subtle/50 p-3">
+                      <div key={tp.id} className="flex items-center justify-between bg-vilo-surface/60 rounded-xl border border-vilo-border-subtle p-3">
                         <div className="flex items-center gap-3">
                           <span className={`text-lg font-bold ${i === 0 ? 'text-amber-400' : i === 1 ? 'text-vilo-text-soft' : i === 2 ? 'text-orange-400' : 'text-vilo-text-muted'}`}>#{i + 1}</span>
                           <div>
@@ -1334,12 +1334,12 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
               </>
             )}
 
-            <div className="border-t border-vilo-border-subtle/30 my-2" />
+            <div className="border-t border-vilo-border-subtle my-2" />
 
             {/* Trinkgeld */}
             <div className="mt-3 mb-5">
               <h2 className="text-white text-[18px] font-bold mb-2">Trinkgeld</h2>
-              <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-2.5">
+              <div className="bg-vilo-card border border-vilo-border-subtle px-4 py-2.5">
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="text-white text-[20px] font-bold leading-none">{realTips.toFixed(2)} &euro;</p>
@@ -1354,31 +1354,31 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
             </div>
 
             {/* OpenTable-Style: Shift Overview Kennzahlen */}
-            <div className="border-t border-vilo-border-subtle/30 my-2" />
+            <div className="border-t border-vilo-border-subtle my-2" />
             <div className="mt-3 mb-5">
               <h2 className="text-white text-[18px] font-bold mb-2">Shift Overview</h2>
               <div className="grid grid-cols-3 gap-2.5">
-                <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-2.5">
+                <div className="bg-vilo-card border border-vilo-border-subtle px-4 py-2.5">
                   <p className="text-white text-[20px] font-bold leading-none">{totalReservationParties}</p>
                   <p className="text-[#9f9aba] text-[11px] mt-1.5">Gruppen</p>
                 </div>
-                <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-2.5">
+                <div className="bg-vilo-card border border-vilo-border-subtle px-4 py-2.5">
                   <p className="text-white text-[20px] font-bold leading-none">{totalReservationCovers}</p>
                   <p className="text-[#9f9aba] text-[11px] mt-1.5">Gäste</p>
                 </div>
-                <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-2.5">
+                <div className="bg-vilo-card border border-vilo-border-subtle px-4 py-2.5">
                   <p className="text-white text-[20px] font-bold leading-none">{shortNoticeCovers}</p>
                   <p className="text-[#9f9aba] text-[11px] mt-1.5">Kurzfristig (&lt;3h)</p>
                 </div>
-                <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-2.5">
+                <div className="bg-vilo-card border border-vilo-border-subtle px-4 py-2.5">
                   <p className="text-white text-[20px] font-bold leading-none">{sourceWalkIn}</p>
                   <p className="text-[#9f9aba] text-[11px] mt-1.5">Walk-Ins</p>
                 </div>
-                <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-2.5">
+                <div className="bg-vilo-card border border-vilo-border-subtle px-4 py-2.5">
                   <p className="text-white text-[20px] font-bold leading-none">{avgPerGuest > 0 ? avgPerGuest.toFixed(0) + '\u20AC' : '\u2013'}</p>
                   <p className="text-[#9f9aba] text-[11px] mt-1.5">\u2300 pro Gast</p>
                 </div>
-                <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-2.5">
+                <div className="bg-vilo-card border border-vilo-border-subtle px-4 py-2.5">
                   <p className="text-white text-[20px] font-bold leading-none">{totalRevenue > 0 ? totalRevenue.toFixed(0) + '\u20AC' : '\u2013'}</p>
                   <p className="text-[#9f9aba] text-[11px] mt-1.5">Gesamt-Umsatz</p>
                 </div>
@@ -1401,21 +1401,21 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
             {/* Warteliste */}
             {waitlistWaiting > 0 && (
               <>
-                <div className="border-t border-vilo-border-subtle/30 my-2" />
+                <div className="border-t border-vilo-border-subtle my-2" />
                 <button onClick={() => setDrillDown('warteliste')} className="w-full text-left mt-3 mb-5">
                   <div className="flex items-center gap-2 mb-2">
                     <h2 className="text-white text-[18px] font-bold">Warteliste</h2>
                     <IconChevronRight className="w-5 h-5 text-vilo-text-muted" />
                   </div>
                   <div className="grid grid-cols-2 gap-2.5">
-                    <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-2.5">
+                    <div className="bg-vilo-card border border-vilo-border-subtle px-4 py-2.5">
                       <div className="flex items-center gap-2 mb-1">
                         <IconListNumbers className="w-4 h-4 text-[#cf45f3]" />
                         <p className="text-[#d8c7ff] text-[11px]">Wartend</p>
                       </div>
                       <p className="text-white text-[20px] font-bold leading-none">{waitlistWaiting}</p>
                     </div>
-                    <div className="bg-vilo-card border border-vilo-border-subtle/40 px-4 py-2.5">
+                    <div className="bg-vilo-card border border-vilo-border-subtle px-4 py-2.5">
                       <p className="text-[#9f9aba] text-[11px] mb-1">&empty; Wartezeit</p>
                       <p className="text-white text-[20px] font-bold leading-none">{waitlistAvgWait} Min</p>
                     </div>

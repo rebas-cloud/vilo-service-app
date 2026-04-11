@@ -62,14 +62,14 @@ export function TableOverview({ voiceMode, onStartVoice, onStopVoice }: TableOve
               className={`p-2 rounded-lg transition-colors ${
                 voiceMode !== 'idle'
                   ? 'bg-[#7bb7ef] text-white'
-                  : 'bg-vilo-elevated text-vilo-text-soft hover:bg-[#555]'
+                  : 'bg-vilo-elevated text-vilo-text-soft hover:bg-[#3a365c]'
               }`}
             >
               {voiceMode !== 'idle' ? <IconMicrophone className="w-5 h-5" /> : <IconMicrophoneOff className="w-5 h-5" />}
             </button>
             <button
               onClick={() => dispatch({ type: 'LOGOUT' })}
-              className="p-2 rounded-lg bg-vilo-elevated text-vilo-text-soft hover:bg-[#555] transition-colors"
+              className="p-2 rounded-lg bg-vilo-elevated text-vilo-text-soft hover:bg-[#3a365c] transition-colors"
             >
               <IconLogout className="w-5 h-5" />
             </button>

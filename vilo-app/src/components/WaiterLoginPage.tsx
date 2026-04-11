@@ -162,7 +162,7 @@ export function WaiterLoginPage({ onBack, onLogin }: WaiterLoginPageProps) {
               <button
                 key={char}
                 onClick={() => handleCodeInput(char)}
-                className="h-11 rounded-lg bg-vilo-elevated/80 text-white text-sm font-medium active:bg-[#7bb7ef] transition-colors hover:bg-[#555]"
+                className="h-11 rounded-lg bg-vilo-elevated/80 text-white text-sm font-medium active:bg-[#8b5cf6] transition-colors hover:bg-[#3a365c]"
               >
                 {char}
               </button>
@@ -171,7 +171,7 @@ export function WaiterLoginPage({ onBack, onLogin }: WaiterLoginPageProps) {
           <div className="flex gap-2 mt-2 w-72">
             <button
               onClick={handleCodeDelete}
-              className="flex-1 h-11 rounded-lg bg-vilo-elevated/50 text-vilo-text-soft text-sm font-medium active:bg-[#555] transition-colors"
+              className="flex-1 h-11 rounded-lg bg-vilo-elevated/50 text-vilo-text-soft text-sm font-medium active:bg-[#8b5cf6] transition-colors"
             >
               Loeschen
             </button>
@@ -218,7 +218,7 @@ export function WaiterLoginPage({ onBack, onLogin }: WaiterLoginPageProps) {
                   <button
                     key="del"
                     onClick={handlePinDelete}
-                    className="h-16 rounded-xl bg-vilo-elevated/50 text-vilo-text-soft text-lg font-medium active:bg-[#555] transition-colors flex items-center justify-center"
+                    className="h-16 rounded-xl bg-vilo-elevated/50 text-vilo-text-soft text-lg font-medium active:bg-[#8b5cf6] transition-colors flex items-center justify-center"
                   >
                     &#8592;
                   </button>
@@ -228,7 +228,7 @@ export function WaiterLoginPage({ onBack, onLogin }: WaiterLoginPageProps) {
                 <button
                   key={key}
                   onClick={() => handlePinEntry(key)}
-                  className="h-16 rounded-xl bg-vilo-elevated/80 text-white text-2xl font-medium active:bg-[#7bb7ef] transition-colors hover:bg-[#555]"
+                  className="h-16 rounded-xl bg-vilo-elevated/80 text-white text-2xl font-medium active:bg-[#8b5cf6] transition-colors hover:bg-[#3a365c]"
                 >
                   {key}
                 </button>

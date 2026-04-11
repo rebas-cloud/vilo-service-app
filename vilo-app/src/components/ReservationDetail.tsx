@@ -20,7 +20,6 @@ interface ReservationDetailProps {
 export function ReservationDetail({ reservation, allTables, onClose, onUpdated, onEdit, onSeat, inline = false }: ReservationDetailProps) {
   const { state, dispatch } = useApp();
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [isClosing, setIsClosing] = useState(false);
 
   const r = reservation;
   const assignedIds = r.tableIds && r.tableIds.length > 0 ? r.tableIds : (r.tableId ? [r.tableId] : []);
@@ -28,11 +27,7 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
   const isSeated = ['seated', 'partially_seated', 'appetizer', 'entree', 'dessert', 'cleared', 'check_dropped', 'paid', 'bussing_needed'].includes(r.status);
 
   const requestClose = useCallback(() => {
-    setIsClosing(true);
-    window.setTimeout(() => {
-      onClose();
-      setIsClosing(false);
-    }, 140);
+    onClose();
   }, [onClose]);
 
   const handlePaymentStatus = (status: 'open' | 'partial' | 'paid') => {
@@ -116,14 +111,16 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
     <div
       className={
         inline
-          ? 'h-full w-[320px] max-w-[36vw] overflow-y-auto border-l border-white/[0.03]'
-          : `h-full w-[320px] max-w-[92vw] overflow-y-auto shadow-2xl ${isClosing ? 'vilo-panel-exit' : 'vilo-panel-enter'}`
+          ? 'vilo-no-motion h-full overflow-y-auto border-l w-[calc(100vw-68px)] sm:w-[320px] sm:max-w-[36vw]'
+          : 'vilo-no-motion h-full w-[320px] max-w-[92vw] overflow-y-auto shadow-2xl'
       }
-      style={{ background: '#1f1e33', borderLeft: inline ? '1px solid rgba(255,255,255,0.03)' : undefined }}
+      style={{ background: '#1f1e33', borderLeft: inline ? '1px solid #2a2a42' : undefined }}
       onClick={e => e.stopPropagation()}
     >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.03]">
-          <h2 className="text-[16px] font-bold text-white">Reservierung</h2>
+        <div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: '#2a2a42' }}>
+          <div className="flex items-center gap-2">
+            <h2 className="text-[16px] font-bold text-white">Reservierung</h2>
+          </div>
           <button onClick={requestClose} className="ml-3 p-1 text-vilo-text-secondary hover:text-vilo-text-primary shrink-0"><IconX className="w-5 h-5" /></button>
         </div>
 
@@ -189,7 +186,7 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
 
           {/* Payment status */}
           <SurfaceCard className="overflow-hidden">
-            <div className="flex items-center justify-between gap-3 px-4 py-4 border-b border-white/[0.06]">
+            <div className="flex items-center justify-between gap-3 border-b px-4 py-4" style={{ borderColor: '#2a2a42' }}>
               <span className="text-[#eef1fb] text-[13px] font-semibold">Zahlungsstatus</span>
               <span className="text-[11px] text-[#b4afd2]">{paymentStatusLabel[paymentStatus]}</span>
             </div>
@@ -257,7 +254,7 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
   }
 
   return createPortal(
-    <div className={`fixed inset-0 z-[60] flex justify-end ${isClosing ? 'vilo-overlay-exit' : 'vilo-overlay-enter'}`} style={{ background: 'rgba(0,0,0,0.34)' }} onClick={requestClose}>
+    <div className="vilo-no-motion fixed inset-0 z-[60] flex justify-end" style={{ background: 'rgba(0,0,0,0.34)' }} onClick={requestClose}>
       {panel}
     </div>,
     document.body

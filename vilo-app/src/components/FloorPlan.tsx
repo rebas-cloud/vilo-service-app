@@ -9,6 +9,7 @@ import { TableManagement } from './TableManagement';
 import { WaitlistPanel } from './Waitlist';
 import { GuestProfile } from './GuestProfile';
 import { ReservationDetail } from './ReservationDetail';
+import { ActionButton, SurfaceCard } from './ui';
 
 interface FloorPlanProps {
   voiceMode?: string;
@@ -33,6 +34,12 @@ type SeatQuickActionState = {
   seatNumber: number;
   x: number;
   y: number;
+};
+
+type PendingWaitlistPlacementState = {
+  entryId: string;
+  guestName: string;
+  partySize: number;
 };
 
 type BadgePlacement = 'bottom' | 'left' | 'right' | 'top';
@@ -109,7 +116,7 @@ const SERVICE_STATUS_SHORT: Record<string, string> = {
 };
 
 const TABLE_STATUS_META = {
-  free: { color: '#475569', glow: 'rgba(71,85,105,0.35)' },
+  free: { color: '#4a4664', glow: 'rgba(139,92,246,0.18)' },
   occupied: { color: '#8b5cf6', glow: 'rgba(139,92,246,0.4)' },
   billing: { color: '#f59e0b', glow: 'rgba(245,158,11,0.45)' },
   blocked: { color: '#ef4444', glow: 'rgba(239,68,68,0.45)' },
@@ -171,6 +178,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
   const [showReservationCreatePanel, setShowReservationCreatePanel] = useState(false);
   const [showWaitlist, setShowWaitlist] = useState(false);
   const [activeWaitlistCardId, setActiveWaitlistCardId] = useState<string | null>(null);
+  const [pendingWaitlistPlacement, setPendingWaitlistPlacement] = useState<PendingWaitlistPlacementState | null>(null);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [waitlistEntries, setWaitlistEntries] = useState<WaitlistEntry[]>([]);
   const [showSidebar, setShowSidebar] = useState(true);
@@ -217,8 +225,9 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
   const [seatGuestSearch, setSeatGuestSearch] = useState('');
   const [seatGuestName, setSeatGuestName] = useState('');
   const [seatGuestPhone, setSeatGuestPhone] = useState('');
-  const sidebarWidth = 248;
+  const sidebarWidth = 'min(88vw, 360px)';
   const [, setMinuteTick] = useState(0);
+  const isMobileViewport = typeof window !== 'undefined' && window.innerWidth < 768;
 
   const [scale, setScale] = useState(initialViewportRef.current.scale);
   const [translate, setTranslate] = useState(initialViewportRef.current.translate);
@@ -600,6 +609,16 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
       setSelectedTable(prev => prev === table.id ? null : table.id);
       return;
     }
+    if (pendingWaitlistPlacement && table.status === 'free') {
+      closeGuestPanel();
+      setShowWaitlist(false);
+      setShowReservationCreatePanel(false);
+      setResDetailId(null);
+      setTableManagementId(null);
+      clearPersistedInspector();
+      openTableManagementInspector(table.id);
+      return;
+    }
     closeGuestPanel();
     setShowWaitlist(false);
     setShowReservationCreatePanel(false);
@@ -826,7 +845,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
       const duration = Math.max(1, Math.round((Date.now() - startedAtValue) / 60000));
       const strippedTableName = table.name.replace(/^Tisch\s*/i, '').trim() || table.name;
       const source = session?.guestSource === 'phone' || session?.guestSource === 'online' ? session.guestSource : 'walk_in';
-      const fallbackGuestName = source === 'walk_in' ? `Walk-In ${strippedTableName}` : `${source === 'phone' ? 'Telefon' : 'Online'} ${strippedTableName}`;
+      const fallbackGuestName = source === 'walk_in' ? 'Walk-In' : `${source === 'phone' ? 'Telefon' : 'Online'} ${strippedTableName}`;
       const guestName = session?.guestName?.trim() || fallbackGuestName;
 
       items.push({
@@ -1105,7 +1124,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
           ? TABLE_STATUS_META.billing.color
           : (hasReservation && table.status === 'free')
             ? '#0ea5e9'
-            : '#334155';
+            : TABLE_STATUS_META.free.color;
     const effectiveSeats = Math.min(10, Math.max(table.seats || 4, displayMeta.guestCount || 0));
     const size = getTableSize({ ...table, seats: effectiveSeats });
     const tableX = table.x || 0;
@@ -1115,6 +1134,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     const isRound = shape === 'round' || isBarstool;
     const isDiamond = shape === 'diamond';
     const isPopupActive = !!(selectedReservationId && reservation && reservation.id === selectedReservationId);
+    const isTableInspectorActive = tableManagementId === table.id;
     const seats = effectiveSeats;
 
     // Progress bar for occupied tables (like OpenTable)
@@ -1131,6 +1151,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     const tableSession = state.sessions[table.id];
 
     const isHighlighted = highlightedTableId === table.id;
+    const isLinkedInspectorTable = isPopupActive || isTableInspectorActive;
 
     const wrapperStyle: React.CSSProperties = {
       position: 'absolute',
@@ -1139,11 +1160,13 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
       width: svgW,
       height: svgH,
       cursor: editMode ? 'grab' : 'pointer',
-      zIndex: isSelected || isHighlighted ? 10 : 1,
+      zIndex: isSelected || isHighlighted || isLinkedInspectorTable ? 10 : 1,
       filter: isSelected
         ? `drop-shadow(0 0 12px ${displayMeta.statusMeta.glow})`
         : isHighlighted
           ? 'drop-shadow(0 0 12px rgba(236,72,153,0.8)) brightness(1.2)'
+          : isLinkedInspectorTable
+            ? 'drop-shadow(0 0 12px rgba(168,85,247,0.45)) brightness(1.08)'
           : 'none',
       transition: dragRef.current?.tableId === table.id ? 'none' : 'filter 0.15s',
     };
@@ -1247,10 +1270,12 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
             transform: isDiamond ? 'rotate(45deg)' : undefined, transformOrigin: 'center',
           }} />
         )}
-        {isPopupActive && !editMode && (
+        {isLinkedInspectorTable && !editMode && (
           <div className="absolute pointer-events-none" style={{
             left: ox - 2, top: oy - 2, width: size.w + 4, height: size.h + 4,
-            border: '2px solid #ffffff', borderRadius: isRound ? '50%' : isDiamond ? 8 : 10,
+            border: isPopupActive ? '2px solid #ffffff' : '2px solid rgba(168,85,247,0.9)',
+            boxShadow: isPopupActive ? 'none' : '0 0 18px rgba(168,85,247,0.22)',
+            borderRadius: isRound ? '50%' : isDiamond ? 8 : 10,
             transform: isDiamond ? 'rotate(45deg)' : undefined, transformOrigin: 'center',
           }} />
         )}
@@ -1260,13 +1285,6 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
           {!isBlocked && isActive && !isBarstool && (
             <div className="absolute" style={{ top: isRound ? 12 : 10, left: '16%', right: '16%', height: 3, borderRadius: 999, background: 'rgba(255,255,255,0.16)' }}>
               <div style={{ width: `${Math.max(8, progressPct)}%`, height: '100%', borderRadius: 999, background: '#fff', transition: 'width 1s ease' }} />
-            </div>
-          )}
-          {isBlocked && (
-            <div className="absolute left-1/2 -translate-x-1/2 rounded-full px-2 py-0.5" style={{ top: isRound ? 10 : 8, background: 'rgba(127,29,29,0.28)' }}>
-              <span className="block text-center text-[9px] font-semibold uppercase tracking-[0.16em] text-white/90">
-                Blockiert
-              </span>
             </div>
           )}
           <span className="font-bold leading-none select-none" style={{
@@ -1294,7 +1312,6 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
                 ? '#fecaca'
                 : '#f8fafc';
             const baseStyle: React.CSSProperties = {
-              position: 'absolute',
               background: 'rgba(15,23,42,0.82)',
               border: badgeBorder,
               borderRadius: 8,
@@ -1317,22 +1334,26 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
             const top = placement === 'bottom'
               ? oy + size.h + 6
               : placement === 'top'
-                ? -badgeSize.height - 6
+                ? -badgeSize.height - 11
                 : oy + size.h / 2 - badgeSize.height / 2;
 
             return (
-              <div className="absolute pointer-events-none" style={{ left, top }}>
+              <div
+                className={
+                  'absolute pointer-events-none ' +
+                  ((placement === 'bottom' || placement === 'top') ? 'flex flex-col items-center' : '')
+                }
+                style={{ left, top, width: placement === 'bottom' || placement === 'top' ? badgeSize.width : undefined }}
+              >
                 {(placement === 'bottom' || placement === 'top') && (
                   <div style={{
                     width: 0,
                     height: 0,
-                    margin: placement === 'bottom' ? '0 auto' : '0 auto',
                     borderLeft: '5px solid transparent',
                     borderRight: '5px solid transparent',
                     ...(placement === 'bottom'
-                      ? { borderBottom: '5px solid rgba(15,23,42,0.82)' }
-                      : { borderTop: '5px solid rgba(15,23,42,0.82)' }),
-                    ...(placement === 'bottom' ? {} : { marginBottom: 2 }),
+                      ? { borderBottom: '5px solid rgba(15,23,42,0.82)', marginBottom: -1 }
+                      : { borderTop: '5px solid rgba(15,23,42,0.82)', marginTop: 2 }),
                   }} />
                 )}
                 <div style={baseStyle}>
@@ -1428,7 +1449,13 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
 
   // Handle sidebar card click - toggle 3-panel OpenTable view
   const handleSidebarCardClick = (r: SidebarPlacedItem) => {
+    const isMobileViewport = typeof window !== 'undefined' && window.innerWidth < 768;
     setPressedReservationId(r.id);
+    const targetTableId = r.tableId || (r.__isSessionItem ? r.__sessionTableId : undefined);
+    if (targetTableId) {
+      setHighlightedTableId(targetTableId);
+      window.setTimeout(() => setHighlightedTableId(null), 1200);
+    }
     window.setTimeout(() => {
       setPressedReservationId(current => (current === r.id ? null : current));
     }, 160);
@@ -1438,6 +1465,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
         closeGuestPanel();
         return;
       }
+      if (isMobileViewport) setShowSidebar(false);
       openTableManagementInspector(r.__sessionTableId);
       return;
     }
@@ -1446,6 +1474,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
       closeGuestPanel();
       return;
     }
+    if (isMobileViewport) setShowSidebar(false);
     openReservationInspector(r);
   };
 
@@ -1656,7 +1685,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     const detailLabel = sessionForCard?.guestName?.trim() || r.guestName;
 
     return (
-      <div key={r.id} style={{ marginBottom: '2px', padding: '0 4px' }}>
+      <div key={r.id} style={{ marginBottom: '1px', padding: '0 4px' }}>
         <div
           className={'flex items-stretch min-h-[60px] hover:brightness-110 active:brightness-125 transition-all cursor-pointer ' +
             (isJustAdded ? 'animate-pulse' : '')}
@@ -1765,8 +1794,23 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
       setActiveWaitlistCardId(current => (current === id ? null : current));
     };
 
+    const handleStartWaitlistPlacement = (waitlistEntry: WaitlistEntry) => {
+      const isMobileViewport = typeof window !== 'undefined' && window.innerWidth < 768;
+      setPendingWaitlistPlacement({
+        entryId: waitlistEntry.id,
+        guestName: waitlistEntry.guestName,
+        partySize: waitlistEntry.partySize,
+      });
+      setActiveWaitlistCardId(null);
+      setShowWaitlist(false);
+      closeGuestPanel();
+      if (isMobileViewport) {
+        setShowSidebar(false);
+      }
+    };
+
     return (
-      <div key={entry.id} style={{ marginBottom: '2px', padding: '0 4px' }}>
+      <div key={entry.id} style={{ marginBottom: '1px', padding: '0 4px' }}>
         <div
           className="flex items-stretch min-h-[60px] hover:brightness-110 transition-all cursor-pointer"
           style={{ background: '#2a2944', borderRadius: 0 }}
@@ -1801,7 +1845,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
           <div className="space-y-2 bg-[#1f1e33] px-0 py-2">
             <button
               type="button"
-              onClick={() => setShowWaitlist(true)}
+              onClick={() => handleStartWaitlistPlacement(entry)}
               className="flex w-full items-center justify-center gap-2 py-3 text-[14px] font-semibold text-white transition hover:brightness-110"
               style={{ background: '#8b5cf6' }}
             >
@@ -1894,6 +1938,44 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     clearPersistedInspector();
   };
 
+  const openReservationCreateFromSidebar = useCallback(() => {
+    const isMobileViewport = typeof window !== 'undefined' && window.innerWidth < 768;
+    setPendingWaitlistPlacement(null);
+
+    if (isMobileViewport) {
+      closeGuestPanel();
+      setResDetailId(null);
+      setTableManagementId(null);
+      setShowWaitlist(false);
+    } else {
+      setShowWaitlist(false);
+      setSelectedReservationId(null);
+      setGuestProfileGuest(null);
+      clearPersistedInspector();
+    }
+
+    setShowReservationCreatePanel(true);
+  }, [clearPersistedInspector]);
+
+  const openWaitlistFromSidebar = useCallback(() => {
+    const isMobileViewport = typeof window !== 'undefined' && window.innerWidth < 768;
+    setPendingWaitlistPlacement(null);
+
+    if (isMobileViewport) {
+      closeGuestPanel();
+      setResDetailId(null);
+      setTableManagementId(null);
+      setShowReservationCreatePanel(false);
+    } else {
+      setShowReservationCreatePanel(false);
+      setSelectedReservationId(null);
+      setGuestProfileGuest(null);
+      clearPersistedInspector();
+    }
+
+    setShowWaitlist(true);
+  }, [clearPersistedInspector]);
+
   // OpenTable RIGHT PANEL - 1:1 OpenTable Design
   const [pacingExcluded, setPacingExcluded] = useState(false);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
@@ -1935,49 +2017,48 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
       : null;
 
     return (
-      <div className="flex flex-col h-full overflow-hidden" style={{ width: 300, minWidth: 300, background: '#1f1e33', borderLeft: '1px solid rgba(255,255,255,0.03)' }}>
-        <div className="flex items-center justify-between px-4 py-4 border-b border-white/[0.05]">
+      <div className="flex flex-col h-full overflow-hidden" style={{ width: 300, minWidth: 300, background: '#1f1e33', borderLeft: '1px solid var(--vilo-border-subtle)' }}>
+        <div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: '#2a2a42' }}>
           <div>
-            <p className="text-[11px] uppercase tracking-[0.16em] text-[#8f97b3]">Sitzplatz</p>
-            <h2 className="text-[16px] font-bold text-[#eef1fb]">{seatInspectorTable.name} · Sitz {seatInspector.seatNumber}</h2>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8f97b3]">Sitzplatz</p>
+            <p className="mt-0.5 text-[16px] font-bold text-white">
+              {seatInspectorTable.name.replace(/^[A-Za-z]+\s*/, '') || seatInspectorTable.name} · Sitz {seatInspector.seatNumber}
+            </p>
           </div>
-          <button onClick={closeSeatInspector} className="text-[#8f97b3] hover:text-white transition-colors">
+          <button onClick={closeSeatInspector} className="ml-3 p-1 text-vilo-text-secondary hover:text-vilo-text-primary shrink-0">
             <IconX className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-          <div className="px-4 py-3" style={{ background: '#2a2944' }}>
-            <p className="text-[12px] font-medium text-[#cbd5e1]">
-              {isAssignable ? 'Aktiver Platz am Tisch' : 'Dieser Platz ist aktuell nicht belegt und kann erst ab mehr Gästen zugewiesen werden.'}
-            </p>
-          </div>
-
-          <div className="px-4 py-3" style={{ background: '#2a2944' }}>
-            <p className="text-[11px] uppercase tracking-[0.16em] text-[#8f97b3]">Zugewiesener Gast</p>
-            <p className="mt-2 text-[15px] font-semibold text-white">{seatInspectorAssignment?.guestName || 'Noch kein Profil zugewiesen'}</p>
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+          <SurfaceCard className="px-4 py-4">
+            <div className="text-[#eef1fb] text-[13px] font-semibold">Zugewiesener Gast</div>
+            <div className="mt-1 text-[16px] font-bold text-white">{seatInspectorAssignment?.guestName || 'Noch kein Profil zugewiesen'}</div>
             {assignedGuest?.phone && (
-              <p className="mt-1 text-[12px] text-[#b6acca]">{assignedGuest.phone}</p>
+              <div className="mt-1 flex items-center gap-2 text-[12px] font-medium text-[#d8c7ff]">
+                <IconPhone className="w-4 h-4 shrink-0" />
+                <span className="truncate">{assignedGuest.phone}</span>
+              </div>
             )}
-          </div>
+          </SurfaceCard>
 
           {isAssignable && (
             <>
-              <div className="px-4 py-3 space-y-3" style={{ background: '#2a2944' }}>
-                <p className="text-[11px] uppercase tracking-[0.16em] text-[#8f97b3]">Gast suchen</p>
+              <SurfaceCard className="px-4 py-4 space-y-3">
+                <div className="text-[#eef1fb] text-[13px] font-semibold">Gast suchen</div>
                 <input
                   type="text"
                   value={seatGuestSearch}
                   onChange={event => setSeatGuestSearch(event.target.value)}
                   placeholder="Name, Telefon, E-Mail"
-                  className="w-full px-3 py-2.5 bg-[#161526] text-white text-sm outline-none border border-white/[0.06] focus:border-[#8b5cf6] placeholder:text-[#8f97b3]"
+                  className="w-full bg-[#161526] px-4 py-3 text-[13px] text-white outline-none border border-vilo-border-subtle focus:border-[#8b5cf6] placeholder:text-[#8f97b3]"
                 />
                 <div className="space-y-2">
                   {seatInspectorGuests.map(guest => (
                     <button
                       key={guest.id}
                       onClick={() => assignGuestToSeat(guest)}
-                      className="w-full flex items-center justify-between gap-3 px-3 py-2.5 text-left bg-[#1c1b30] hover:bg-[#26243d] transition-colors"
+                      className="w-full flex items-center justify-between gap-3 px-3 py-3 text-left bg-[#1c1b30] hover:bg-[#26243d] transition-colors"
                     >
                       <div className="min-w-0">
                         <p className="truncate text-[13px] font-semibold text-white">{guest.name}</p>
@@ -1990,42 +2071,42 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
                     <p className="text-[12px] text-[#8f97b3]">Keine passenden Gäste gefunden.</p>
                   )}
                 </div>
-              </div>
+              </SurfaceCard>
 
-              <div className="px-4 py-3 space-y-3" style={{ background: '#2a2944' }}>
-                <p className="text-[11px] uppercase tracking-[0.16em] text-[#8f97b3]">Neuen Gast anlegen</p>
+              <SurfaceCard className="px-4 py-4 space-y-3">
+                <div className="text-[#eef1fb] text-[13px] font-semibold">Neuen Gast anlegen</div>
                 <input
                   type="text"
                   value={seatGuestName}
                   onChange={event => setSeatGuestName(event.target.value)}
                   placeholder="Name"
-                  className="w-full px-3 py-2.5 bg-[#161526] text-white text-sm outline-none border border-white/[0.06] focus:border-[#8b5cf6] placeholder:text-[#8f97b3]"
+                  className="w-full bg-[#161526] px-4 py-3 text-[13px] text-white outline-none border border-vilo-border-subtle focus:border-[#8b5cf6] placeholder:text-[#8f97b3]"
                 />
                 <input
                   type="text"
                   value={seatGuestPhone}
                   onChange={event => setSeatGuestPhone(event.target.value)}
                   placeholder="Telefon (optional)"
-                  className="w-full px-3 py-2.5 bg-[#161526] text-white text-sm outline-none border border-white/[0.06] focus:border-[#8b5cf6] placeholder:text-[#8f97b3]"
+                  className="w-full bg-[#161526] px-4 py-3 text-[13px] text-white outline-none border border-vilo-border-subtle focus:border-[#8b5cf6] placeholder:text-[#8f97b3]"
                 />
-                <button
+                <ActionButton
                   onClick={handleCreateSeatGuest}
                   disabled={!(seatGuestName.trim() || seatGuestSearch.trim())}
-                  className="w-full py-3 text-[14px] font-semibold text-white transition-colors disabled:opacity-50"
-                  style={{ background: '#8b5cf6' }}
+                  icon={<IconUserPlus className="w-5 h-5" />}
+                  className="disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Gast anlegen und zuweisen
-                </button>
-              </div>
+                </ActionButton>
+              </SurfaceCard>
 
               {seatInspectorAssignment && (
-                <button
+                <ActionButton
                   onClick={clearSeatGuestAssignment}
-                  className="w-full py-3 text-[14px] font-semibold transition-colors"
-                  style={{ background: '#2a2944', color: '#f0abfc' }}
+                  variant="secondary"
+                  className="text-[#d7d3ea]"
                 >
                   Zuweisung entfernen
-                </button>
+                </ActionButton>
               )}
             </>
           )}
@@ -2040,7 +2121,13 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
       return (
         <div
           className="relative flex flex-col h-full overflow-hidden"
-          style={{ width: 260, minWidth: 260, background: '#1f1e33', borderLeft: '1px solid rgba(255,255,255,0.03)' }}
+          style={{
+            width: showSidebar ? 260 : 'calc(100vw - 68px)',
+            minWidth: showSidebar ? 260 : 'calc(100vw - 68px)',
+            maxWidth: showSidebar ? 260 : 'calc(100vw - 68px)',
+            background: '#1f1e33',
+            borderLeft: '1px solid var(--vilo-border-subtle)',
+          }}
         >
           <GuestProfile
             key={guestProfileKey}
@@ -2088,8 +2175,31 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     const statusOptions = getStatusOptions(r.status);
 
     return (
-      <div className="flex flex-col h-full overflow-y-auto" style={{ width: 260, minWidth: 260, background: '#1f1e33', borderLeft: '1px solid rgba(255,255,255,0.03)' }}>
+      <div
+        className="flex flex-col h-full overflow-y-auto"
+        style={{
+          width: showSidebar ? 260 : 'calc(100vw - 68px)',
+          minWidth: showSidebar ? 260 : 'calc(100vw - 68px)',
+          maxWidth: showSidebar ? 260 : 'calc(100vw - 68px)',
+          background: '#1f1e33',
+          borderLeft: '1px solid var(--vilo-border-subtle)',
+        }}
+      >
         {/* Status header */}
+        <div className="border-b px-4 py-3" style={{ borderColor: '#2a2a42' }}>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8f97b3]">Reservierung</p>
+            </div>
+            <button
+              onClick={closeGuestPanel}
+              className="flex h-9 w-9 items-center justify-center text-vilo-text-secondary transition-colors hover:text-white"
+              aria-label="Schliessen"
+            >
+              <IconX className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
         <div className="relative pb-2">
           <button onClick={() => setShowStatusDropdown(!showStatusDropdown)}
             className="w-full px-4 py-3 flex items-center justify-between text-white font-semibold text-[13px] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
@@ -2101,7 +2211,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
             <IconChevronDown className="w-4 h-4 opacity-70" />
           </button>
           {showStatusDropdown && (
-            <div className="absolute top-full left-0 right-0 z-50 border border-white/[0.03] shadow-xl overflow-hidden max-h-[360px] overflow-y-auto mt-1" style={{ background: '#2a2944', borderRadius: 0 }}>
+            <div className="absolute top-full left-0 right-0 z-50 border border-vilo-border-subtle shadow-xl overflow-hidden max-h-[360px] overflow-y-auto mt-1" style={{ background: '#2a2944', borderRadius: 0 }}>
               {statusOptions.map(st => {
                 const cfg = STATUS_CONFIG.find(s => s.value === st);
                 if (!cfg) return null;
@@ -2234,7 +2344,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
 
           {/* Kreditkarte + Pacing toggle grouped card */}
           <div className="overflow-hidden" style={{ background: cardBg, borderRadius: 0 }}>
-            <button className="w-full text-left px-3 py-3 flex items-center justify-between hover:brightness-110 transition-all border-b border-white/[0.06]">
+            <button className="w-full text-left px-3 py-3 flex items-center justify-between hover:brightness-110 transition-all border-b border-vilo-border-subtle">
               <div className="flex items-center gap-2">
                 <span className="text-[#eef1fb] text-[13px] font-medium">Kreditkarte hinzufügen</span>
               </div>
@@ -2281,7 +2391,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
 
           {inspectorGuest && (
             <>
-              <div className="overflow-hidden border-y border-white/[0.04]">
+              <div className="overflow-hidden border-y border-vilo-border-subtle">
                 <div className="flex items-center justify-between gap-2 px-3 py-2.5">
                   {NOTE_CATS.map(cat => {
                     const Icon = cat.icon;
@@ -2424,12 +2534,105 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
   };
 
   const renderSidebar = () => {
-    if (!showSidebar || editMode) return null;
+    if (editMode) return null;
+    const forceCompactSidebar = typeof window !== 'undefined' && window.innerWidth < 768 && (showReservationCreatePanel || showWaitlist);
+    if (!showSidebar || forceCompactSidebar) {
+      const compactItems = [
+        {
+          key: 'reservations',
+          label: 'Reservierungen',
+          Icon: IconUsers,
+          count: sidebarReservations.length,
+          onClick: () => {
+            setShowSidebar(true);
+            setSidebarResCollapsed(false);
+          },
+        },
+        {
+          key: 'seated',
+          label: 'Platziert',
+          Icon: IconArmchair,
+          count: sidebarSeated.length,
+          onClick: () => {
+            setShowSidebar(true);
+            setSidebarSeatedCollapsed(false);
+          },
+        },
+        {
+          key: 'waitlist',
+          label: 'Warteliste',
+          Icon: IconBell,
+          count: sidebarWaitlist.length,
+          onClick: () => {
+            setShowSidebar(true);
+            setSidebarWaitlistCollapsed(false);
+          },
+        },
+      ];
+
+      return (
+        <div
+          className="flex h-full shrink-0 flex-col overflow-hidden cursor-pointer"
+          style={{ width: 68, background: '#17182a', borderRight: '1px solid #2a2a42' }}
+          onClick={() => setShowSidebar(true)}
+        >
+          <div className="flex h-[61px] shrink-0 items-center justify-center border-b px-2" style={{ background: '#1d1e31', borderColor: '#2a2a42' }}>
+            <button
+              onClick={() => setShowSidebar(true)}
+              className="flex h-10 w-10 items-center justify-center text-vilo-text-soft transition-colors hover:text-white"
+              aria-label="Seitenleiste einblenden"
+            >
+              <IconLayoutSidebarLeftExpand className="h-5 w-5" />
+            </button>
+          </div>
+          <div className="flex-1 space-y-2 overflow-y-auto px-2 py-3">
+            {compactItems.map(({ key, label, Icon, count, onClick }) => (
+              <button
+                key={key}
+                onClick={onClick}
+                className="flex w-full flex-col items-center gap-1 px-2 py-3 text-center transition-colors hover:text-white"
+                aria-label={label}
+                title={label}
+              >
+                <Icon className="h-5 w-5 text-[#d8c7ff]" />
+                <span className="text-[9px] font-semibold uppercase tracking-[0.12em] text-[#8f97b3]">{label.slice(0, 4)}</span>
+                <span className="text-[11px] font-bold text-white">{count}</span>
+              </button>
+            ))}
+          </div>
+          <div className="shrink-0 border-t px-2 py-3 space-y-2" style={{ borderColor: '#2a2a42' }}>
+            <button
+              onClick={() => {
+                openReservationCreateFromSidebar();
+              }}
+              className="flex h-12 w-full items-center justify-center rounded-none text-white transition-colors hover:brightness-110"
+              style={{ background: '#8b5cf6' }}
+              aria-label="Reservieren"
+              title="Reservieren"
+            >
+              <IconPlus className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => {
+                setShowSidebar(true);
+                openWaitlistFromSidebar();
+              }}
+              className="flex h-12 w-full items-center justify-center rounded-none text-[#d8c7ff] transition-colors hover:brightness-110"
+              style={{ background: '#2b2944' }}
+              aria-label="Warteliste"
+              title="Warteliste"
+            >
+              <IconBell className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      );
+    }
     if (showReservations) {
       return (
         <div
           className="flex flex-col h-full relative overflow-hidden shrink-0"
-          style={{ width: sidebarWidth, maxWidth: '40vw', background: '#1a1a2e', borderRight: '1px solid rgba(255,255,255,0.03)' }}
+          style={{ width: sidebarWidth, maxWidth: '40vw', background: '#1a1a2e', borderRight: '1px solid var(--vilo-border-subtle)' }}
         >
           <ReservationPanel
             embedded
@@ -2491,24 +2694,45 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     );
 
     return (
-      <div className="flex flex-col h-full shrink-0 overflow-hidden" style={{ width: sidebarWidth, maxWidth: '36vw', background: '#17182a', borderRight: '1px solid rgba(255,255,255,0.04)' }}>
-        <div className="shrink-0 border-b border-white/[0.04] px-3 py-3" style={{ background: '#1d1e31' }}>
-          <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-col h-full shrink-0 overflow-hidden" style={{ width: sidebarWidth, background: '#17182a', borderRight: '1px solid #2a2a42' }}>
+        <div className="shrink-0 border-b px-3 py-3" style={{ background: '#1d1e31', borderColor: '#2a2a42' }}>
+          <div className="flex items-end justify-between gap-3">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8f97b3]">Serviceuebersicht</p>
-              <p className="mt-1 text-[14px] font-semibold text-white">{currentZone?.name || 'Hauptetage'}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8f97b3]">Raumplan</p>
+              <div className="mt-1 flex items-center gap-1.5 text-[14px] font-semibold text-white">
+                <span>{currentZone?.name || 'Hauptetage'} ·</span>
+                <div className="relative inline-flex items-center gap-1 text-[#d8c7ff] text-[13px] font-medium">
+                  <select
+                    value={activeZone}
+                    onChange={e => setActiveZone(e.target.value)}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                  >
+                    {state.zones.map(z => (
+                      <option key={z.id} value={z.id}>{z.name}</option>
+                    ))}
+                  </select>
+                  <span>{zoneTables.length} Tische</span>
+                  <IconChevronDown className="h-4 w-4 text-[#64748b]" />
+                </div>
+              </div>
             </div>
-            <div className="rounded-full px-2.5 py-1 text-[11px] font-semibold text-[#d8c7ff]" style={{ background: 'rgba(139,92,246,0.14)' }}>
-              {zoneTables.length} Tische
-            </div>
+            {!editMode && (
+              <button
+                onClick={() => setShowSidebar(!showSidebar)}
+                className="flex h-10 w-10 items-center justify-center text-vilo-text-soft transition-colors hover:text-white"
+                aria-label={showSidebar ? 'Seitenleiste ausblenden' : 'Seitenleiste einblenden'}
+              >
+                {showSidebar ? <IconLayoutSidebarLeftCollapse className="h-5 w-5" /> : <IconLayoutSidebarLeftExpand className="h-5 w-5" />}
+              </button>
+            )}
           </div>
         </div>
         <div className="flex-1 overflow-y-auto overflow-x-hidden">
         {/* Reservations section */}
-          <div className="border-b border-white/[0.03]">
+          <div className="border-b" style={{ borderColor: '#2a2a42' }}>
             {renderSidebarHeader('Reservierungen', sidebarResParties, sidebarResCovers, sidebarResCollapsed, () => setSidebarResCollapsed(!sidebarResCollapsed), 'reservations')}
             {!sidebarResCollapsed && (
-              <div className="pb-2">
+              <div>
                 {sidebarReservations.length === 0 && (
                   <div className="px-3 py-2 text-[11px] text-[#666688]">Keine Reservierungen</div>
                 )}
@@ -2518,10 +2742,10 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
           </div>
 
           {/* Seated section */}
-          <div className="border-t border-white/[0.03]">
+          <div className="border-b" style={{ borderColor: '#2a2a42' }}>
             {renderSidebarHeader('Platziert', sidebarSeatedParties, sidebarSeatedCovers, sidebarSeatedCollapsed, () => setSidebarSeatedCollapsed(!sidebarSeatedCollapsed), 'seated')}
             {!sidebarSeatedCollapsed && (
-              <div className="pb-2">
+              <div>
                 {sidebarSeated.length === 0 && (
                   <div className="px-3 py-2 text-[11px] text-[#666688]">Keine platzierten Gaeste</div>
                 )}
@@ -2531,10 +2755,10 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
           </div>
 
           {/* Waitlist section */}
-          <div className="border-t border-white/[0.03]">
+          <div className="border-b" style={{ borderColor: '#2a2a42' }}>
             {renderSidebarHeader('Warteliste', sidebarWaitlistParties, sidebarWaitlistCovers, sidebarWaitlistCollapsed, () => setSidebarWaitlistCollapsed(!sidebarWaitlistCollapsed), 'waitlist')}
             {!sidebarWaitlistCollapsed && (
-              <div className="pb-2">
+              <div>
                 {sidebarWaitlist.length === 0 && (
                   <div className="px-3 py-2 text-[11px] text-[#666688]">Keine Warteliste</div>
                 )}
@@ -2544,10 +2768,10 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
           </div>
 
           {sidebarFinished.length > 0 && (
-            <div className="border-t border-white/[0.03]">
+            <div className="border-b" style={{ borderColor: '#2a2a42' }}>
               {renderSidebarHeader('Beendet', sidebarFinishedParties, sidebarFinishedCovers, sidebarFinishedCollapsed, () => setSidebarFinishedCollapsed(!sidebarFinishedCollapsed), 'finished')}
               {!sidebarFinishedCollapsed && (
-                <div className="pb-2">
+                <div>
                   {sidebarFinished.map(r => renderSidebarCard(r, true))}
                 </div>
               )}
@@ -2555,10 +2779,10 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
           )}
 
           {sidebarRemoved.length > 0 && (
-            <div className="border-t border-white/[0.03]">
+            <div className="border-b" style={{ borderColor: '#2a2a42' }}>
               {renderSidebarHeader('Entfernt', sidebarRemovedParties, sidebarRemovedCovers, sidebarRemovedCollapsed, () => setSidebarRemovedCollapsed(!sidebarRemovedCollapsed), 'removed')}
               {!sidebarRemovedCollapsed && (
-                <div className="pb-2">
+                <div>
                   {sidebarRemoved.map(r => renderSidebarCard(r, false))}
                 </div>
               )}
@@ -2566,31 +2790,25 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
           )}
         </div>
 
-        <div className="shrink-0 border-t border-white/[0.03] p-3 space-y-2" style={{ background: '#1d1c31' }}>
+        <div className="shrink-0 border-t p-3 space-y-2" style={{ background: '#1d1c31', borderColor: '#40395f' }}>
           <button
             onClick={() => {
-              setShowWaitlist(false);
-              setShowReservationCreatePanel(true);
-              setSelectedReservationId(null);
-              setGuestProfileGuest(null);
-              clearPersistedInspector();
+              openReservationCreateFromSidebar();
             }}
-            className="w-full py-3 text-[14px] font-semibold text-white transition-colors hover:brightness-110"
+            className="flex w-full items-center justify-center gap-2 py-3 text-[14px] font-semibold text-white transition-colors hover:brightness-110"
             style={{ background: '#8b5cf6' }}
           >
+            <IconPlus className="h-4 w-4" />
             Reservieren
           </button>
           <button
             onClick={() => {
-              setShowReservationCreatePanel(false);
-              setSelectedReservationId(null);
-              setGuestProfileGuest(null);
-              setShowWaitlist(true);
-              clearPersistedInspector();
+              openWaitlistFromSidebar();
             }}
-            className="w-full py-3 text-[14px] font-semibold text-[#d8c7ff] transition-colors hover:brightness-110"
+            className="flex w-full items-center justify-center gap-2 py-3 text-[14px] font-semibold text-[#d8c7ff] transition-colors hover:brightness-110"
             style={{ background: '#2b2944' }}
           >
+            <IconBell className="h-4 w-4" />
             Warteliste
           </button>
         </div>
@@ -2608,7 +2826,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
             <IconPlus className="w-3.5 h-3.5" /> Tisch
           </button>
           <button onClick={() => setShowShapePicker(!showShapePicker)}
-            className="flex items-center gap-1.5 bg-vilo-elevated text-vilo-text-soft rounded-lg px-3 py-1.5 text-xs font-medium hover:bg-[#555] transition-colors">
+            className="flex items-center gap-1.5 bg-vilo-elevated text-vilo-text-soft rounded-lg px-3 py-1.5 text-xs font-medium hover:bg-[#3a365c] transition-colors">
             Form: {SHAPE_OPTIONS.find(s => s.value === (selectedTable ? (state.tables.find(t => t.id === selectedTable)?.shape || 'rect') : newTableShape))?.label}
           </button>
           {selectedTable && (
@@ -2637,23 +2855,17 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
         {/* OpenTable-style sidebar */}
         {renderSidebar()}
 
-        {/* Sidebar toggle */}
-        {!editMode && (
-          <button onClick={() => setShowSidebar(!showSidebar)}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-[#1a1a2e] border border-white/[0.03] rounded-r-lg p-1"
-            style={{ left: showSidebar ? sidebarWidth : 0 }}>
-            {showSidebar ? <IconLayoutSidebarLeftCollapse className="w-4 h-4 text-vilo-text-muted" /> : <IconLayoutSidebarLeftExpand className="w-4 h-4 text-vilo-text-muted" />}
-          </button>
-        )}
-
         {/* Stage stays visible; reservation details open as right inspector */}
-        <div ref={canvasRef} className="flex-1 overflow-hidden relative"
+        <div ref={canvasRef} className={`${isMobileViewport && (showReservationCreatePanel || showWaitlist) ? 'hidden' : 'flex-1'} overflow-hidden relative`}
           style={{ background: '#1a1a2e', touchAction: scale > 1 || editMode ? 'none' : 'auto' }}
           onClick={() => {
             if (editMode) {
               setSelectedTable(null);
               setShowShapePicker(false);
               return;
+            }
+            if (isMobileViewport) {
+              setShowSidebar(false);
             }
             if (selectedReservationId || showWaitlist || showReservationCreatePanel || resDetailId || seatInspector) {
               closeGuestPanel();
@@ -2692,7 +2904,15 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
         </div>
 
         {showReservationCreatePanel && !editMode && (
-          <div className="flex flex-col h-full overflow-hidden" style={{ width: 280, minWidth: 280, background: '#1f1e33', borderLeft: '1px solid rgba(255,255,255,0.03)' }}>
+          <div
+            className="flex flex-col h-full overflow-hidden"
+            style={{
+              width: isMobileViewport ? 'calc(100vw - 68px)' : 360,
+              minWidth: isMobileViewport ? 'calc(100vw - 68px)' : 360,
+              background: '#1f1e33',
+              borderLeft: '1px solid var(--vilo-border-subtle)',
+            }}
+          >
             <ReservationPanel
               embedded
               initialShowForm
@@ -2706,9 +2926,10 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
           </div>
         )}
         {showWaitlist && !showReservationCreatePanel && !editMode && (
-          <div className="flex flex-col h-full overflow-hidden" style={{ width: 280, minWidth: 280, background: '#1f1e33', borderLeft: '1px solid rgba(255,255,255,0.03)' }}>
+          <div className="flex flex-col h-full overflow-hidden" style={{ width: 360, minWidth: 360, background: '#1f1e33', borderLeft: '1px solid var(--vilo-border-subtle)' }}>
             <WaitlistPanel
               embedded
+              initialShowAddForm
               onClose={() => setShowWaitlist(false)}
               onSeatGuest={(tableId) => {
                 setShowWaitlist(false);
@@ -2718,6 +2939,50 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
             />
           </div>
         )}
+
+        {tableManagementId && !showReservationCreatePanel && !showWaitlist && !editMode && (() => {
+          const managedTable = state.tables.find(t => t.id === tableManagementId);
+          if (!managedTable) return null;
+          return (
+            <TableManagement
+              table={managedTable}
+              onClose={() => {
+                setTableManagementId(null);
+                setPendingWaitlistPlacement(null);
+                clearPersistedInspector();
+              }}
+              onOpenTableDetail={(tableId) => {
+                setTableManagementId(null);
+                setPendingWaitlistPlacement(null);
+                clearPersistedInspector();
+                dispatch({ type: 'SET_ACTIVE_TABLE', tableId });
+              }}
+              onReserve={() => {
+                setTableManagementId(null);
+                clearPersistedInspector();
+                setShowReservations(true);
+              }}
+              allTables={state.tables}
+              isSidebarExpanded={showSidebar}
+              initialSubView={pendingWaitlistPlacement && managedTable.status === 'free' ? 'walkin_count' : 'main'}
+              initialWalkInGuestName={pendingWaitlistPlacement?.guestName || ''}
+              initialWalkInGuestCount={pendingWaitlistPlacement?.partySize || 2}
+              onSeatFromWaitlist={(tableId, guestName, guestCount) => {
+                if (!pendingWaitlistPlacement) return;
+                const updated = updateWaitlistEntry(pendingWaitlistPlacement.entryId, {
+                  status: 'seated',
+                  seatedAt: Date.now(),
+                  assignedTableId: tableId,
+                  guestName: guestName || pendingWaitlistPlacement.guestName,
+                  partySize: guestCount,
+                });
+                setWaitlistEntries(updated);
+                setPendingWaitlistPlacement(null);
+              }}
+              inline
+            />
+          );
+        })()}
 
         {seatInspector && !showReservationCreatePanel && !showWaitlist && !editMode && renderSeatInspector()}
         {selectedReservation && !showGuestProfileView && !showReservationCreatePanel && !showWaitlist && !editMode && renderRightPanel()}
@@ -2738,7 +3003,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
         return (
           <div className="fixed inset-0 z-[110] flex items-center justify-center" style={{ background: 'rgba(12,11,24,0.72)' }}>
             <div className="w-[760px] max-w-[92vw] max-h-[88vh] overflow-hidden" style={{ background: '#1f1e33', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <div className="flex items-center justify-between px-8 py-6 border-b border-white/[0.05]">
+              <div className="flex items-center justify-between px-8 py-6 border-b border-vilo-border-subtle">
                 <h2 className="text-[#eef1fb] text-[22px] font-bold">Personenzahl ändern</h2>
                 <button onClick={() => setShowPartySizeOverlay(false)} className="text-[#a9b5cb] hover:text-white transition-colors">
                   <IconX className="w-7 h-7" />
@@ -2759,12 +3024,12 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
               </div>
 
               <div className="px-8 py-6">
-                <div className="max-h-[420px] overflow-y-auto border border-white/[0.05]">
+                <div className="max-h-[420px] overflow-y-auto border border-vilo-border-subtle">
                   {partySizes.map(size => (
                     <button
                       key={size}
                       onClick={() => applyPartySize(size)}
-                      className={'w-full px-8 py-5 text-left text-[18px] border-b border-white/[0.05] transition-colors last:border-b-0 ' +
+                      className={'w-full px-8 py-5 text-left text-[18px] border-b border-vilo-border-subtle transition-colors last:border-b-0 ' +
                         (r.partySize === size ? 'bg-[#2b2944] text-[#d8c7ff] font-semibold' : 'text-[#eef1fb] hover:bg-vilo-card')}
                     >
                       {size} Gäste
@@ -2775,7 +3040,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
                   type="number"
                   min={1}
                   placeholder="Personenzahl eingeben"
-                  className="w-full mt-5 px-5 py-4 bg-[#161526] text-[#eef1fb] text-[17px] border border-white/[0.08] focus:border-[#8b5cf6] focus:outline-none placeholder:text-[#8f97b3]"
+                  className="w-full mt-5 px-5 py-4 bg-[#161526] text-[#eef1fb] text-[17px] border border-vilo-border-subtle focus:border-[#8b5cf6] focus:outline-none placeholder:text-[#8f97b3]"
                   onKeyDown={(e) => {
                     if (e.key !== 'Enter') return;
                     const value = Number((e.target as HTMLInputElement).value);
@@ -2809,7 +3074,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
         return (
           <div className="fixed inset-0 z-[110] flex items-center justify-center" style={{ background: 'rgba(12,11,24,0.72)' }}>
             <div className="w-[520px] max-w-[92vw] max-h-[88vh] overflow-hidden" style={{ background: '#1f1e33', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <div className="flex items-center justify-between px-8 py-6 border-b border-white/[0.05]">
+              <div className="flex items-center justify-between px-8 py-6 border-b border-vilo-border-subtle">
                 <h2 className="text-[#eef1fb] text-[22px] font-bold">Dauer ändern</h2>
                 <button onClick={() => setShowDurationOverlay(false)} className="text-[#a9b5cb] hover:text-white transition-colors">
                   <IconX className="w-7 h-7" />
@@ -2817,12 +3082,12 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
               </div>
 
               <div className="px-8 py-6">
-                <div className="max-h-[520px] overflow-y-auto border border-white/[0.05]">
+                <div className="max-h-[520px] overflow-y-auto border border-vilo-border-subtle">
                   {durationOptions.map(option => (
                     <button
                       key={option}
                       onClick={() => applyDuration(option)}
-                      className={'w-full px-8 py-5 text-left text-[18px] border-b border-white/[0.05] transition-colors last:border-b-0 flex items-center justify-between ' +
+                      className={'w-full px-8 py-5 text-left text-[18px] border-b border-vilo-border-subtle transition-colors last:border-b-0 flex items-center justify-between ' +
                         (r.duration === option ? 'bg-[#2b2944] text-[#d8c7ff] font-semibold' : 'text-[#eef1fb] hover:bg-vilo-card')}
                     >
                       <span>{formatDuration(option)}</span>
@@ -2865,7 +3130,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
         return (
           <div className="fixed inset-0 z-[100] flex" style={{ background: '#1a1a2e' }}>
             {/* Left sidebar - dark mode */}
-            <div className="flex flex-col h-full" style={{ width: 240, minWidth: 240, background: '#1f1e33', borderRight: '1px solid rgba(255,255,255,0.03)' }}>
+            <div className="flex flex-col h-full" style={{ width: 240, minWidth: 240, background: '#1f1e33', borderRight: '1px solid var(--vilo-border-subtle)' }}>
               <div className="flex items-center justify-between px-4 pt-4 pb-2">
                 <div />
                 <button onClick={() => setShowSeatOverlay(false)} className="text-[#64748b] hover:text-[#e2e8f0] transition-colors">
@@ -2877,7 +3142,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
                 <p className="text-[#b6acca] text-[12px] mt-1">{r.time} · {r.partySize} Gäste</p>
               </div>
               {/* Pre-Assign / Seat tabs */}
-              <div className="flex border-b border-white/[0.03] px-4">
+              <div className="flex border-b border-vilo-border-subtle px-4">
                 <button onClick={() => setSeatOverlayTab('preassign')}
                   className={'pb-2 px-2 text-[13px] font-medium border-b-2 transition-colors mr-4 ' +
                     (seatOverlayTab === 'preassign' ? 'border-[#d946ef] text-[#f3ecff]' : 'border-transparent text-[#7f7898] hover:text-[#b6acca]')}>
@@ -2893,7 +3158,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
                 {assignedNames ? (
                   <div className="flex items-center gap-2 mb-3 px-3 py-3 bg-vilo-card">
                     <IconArmchair className="w-4 h-4 text-[#cfc5ff]" />
-                    <span className="text-[#f3ecff] text-[13px] font-medium">Tisch {assignedNames}</span>
+                    <span className="text-[#f3ecff] text-[13px] font-medium">{assignedNames}</span>
                   </div>
                 ) : (
                   <div className="mb-3 px-3 py-3 border border-dashed border-[#7f5bb0]">
@@ -2914,7 +3179,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
                   </div>
                 </div>
               </div>
-              <div className="px-4 py-3 border-t border-white/[0.03]">
+              <div className="px-4 py-3 border-t border-vilo-border-subtle">
                 <button onClick={() => setShowSeatOverlay(false)}
                   className="text-[#d8c7ff] text-[13px] font-medium hover:text-white transition-colors">Mehr Details</button>
               </div>
@@ -2923,7 +3188,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
             {/* Floor plan area - dark background like OpenTable */}
             <div className="flex-1 flex flex-col">
               {/* Top bar */}
-              <div className="flex items-center justify-center px-4 py-2.5 border-b border-white/[0.03]" style={{ background: '#252545' }}>
+              <div className="flex items-center justify-center px-4 py-2.5 border-b border-vilo-border-subtle" style={{ background: '#252545' }}>
                 <span className="text-white text-[14px] font-medium">{r.guestName} jetzt platzieren</span>
               </div>
               {/* Floor plan canvas */}
@@ -2987,7 +3252,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
               </div>
               {/* Zone selector bottom-right */}
               <div className="absolute bottom-4 right-4 z-10">
-                <div className="flex items-center gap-1 bg-[#1a1a2e] rounded-lg shadow-lg px-3 py-2 border border-white/[0.03]">
+                <div className="flex items-center gap-1 bg-[#1a1a2e] rounded-lg shadow-lg px-3 py-2 border border-vilo-border-subtle">
                   <select value={seatOverlayZone} onChange={e => setSeatOverlayZone(e.target.value)}
                     className="text-[#e2e8f0] text-[13px] font-medium bg-transparent border-none outline-none cursor-pointer appearance-none pr-4">
                     {state.zones.map(z => (
@@ -2999,31 +3264,6 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
               </div>
             </div>
           </div>
-        );
-      })()}
-
-      {tableManagementId && (() => {
-        const managedTable = state.tables.find(t => t.id === tableManagementId);
-        if (!managedTable) return null;
-        return (
-          <TableManagement
-            table={managedTable}
-            onClose={() => {
-              setTableManagementId(null);
-              clearPersistedInspector();
-            }}
-            onOpenTableDetail={(tableId) => {
-              setTableManagementId(null);
-              clearPersistedInspector();
-              dispatch({ type: 'SET_ACTIVE_TABLE', tableId });
-            }}
-            onReserve={() => {
-              setTableManagementId(null);
-              clearPersistedInspector();
-              setShowReservations(true);
-            }}
-            allTables={state.tables}
-          />
         );
       })()}
 

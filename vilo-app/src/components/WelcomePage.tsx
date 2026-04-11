@@ -41,9 +41,9 @@ export function WelcomePage({ onCreateRestaurant, onWaiterLogin }: WelcomePagePr
 
         <button
           onClick={onWaiterLogin}
-          className="w-full flex items-center gap-4 p-5 rounded-2xl bg-vilo-elevated/80 hover:bg-[#555]/80 active:bg-vilo-elevated transition-colors text-white"
+          className="w-full flex items-center gap-4 p-5 rounded-2xl bg-vilo-elevated/80 hover:bg-[#3a365c]/80 active:bg-[#8b5cf6]/20 transition-colors text-white"
         >
-          <div className="w-12 h-12 rounded-xl bg-[#555]/50 flex items-center justify-center flex-shrink-0">
+          <div className="w-12 h-12 rounded-xl bg-[#8b5cf6]/18 flex items-center justify-center flex-shrink-0">
             <IconUserCircle className="w-6 h-6" />
           </div>
           <div className="text-left">

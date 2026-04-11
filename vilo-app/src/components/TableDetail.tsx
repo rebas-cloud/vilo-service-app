@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { IconAlertTriangle, IconArrowLeft, IconChefHat, IconChevronDown, IconChevronRight, IconClock, IconCoffee, IconCreditCard, IconGlass, IconSearch, IconTrash, IconUsers, IconToolsKitchen } from '@tabler/icons-react';
 
 import { useApp } from '../context/AppContext';
@@ -47,10 +47,14 @@ interface TableDetailProps {
 
 export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
   const { state, dispatch } = useApp();
-  const [showMenu, setShowMenu] = useState(true);
+  const showMenu = true;
+  const [mobilePane, setMobilePane] = useState<'order' | 'menu'>('order');
   const [menuCategory, setMenuCategory] = useState<string>('drinks');
   const [showStatusPicker, setShowStatusPicker] = useState(false);
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+  const [stackedSectionIds, setStackedSectionIds] = useState<string[]>([]);
+  const orderListRef = useRef<HTMLDivElement>(null);
+  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const table = state.tables.find(t => t.id === state.activeTableId);
   const session = state.activeTableId ? state.sessions[state.activeTableId] : null;
@@ -70,6 +74,10 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
   const handleSendOrders = () => {
     dispatch({ type: 'SEND_ORDERS' });
     feedbackOrderSent();
+  };
+
+  const handleOpenCheckout = () => {
+    dispatch({ type: 'SHOW_BILLING', mode: 'combined' });
   };
 
   const handleAddItem = (itemId: string) => {
@@ -116,6 +124,42 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
       }],
     });
     feedbackOrderAdded();
+  };
+
+  const handleDecreaseItem = (itemId: string) => {
+    const menuItem = state.menu.find(m => m.id === itemId);
+    if (!menuItem) return;
+
+    const inferredCourse =
+      menuItem.category === 'starters' ? 'starter' :
+      menuItem.category === 'mains' ? 'main' :
+      menuItem.category === 'desserts' ? 'dessert' :
+      undefined;
+
+    const existingOrder = [...session.orders]
+      .reverse()
+      .find(order =>
+        order.menuItemId === menuItem.id &&
+        order.state === 'ordered' &&
+        order.modifiers.length === 0 &&
+        !order.notes &&
+        order.course === inferredCourse
+      );
+
+    if (!existingOrder) return;
+
+    if (existingOrder.quantity <= 1) {
+      dispatch({ type: 'REMOVE_ORDER_ITEM', orderId: existingOrder.id });
+      feedbackItemDeleted();
+      return;
+    }
+
+    dispatch({
+      type: 'UPDATE_ORDER_QUANTITY',
+      orderId: existingOrder.id,
+      quantity: existingOrder.quantity - 1,
+    });
+    feedbackItemDeleted();
   };
 
   const handleMarkServed = (orderId: string) => {
@@ -192,10 +236,34 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
   };
 
   const categoryTileStyles: Record<string, { surface: string; strong: string; soft: string; muted: string; ink: string }> = {
-    drinks: { surface: '#8b5cf6', strong: '#7c3aed', soft: '#8b5cf6', muted: '#7447db', ink: '#ffffff' },
-    starters: { surface: '#a855f7', strong: '#9333ea', soft: '#a855f7', muted: '#9147dd', ink: '#ffffff' },
-    mains: { surface: '#d946ef', strong: '#c026d3', soft: '#d946ef', muted: '#bd3fd1', ink: '#ffffff' },
-    desserts: { surface: '#ec4899', strong: '#db2777', soft: '#ec4899', muted: '#cf3f87', ink: '#ffffff' },
+    drinks: {
+      surface: 'linear-gradient(135deg, #4f8dff 0%, #6f7cff 100%)',
+      strong: '#4f8dff',
+      soft: '#9ec2ff',
+      muted: 'linear-gradient(135deg, #2f446d 0%, #4a5e97 100%)',
+      ink: '#ffffff',
+    },
+    starters: {
+      surface: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)',
+      strong: '#8b5cf6',
+      soft: '#d0acff',
+      muted: 'linear-gradient(135deg, #4a3278 0%, #6947aa 100%)',
+      ink: '#ffffff',
+    },
+    mains: {
+      surface: 'linear-gradient(135deg, #bf32d8 0%, #ea4cc8 100%)',
+      strong: '#d946ef',
+      soft: '#f0a1f6',
+      muted: 'linear-gradient(135deg, #6d285f 0%, #984094 100%)',
+      ink: '#ffffff',
+    },
+    desserts: {
+      surface: 'linear-gradient(135deg, #df568f 0%, #f07d63 100%)',
+      strong: '#e86a84',
+      soft: '#ffb3c7',
+      muted: 'linear-gradient(135deg, #7d3557 0%, #a8506d 100%)',
+      ink: '#ffffff',
+    },
   };
 
   const operatorLabel = state.staff[0]
@@ -272,6 +340,71 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
       orders: session.orders.filter(order => order.course === 'dessert').sort((a, b) => a.timestamp - b.timestamp),
     },
   ].filter(section => section.orders.length > 0);
+  const stickySectionHeight = 58;
+
+  const updateStackedSections = useCallback(() => {
+    const container = orderListRef.current;
+    if (!container) return;
+
+    const scrollTop = container.scrollTop;
+    const nextStacked = leftSections
+      .filter((section, index) => {
+        const sectionEl = sectionRefs.current[section.id];
+        if (!sectionEl) return false;
+        return scrollTop >= sectionEl.offsetTop - index * stickySectionHeight;
+      })
+      .map(section => section.id);
+
+    setStackedSectionIds(prev =>
+      prev.length === nextStacked.length && prev.every((id, index) => id === nextStacked[index])
+        ? prev
+        : nextStacked
+    );
+  }, [leftSections]);
+
+  useEffect(() => {
+    updateStackedSections();
+    const container = orderListRef.current;
+    if (!container) return;
+
+    container.addEventListener('scroll', updateStackedSections, { passive: true });
+    window.addEventListener('resize', updateStackedSections);
+
+    return () => {
+      container.removeEventListener('scroll', updateStackedSections);
+      window.removeEventListener('resize', updateStackedSections);
+    };
+  }, [updateStackedSections]);
+
+  const renderSectionHeader = (section: typeof leftSections[number], stacked = false) => (
+    <button
+      onClick={() => toggleSection(section.id)}
+      className="flex w-full items-center justify-between border-b border-[#3a3558] px-4 py-3 text-left transition-colors"
+      style={stacked ? {
+        background: '#312c4b',
+        boxShadow: `inset 4px 0 0 ${section.color}, 0 1px 0 #3a3558`,
+      } : {
+        background: section.color + '33',
+        boxShadow: `inset 4px 0 0 ${section.color}`,
+      }}
+    >
+      <div className="min-w-0">
+        <p
+          className="text-[12px] font-semibold uppercase tracking-[0.1em]"
+          style={{ color: '#ffffff' }}
+        >
+          {section.title}
+        </p>
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="text-[11px] font-semibold text-white">{section.orders.length}</span>
+        <IconChevronDown
+          className={`h-4 w-4 transition-transform ${collapsedSections[section.id] ? '' : 'rotate-180'}`}
+          style={{ color: '#ffffff' }}
+        />
+      </div>
+    </button>
+  );
 
   return (
     <div className="h-full bg-[#1a1a2e] flex flex-col">
@@ -282,12 +415,12 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
             <div className="flex items-center justify-between gap-3">
               <button
                 onClick={onBack}
-                className="p-1.5 rounded-lg bg-vilo-elevated text-vilo-text-soft hover:bg-[#555] transition-colors"
+                className="p-1.5 rounded-lg border border-vilo-border-subtle bg-[#312e4f] text-[#d8c7ff] hover:bg-[#3a365c] transition-colors"
               >
                 <IconArrowLeft className="w-5 h-5" />
               </button>
               <div className="min-w-0 flex-1">
-                <h2 className="text-white font-semibold text-lg leading-tight">{table.name}</h2>
+                <h2 className="text-white font-semibold text-lg leading-tight">Tisch {table.name.replace(/^Tisch\s*/i, '')}</h2>
                 <div className="flex items-center gap-3 text-vilo-text-secondary text-xs">
                   <span className="truncate">Seit {formatTime(session.startTime)} · {session.orders.length} Positionen</span>
                 </div>
@@ -313,8 +446,39 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
         </div>
       </header>
 
+      <div className="lg:hidden border-b border-vilo-border-subtle bg-[#1d1f33] px-3 py-2">
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => setMobilePane('order')}
+            className={`rounded-xl border px-4 py-2.5 text-left transition-colors ${
+              mobilePane === 'order'
+                ? 'border-[#b78dff]/40 bg-[#8b5cf6] text-white'
+                : 'border-vilo-border-subtle bg-[#2b2944] text-[#cfd3e6] hover:bg-[#353154]'
+            }`}
+          >
+            <span className="block text-sm font-semibold leading-tight">Bestellung</span>
+            <span className={`mt-0.5 block text-[11px] leading-tight ${mobilePane === 'order' ? 'text-white/80' : 'text-[#9f9aba]'}`}>
+              {activePositionCount} offen · {total.toFixed(2)} €
+            </span>
+          </button>
+          <button
+            onClick={() => setMobilePane('menu')}
+            className={`rounded-xl border px-4 py-2.5 text-left transition-colors ${
+              mobilePane === 'menu'
+                ? 'border-[#b78dff]/40 bg-[#8b5cf6] text-white'
+                : 'border-vilo-border-subtle bg-[#2b2944] text-[#cfd3e6] hover:bg-[#353154]'
+            }`}
+          >
+            <span className="block text-sm font-semibold leading-tight">Menü</span>
+            <span className={`mt-0.5 block text-[11px] leading-tight ${mobilePane === 'menu' ? 'text-white/80' : 'text-[#9f9aba]'}`}>
+              {categoryLabels[menuCategory]}
+            </span>
+          </button>
+        </div>
+      </div>
+
       <div className="flex-1 min-h-0 flex flex-col lg:flex-row">
-        <section className={`min-w-0 flex flex-col border-b lg:border-b-0 lg:border-r border-[#2c2e49] bg-[#1a1b2d] ${showMenu ? 'lg:basis-[28%] lg:max-w-[28%]' : 'flex-1'}`}>
+        <section className={`min-w-0 min-h-0 flex-1 flex-col border-b border-[#2c2e49] bg-[#1a1b2d] lg:border-b-0 lg:border-r ${mobilePane === 'menu' ? 'hidden lg:flex' : 'flex'} ${showMenu ? 'lg:max-w-[28%] lg:basis-[28%] lg:flex-none' : 'lg:flex-1'}`}>
           <div className="border-b border-[#2c2e49] bg-[#1d1f33]">
           <div
             className="px-4 py-3"
@@ -330,7 +494,7 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
                 >
                   {tableStatusLabel}
                 </span>
-                <span className="text-[11px] font-medium text-white/70">{table.name}</span>
+                <span className="text-[11px] font-medium text-white/70">Tisch {table.name.replace(/^Tisch\s*/i, '')}</span>
               </div>
 
               <button
@@ -411,7 +575,15 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
               </button>
               <button className="bg-[#23253a] px-3 py-3 text-left hover:bg-[#282b45] transition-colors">
                 <span className="block text-[10px] uppercase tracking-[0.18em] text-vilo-text-muted">Gäste</span>
-                <span className="mt-1.5 block text-sm font-semibold text-white">{session.guestCount || 0}</span>
+                <select
+                  value={session.guestCount || 0}
+                  onChange={e => dispatch({ type: 'SET_GUEST_COUNT', tableId: table.id, guestCount: Number(e.target.value) })}
+                  className="mt-1.5 block text-sm font-semibold text-white bg-transparent border-none outline-none cursor-pointer"
+                >
+                  {(session.guestCount === 0 ? [0] : []).concat(Array.from({length: 20}, (_, i) => i + 1)).map(n => (
+                    <option key={n} value={n} className="bg-[#1a1b2d] text-white">{n}</option>
+                  ))}
+                </select>
               </button>
             </div>
 
@@ -429,42 +601,38 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
             )}
           </div>
 
-          <div className="flex-1 overflow-y-auto bg-[#1a1b2d]">
+          <div ref={orderListRef} className="flex-1 overflow-y-auto bg-[#1a1b2d]">
             {session.orders.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-vilo-text-muted">
                 <IconToolsKitchen className="w-12 h-12 mb-3 opacity-50" />
                 <p className="text-sm">Noch keine Bestellungen</p>
               </div>
             ) : (
-              <div className="divide-y divide-[#2c2e49]">
+              <div className="divide-y divide-[#3a3558]">
+                {stackedSectionIds.length > 0 && (
+                  <div className="sticky top-0 z-30 border-b border-[#3a3558] bg-[#1a1b2d]">
+                    {leftSections
+                      .filter(section => stackedSectionIds.includes(section.id))
+                      .map(section => (
+                        <div key={`stacked-${section.id}`} className="border-b border-[#3a3558] last:border-b-0">
+                          {renderSectionHeader(section, true)}
+                        </div>
+                      ))}
+                  </div>
+                )}
                 {leftSections.map(section => (
-                  <div key={section.id} className="overflow-hidden">
-                    <button
-                      onClick={() => toggleSection(section.id)}
-                      className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors"
-                      style={{
-                        background: section.color + '33',
-                        boxShadow: `inset 4px 0 0 ${section.color}`,
-                      }}
-                    >
-                      <div className="min-w-0">
-                        <p
-                          className="text-[12px] font-semibold uppercase tracking-[0.1em]"
-                          style={{ color: '#ffffff' }}
-                        >
-                          {section.title}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-[11px] font-semibold text-white">{section.orders.length}</span>
-                        <IconChevronDown
-                          className={`h-4 w-4 transition-transform ${collapsedSections[section.id] ? '' : 'rotate-180'}`}
-                          style={{ color: '#ffffff' }}
-                        />
-                      </div>
-                    </button>
+                  <div
+                    key={section.id}
+                    ref={node => {
+                      sectionRefs.current[section.id] = node;
+                    }}
+                    className="overflow-hidden"
+                  >
+                    <div className={stackedSectionIds.includes(section.id) ? 'pointer-events-none opacity-0' : ''}>
+                      {renderSectionHeader(section)}
+                    </div>
                     {!collapsedSections[section.id] && (
-                      <div className="divide-y divide-[#333355] bg-[#1a1b2d]">
+                      <div className="divide-y divide-[#3a3558] bg-[#1a1b2d]">
                         {section.orders.map(order => (
                           <OrderRow
                             key={order.id}
@@ -493,7 +661,7 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
                     )}
                   </div>
                 ))}
-                <div className="border-t border-[#2f3150]">
+                <div className="border-t border-[#3a3558]">
                   <button
                     className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors"
                     style={{
@@ -509,47 +677,44 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
             )}
           </div>
 
-          <div className="border-t border-[#2c2e49] bg-[#171827]">
-            <div className="px-2 py-2">
-              <div className="mb-2 flex items-center gap-2">
-                <span className="rounded-full bg-[#23253a] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white">
+          <div className="border-t border-vilo-border-subtle bg-[#171827]">
+            <div className="px-2 pt-[3px] pb-2">
+              <div className="mt-2 mb-2 flex items-center gap-2">
+                <span className="inline-flex h-8 items-center rounded-xl border border-vilo-border-subtle bg-vilo-card px-3 text-[11px] font-bold uppercase tracking-[0.16em] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
                   Hier
                 </span>
-                <span className="rounded-full bg-[#23253a] px-2.5 py-1 text-[10px] font-semibold text-vilo-text-soft">
+                <span className="inline-flex h-8 items-center rounded-xl border border-vilo-border-subtle bg-vilo-card px-3 text-[11px] font-semibold text-vilo-text-soft shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
                   {activePositionCount} offen
                 </span>
               </div>
-              <div className={`grid gap-2 ${ordersByState.ordered.length > 0 ? 'grid-cols-[minmax(0,1fr)_auto]' : 'grid-cols-1'}`}>
-              <button
-                onClick={() => dispatch({ type: 'SHOW_BILLING' })}
-                className={`border border-vilo-border-subtle/40 bg-vilo-card px-3 py-2.5 text-white min-w-0 transition-colors hover:bg-[#2d2a49] ${ordersByState.ordered.length > 0 ? 'text-left' : 'text-center'}`}
-              >
-                <span className="block text-[9px] uppercase tracking-[0.18em] text-[#9f9aba]">Gesamt</span>
-                <span className={`mt-1 flex items-center gap-1.5 text-[16px] leading-none font-bold whitespace-nowrap ${ordersByState.ordered.length > 0 ? 'justify-start text-white' : 'justify-center text-white'}`}>
-                  <IconCreditCard className="h-3.5 w-3.5 shrink-0 text-[#cf8cff]" />
-                  <span>{total.toFixed(2)} €</span>
-                </span>
-              </button>
-              {ordersByState.ordered.length > 0 && (
+              <div className={ordersByState.ordered.length > 0 ? 'relative min-h-[44px] pr-[176px]' : ''}>
+                {ordersByState.ordered.length > 0 && (
+                  <button
+                    onClick={handleSendOrders}
+                    className="flex h-full min-h-[44px] w-full min-w-0 items-center justify-center gap-1.5 rounded-xl border border-[#b66cff]/40 bg-[#a855f7] px-3 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#9333ea]"
+                  >
+                    <IconChefHat className="h-4 w-4" />
+                    An Service senden
+                  </button>
+                )}
                 <button
-                  onClick={handleSendOrders}
-                  className="flex items-center gap-1.5 border border-[#b66cff]/40 bg-[#a855f7] px-3 py-2.5 text-[12px] font-semibold text-white transition-colors hover:bg-[#9333ea] whitespace-nowrap"
+                  onClick={handleOpenCheckout}
+                  className={`${ordersByState.ordered.length > 0 ? 'absolute right-0 top-0 w-[168px]' : 'w-full'} min-h-[44px] min-w-0 rounded-xl border border-vilo-border-strong bg-[#302c4b] px-3 py-2 text-left text-white shadow-[0_10px_24px_rgba(0,0,0,0.22),inset_0_1px_0_rgba(255,255,255,0.04)] transition-colors hover:bg-[#353154]`}
                 >
-                  <IconChefHat className="h-3.5 w-3.5" />
-                  Senden
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <span className="block text-[8px] uppercase tracking-[0.16em] text-[#9f9aba]">Gesamt</span>
+                      <span className="mt-1 flex items-center justify-start gap-1.5 whitespace-nowrap text-[14px] font-bold leading-none text-white">
+                        <span className="flex h-5.5 w-5.5 shrink-0 items-center justify-center rounded-md bg-[#8b5cf6]/15 text-[#cf8cff]">
+                          <IconCreditCard className="h-3 w-3" />
+                        </span>
+                        <span>{total.toFixed(2)} €</span>
+                      </span>
+                    </div>
+                    <IconChevronRight className="h-4 w-4 shrink-0 text-[#b8addd]" />
+                  </div>
                 </button>
-              )}
               </div>
-            </div>
-            <div className="px-2 pb-3 flex items-center justify-between gap-2 lg:hidden">
-              <button
-                onClick={() => setShowMenu(!showMenu)}
-                className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors ${
-                  showMenu ? 'bg-vilo-elevated text-white hover:bg-[#404064]' : 'bg-[#8b5cf6] text-white hover:bg-[#7c3aed]'
-                }`}
-              >
-                {showMenu ? 'Menü ausblenden' : 'POS-Menü öffnen'}
-              </button>
             </div>
           </div>
 
@@ -560,8 +725,8 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
           )}
         </section>
 
-        {showMenu && (
-          <aside className="w-full lg:flex-1 bg-[#1d1c32] flex flex-col min-h-[48vh]">
+        {(showMenu || mobilePane === 'menu') && (
+          <aside className={`w-full flex-col bg-[#1d1c32] min-h-0 lg:min-h-[48vh] ${mobilePane === 'menu' ? 'flex' : 'hidden'} ${showMenu ? 'lg:flex lg:flex-1' : 'lg:hidden'}`}>
             <div className="border-b border-vilo-border-subtle bg-[#24223c] lg:hidden">
               <div className="flex items-center justify-between gap-3 px-4 py-2.5">
                 <div />
@@ -585,7 +750,7 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
                         className="min-h-[132px] p-4 text-left transition-transform hover:scale-[1.01]"
                         style={{
                           background: isActive ? style.surface : style.muted,
-                          boxShadow: isActive ? `inset 0 0 0 2px ${style.ink}22` : 'none',
+                          boxShadow: isActive ? `inset 0 0 0 2px ${style.soft}66` : `inset 0 0 0 1px ${style.soft}22`,
                         }}
                       >
                         <div className="flex h-full flex-col justify-between">
@@ -617,6 +782,7 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
                         style={{
                           background: isSelected ? style.surface : style.muted,
                           color: style.ink,
+                          boxShadow: isSelected ? `inset 0 0 0 2px ${style.soft}66` : `inset 0 0 0 1px ${style.soft}22`,
                         }}
                       >
                         <div className="flex h-full flex-col justify-between">
@@ -626,12 +792,22 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
                                 {categoryIcons[item.category]}
                               </div>
                               {quantity > 0 && (
-                                <span
-                                  className="px-2 py-0.5 text-[11px] font-semibold"
-                                  style={{ background: 'rgba(0,0,0,0.16)' }}
+                                <button
+                                  type="button"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    handleDecreaseItem(item.id);
+                                  }}
+                                  className="flex h-9 w-9 items-center justify-center rounded-full border text-[13px] font-bold transition-colors hover:bg-black/20"
+                                  style={{
+                                    background: 'rgba(0,0,0,0.16)',
+                                    borderColor: 'rgba(255,255,255,0.12)',
+                                    color: style.ink,
+                                  }}
+                                  aria-label={`${item.name} um eins reduzieren`}
                                 >
                                   {quantity}
-                                </span>
+                                </button>
                               )}
                             </div>
                             <p className="mt-6 text-[16px] font-semibold leading-tight">
@@ -650,6 +826,7 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
                 </div>
               </div>
             </div>
+
           </aside>
         )}
       </div>
@@ -817,7 +994,7 @@ function OrderRow({ order, getStateIcon, getStateLabel, getCourseLabel, formatTi
             {onAction && (
               <button
                 onClick={onAction}
-                className="rounded-md bg-vilo-elevated px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-vilo-text-soft hover:bg-[#555] transition-colors"
+                className="rounded-md bg-vilo-elevated px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-vilo-text-soft hover:bg-[#3a365c] transition-colors"
               >
                 {actionLabel}
               </button>

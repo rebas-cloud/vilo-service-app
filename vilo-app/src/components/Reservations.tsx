@@ -617,7 +617,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
 
     return (
       <div className="flex-1 overflow-y-auto px-3 py-3">
-        <div className="relative flex items-center justify-center mb-3 pb-3 border-b border-white/[0.03]">
+        <div className="relative flex items-center justify-center mb-3 pb-3 border-b border-vilo-border-subtle">
           <span className="text-white font-semibold text-sm">Datum</span>
           <button
             onClick={() => {
@@ -1318,8 +1318,8 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
       {/* New/Edit Reservation Form - Bottom Drawer */}
       {showForm && !(embedded && wizardStep === 'date') && (
         <div
-          className={embedded ? 'absolute top-0 z-[30] h-full w-[280px] min-w-[280px] max-w-[calc(100vw-280px)] flex flex-col' : 'fixed inset-0 z-[9999] flex flex-col'}
-          {...(embedded ? { style: { background: '#1f1e33', left: 0, borderRight: '1px solid rgba(255,255,255,0.03)' } } : { style: { background: 'rgba(0,0,0,0.6)' } })}
+          className={embedded ? 'absolute top-0 z-[30] h-full w-[360px] min-w-[360px] max-w-[calc(100vw-360px)] flex flex-col' : 'fixed inset-0 z-[9999] flex flex-col'}
+          {...(embedded ? { style: { background: '#1f1e33', left: 0, borderRight: '1px solid var(--vilo-border-subtle)' } } : { style: { background: 'rgba(0,0,0,0.6)' } })}
           onClick={() => { if (!embedded) { setShowForm(false); resetForm(); } }}
         >
           <div
@@ -1328,32 +1328,24 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
             onClick={e => e.stopPropagation()}
           >
           {/* Wizard Header */}
-          <div className={'flex items-center justify-between ' + (embedded ? 'px-4 py-3' : 'px-3 py-2.5')} style={{ background: '#1a1a2e' }}>
-            <button onClick={() => {
-              if (editingId || wizardStep === 'date') {
-                setShowForm(false); resetForm();
-              } else if (wizardStep === 'guests') {
-                setWizardStep('date');
-              } else if (wizardStep === 'guest_info') {
-                setWizardStep('guests');
-              }
-            }}
-              className="p-1.5 text-vilo-text-secondary hover:text-vilo-text-primary transition-colors">
-              {wizardStep === 'date' || editingId ? <IconX className="w-5 h-5" /> : <IconChevronLeft className="w-5 h-5" />}
-            </button>
-
-            <div className="flex-1 mx-3">
-              <div className="flex items-center justify-center gap-2 px-4 py-2">
-                {wizardStep === 'date' && (
-                  <span className="text-white font-semibold text-sm">Datum</span>
-                )}
-                {wizardStep === 'guests' && (
-                  <><IconUsers className="w-4 h-4 text-vilo-text-secondary" /><span className="text-white font-semibold text-sm">{formData.partySize} {formData.partySize === 1 ? 'Gast' : 'Gäste'}</span></>
-                )}
-                {wizardStep === 'guest_info' && (
-                  <><IconUser className="w-4 h-4 text-vilo-text-secondary" /><span className="text-white font-semibold text-sm truncate">{formData.guestName || 'Gast'}</span></>
-                )}
-              </div>
+          <div className="flex items-center justify-between border-b border-vilo-border-subtle px-5 py-4 shrink-0" style={{ background: '#1a1a2e' }}>
+            <div className="flex items-center gap-3 min-w-0">
+              {wizardStep !== 'date' && !editingId && (
+                <button
+                  onClick={() => {
+                    if (wizardStep === 'guests') {
+                      setWizardStep('date');
+                    } else if (wizardStep === 'guest_info') {
+                      setWizardStep('guests');
+                    }
+                  }}
+                  className="p-1 text-vilo-text-secondary hover:text-vilo-text-primary transition-colors shrink-0"
+                  aria-label="Zurück"
+                >
+                  <IconChevronLeft className="w-5 h-5" />
+                </button>
+              )}
+              <h2 className="text-[16px] font-bold text-white leading-none">Reservierung</h2>
             </div>
 
             <button
@@ -1364,7 +1356,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
                   onClose();
                 }
               }}
-              className="p-1.5 text-vilo-text-secondary hover:text-vilo-text-primary transition-colors"
+              className="ml-3 p-1 text-vilo-text-secondary hover:text-vilo-text-primary transition-colors shrink-0"
             >
               <IconX className="w-5 h-5" />
             </button>
@@ -1376,6 +1368,9 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
             {/* === STEP 1: DATE PICKER === */}
             {wizardStep === 'date' && !editingId && !embedded && (
               <div className="pb-5 pt-3">
+                <div className="px-4 pb-1">
+                  <div className="text-[12px] font-semibold uppercase tracking-[0.18em] text-vilo-text-muted">Datum</div>
+                </div>
                 {(() => {
                   const monthNames = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
                   const dayHeaders = ['M', 'D', 'M', 'D', 'F', 'S', 'S'];

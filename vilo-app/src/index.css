@@ -51,6 +51,12 @@
   animation: viloOverlayOut 140ms ease-in both;
 }
 
+.vilo-no-motion,
+.vilo-no-motion * {
+  transition: none !important;
+  animation: none !important;
+}
+
 @font-face {
   font-family: 'Otista';
   src: url('/fonts/Otista-Regular.otf') format('opentype');
@@ -89,9 +95,9 @@
     --vilo-bg-calendar: #20243c;
     --vilo-bg-calendar-cell: #272c46;
 
-    --vilo-border-subtle: #333355;
-    --vilo-border-strong: #3d3d5c;
-    --vilo-border-soft: rgba(255, 255, 255, 0.08);
+    --vilo-border-subtle: rgb(42 42 66 / 1);
+    --vilo-border-strong: rgb(42 42 66 / 1);
+    --vilo-border-soft: rgb(42 42 66 / 0.48);
 
     --vilo-text-primary: #e0e0f0;
     --vilo-text-soft: #c0c0dd;

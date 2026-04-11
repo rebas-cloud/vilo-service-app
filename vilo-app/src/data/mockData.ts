@@ -17,7 +17,7 @@ export const zones: Zone[] = [
 export const tables: Table[] = [
   ...Array.from({ length: 15 }, (_, i) => ({
     id: `tisch-${i + 1}`,
-    name: `Tisch ${i + 1}`,
+    name: `${i + 1}`,
     zone: 'innen',
     status: 'free' as const,
   })),

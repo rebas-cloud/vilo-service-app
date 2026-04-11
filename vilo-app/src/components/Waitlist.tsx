@@ -1,14 +1,16 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { IconAlertTriangle, IconBell, IconCheck, IconChevronDown, IconChevronLeft, IconChevronUp, IconMessage, IconPhone, IconTrash, IconUserCheck, IconUsers, IconX, IconCircleX } from '@tabler/icons-react';
+import { IconAlertTriangle, IconBell, IconCheck, IconChevronDown, IconChevronUp, IconMessage, IconPhone, IconTrash, IconUserCheck, IconUsers, IconX, IconCircleX } from '@tabler/icons-react';
 
 import { WaitlistEntry, Table } from '../types';
 import { loadWaitlist, saveWaitlist, addWaitlistEntry, updateWaitlistEntry, removeWaitlistEntry } from '../utils/storage';
+import { ActionButton } from './ui';
 
 interface WaitlistPanelProps {
   onClose: () => void;
   onSeatGuest: (tableId: string) => void;
   tables: Table[];
   embedded?: boolean;
+  initialShowAddForm?: boolean;
 }
 
 function generateId(): string {
@@ -30,6 +32,8 @@ function getWaitColor(minutes: number): string {
   if (minutes <= 30) return '#d8b4fe';
   return '#f0abfc';
 }
+
+const inspectorInputClass = 'w-full px-3 py-3 text-[15px] text-white outline-none bg-vilo-card placeholder:text-vilo-text-muted border border-transparent focus:border-[#8b5cf6]';
 
 const SEAT_PREFERENCES = [
   { value: '', label: 'Keine Praeferenz' },
@@ -122,7 +126,7 @@ function SeatedWaitlistRow({
         </div>
       )}
       <div
-        className="px-4 py-3 border-b border-white/[0.03] flex items-center gap-3 select-none"
+        className="px-4 py-3 border-b border-vilo-border-subtle flex items-center gap-3 select-none"
         style={{
           transform: `translateX(${offsetX}px)`,
           transition: isDraggingRef.current ? 'none' : 'transform 0.22s ease',
@@ -148,12 +152,11 @@ function SeatedWaitlistRow({
   );
 }
 
-export function WaitlistPanel({ onClose, onSeatGuest, tables, embedded = false }: WaitlistPanelProps) {
+export function WaitlistPanel({ onClose, onSeatGuest, tables, embedded = false, initialShowAddForm = false }: WaitlistPanelProps) {
   const [entries, setEntries] = useState<WaitlistEntry[]>([]);
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(initialShowAddForm);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [seatPickerId, setSeatPickerId] = useState<string | null>(null);
-  const [isClosing, setIsClosing] = useState(false);
 
   // Add form state
   const [newName, setNewName] = useState('');
@@ -194,11 +197,7 @@ export function WaitlistPanel({ onClose, onSeatGuest, tables, embedded = false }
   );
 
   const requestClose = useCallback(() => {
-    setIsClosing(true);
-    window.setTimeout(() => {
-      onClose();
-      setIsClosing(false);
-    }, 140);
+    onClose();
   }, [onClose]);
 
   // Estimate wait time based on queue position and average table turnover
@@ -229,13 +228,13 @@ export function WaitlistPanel({ onClose, onSeatGuest, tables, embedded = false }
     };
     const updated = addWaitlistEntry(entry);
     setEntries(updated);
-    setShowAddForm(false);
     setNewName('');
     setNewPhone('');
     setNewPartySize(2);
     setNewNotes('');
     setNewPreference('');
     setNewWaitMinutes(15);
+    onClose();
   };
 
   const handleNotify = (id: string) => {
@@ -360,106 +359,131 @@ export function WaitlistPanel({ onClose, onSeatGuest, tables, embedded = false }
       >
         <div
           className={
-            (embedded ? 'h-full min-h-0 overflow-y-auto ' : 'mt-auto rounded-t-2xl overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto ') +
-            (isClosing ? 'vilo-panel-exit' : 'vilo-panel-enter')
+            embedded
+              ? 'vilo-no-motion h-full min-h-0 overflow-y-auto'
+              : 'vilo-no-motion mt-auto rounded-t-2xl overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto'
           }
           style={{ background: '#1a1a2e' }}
           onClick={e => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between px-4 py-4 border-b border-white/[0.03]">
+          <div className="flex items-center justify-between border-b border-vilo-border-subtle px-4 py-4">
+            <div>
+              <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-vilo-text-muted">Warteliste</div>
+              <div className="mt-1 text-[16px] font-bold leading-none text-white">Gast hinzufügen</div>
+            </div>
             <button onClick={() => setShowAddForm(false)} className="p-1 text-vilo-text-secondary hover:text-vilo-text-primary transition-colors">
-              <IconChevronLeft className="w-5 h-5" />
-            </button>
-            <h2 className="text-xl font-bold text-white">Warteliste</h2>
-            <button onClick={() => setShowAddForm(false)} className="p-1 text-vilo-text-secondary hover:text-vilo-text-primary transition-colors">
-              <IconX className="w-5 h-5" />
+              <IconX className="w-6 h-6" />
             </button>
           </div>
 
-          <div className="px-4 py-4 space-y-5">
-            {/* Name */}
+          <div className="space-y-5 px-4 py-4">
             <div>
-              <label className="text-xs font-bold text-vilo-text-secondary uppercase tracking-[0.18em] mb-2 block">Gastname *</label>
-              <input type="text" value={newName} onChange={e => setNewName(e.target.value)}
+              <label className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.18em] text-vilo-text-muted">Gastname *</label>
+              <input
+                type="text"
+                value={newName}
+                onChange={e => setNewName(e.target.value)}
                 placeholder="Name eingeben"
-                className="w-full border border-transparent rounded-xl px-4 py-4 text-white text-base outline-none focus:border-[#8b5cf6] bg-vilo-card placeholder:text-vilo-text-muted"
-                autoFocus />
+                className={inspectorInputClass}
+                style={{ borderRadius: 12 }}
+                autoFocus
+              />
             </div>
 
-            {/* Phone */}
             <div>
-              <label className="text-xs font-bold text-vilo-text-secondary uppercase tracking-[0.18em] mb-2 block">Telefon (für Benachrichtigung)</label>
-              <input type="tel" value={newPhone} onChange={e => setNewPhone(e.target.value)}
+              <label className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.18em] text-vilo-text-muted">Telefon</label>
+              <input
+                type="tel"
+                value={newPhone}
+                onChange={e => setNewPhone(e.target.value)}
                 placeholder="+49 ..."
-                className="w-full border border-transparent rounded-xl px-4 py-4 text-white text-base outline-none focus:border-[#8b5cf6] bg-vilo-card placeholder:text-vilo-text-muted" />
+                className={inspectorInputClass}
+                style={{ borderRadius: 12 }}
+              />
             </div>
 
-            {/* Party Size */}
             <div>
-              <label className="text-xs font-bold text-vilo-text-secondary uppercase tracking-[0.18em] mb-2 block">Personenzahl</label>
+              <label className="mb-3 block text-[12px] font-semibold uppercase tracking-[0.18em] text-vilo-text-muted">Personenzahl</label>
               <div className="grid grid-cols-4 gap-2">
                 {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
-                  <button key={n} onClick={() => {
-                    setNewPartySize(n);
-                    setNewWaitMinutes(estimateWait(n));
-                  }}
-                    className={'aspect-square w-full text-[18px] font-bold transition-colors ' +
-                      (newPartySize === n
-                        ? 'bg-[#d946ef] text-white'
-                        : 'bg-[#2d2b48] text-vilo-text-soft hover:bg-[#353253]')}>
+                  <button
+                    key={n}
+                    onClick={() => {
+                      setNewPartySize(n);
+                      setNewWaitMinutes(estimateWait(n));
+                    }}
+                    className={`aspect-square w-full text-[18px] font-bold transition-colors ${
+                      newPartySize === n
+                        ? 'bg-[#8b5cf6] text-white'
+                        : 'bg-vilo-card text-[#d7d3e8] hover:bg-[#302d4a]'
+                    }`}
+                    style={{ borderRadius: 0 }}
+                  >
                     {n}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Estimated Wait */}
-            <div>
-              <label className="text-xs font-bold text-vilo-text-secondary uppercase tracking-[0.18em] mb-2 block">Geschaetzte Wartezeit</label>
-              <div className="flex items-center gap-3">
-                <button onClick={() => setNewWaitMinutes(Math.max(5, newWaitMinutes - 5))}
-                  className="w-14 h-14 bg-[#2d2b48] text-vilo-text-soft font-bold text-[28px] hover:bg-[#353253]">−</button>
-                <span className="text-[18px] font-bold text-white w-24 text-center">{newWaitMinutes}<span className="text-sm text-vilo-text-secondary ml-1">Min.</span></span>
-                <button onClick={() => setNewWaitMinutes(Math.min(120, newWaitMinutes + 5))}
-                  className="w-14 h-14 bg-[#2d2b48] text-vilo-text-soft font-bold text-[28px] hover:bg-[#353253]">+</button>
+            <div className="space-y-1.5">
+              <label className="mb-3 block text-[12px] font-semibold uppercase tracking-[0.18em] text-vilo-text-muted">Geschätzte Wartezeit</label>
+              <div className="grid grid-cols-3 gap-1.5">
+                {[5, 10, 15, 20, 30, 45].map(minutes => (
+                  <button
+                    key={minutes}
+                    onClick={() => setNewWaitMinutes(minutes)}
+                    className={'py-3 text-[12px] font-medium transition-colors ' +
+                      (newWaitMinutes === minutes ? 'bg-[#8b5cf6] text-white' : 'bg-vilo-card text-vilo-text-secondary hover:bg-[#302d4a]')}
+                    style={{ borderRadius: 0 }}
+                  >
+                    {minutes}m
+                  </button>
+                ))}
               </div>
               {freeTables.length > 0 && (
-                <p className="text-sm text-[#d8c7ff] mt-2">
+                <div className="mt-2 bg-vilo-card px-3 py-2 text-[13px] text-[#d8c7ff]" style={{ borderRadius: 0 }}>
                   {freeTables.length} {freeTables.length === 1 ? 'Tisch' : 'Tische'} frei – kurze Wartezeit
-                </p>
+                </div>
               )}
             </div>
 
-            {/* Seat Preference */}
             <div>
-              <label className="text-xs font-bold text-vilo-text-secondary uppercase tracking-[0.18em] mb-2 block">Sitzplatz-Praeferenz</label>
+              <label className="mb-3 block text-[12px] font-semibold uppercase tracking-[0.18em] text-vilo-text-muted">Sitzplatz-Präferenz</label>
               <div className="grid grid-cols-2 gap-2">
                 {SEAT_PREFERENCES.map(p => (
-                  <button key={p.value} onClick={() => setNewPreference(p.value)}
-                    className={'px-3 py-3 rounded-xl text-sm font-medium transition-colors ' +
-                      (newPreference === p.value
+                  <button
+                    key={p.value}
+                    onClick={() => setNewPreference(p.value)}
+                    className={`px-3 py-3 text-sm font-medium transition-colors ${
+                      newPreference === p.value
                         ? 'bg-[#8b5cf6] text-white'
-                        : 'bg-[#2d2b48] text-vilo-text-secondary hover:bg-[#353253]')}>
+                        : 'bg-vilo-card text-vilo-text-secondary hover:bg-[#302d4a]'
+                    }`}
+                    style={{ borderRadius: 0 }}
+                  >
                     {p.label}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Notes */}
             <div>
-              <label className="text-xs font-bold text-vilo-text-secondary uppercase tracking-[0.18em] mb-2 block">Notizen</label>
-              <input type="text" value={newNotes} onChange={e => setNewNotes(e.target.value)}
+              <label className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.18em] text-vilo-text-muted">Notizen</label>
+              <input
+                type="text"
+                value={newNotes}
+                onChange={e => setNewNotes(e.target.value)}
                 placeholder="z.B. Allergien, Kinderstuhl, VIP..."
-                className="w-full border border-transparent rounded-xl px-4 py-4 text-white text-base outline-none focus:border-[#8b5cf6] bg-vilo-card placeholder:text-vilo-text-muted" />
+                className={inspectorInputClass}
+                style={{ borderRadius: 12 }}
+              />
             </div>
 
-            {/* Submit */}
-            <button onClick={handleAddEntry} disabled={!newName.trim()}
-              className={'w-full py-4 text-white font-bold text-base transition-colors ' +
-                (newName.trim() ? 'bg-[#8b5cf6] hover:brightness-110 active:bg-[#7c3aed]' : 'bg-vilo-elevated cursor-not-allowed')}>
-              Warteliste
-            </button>
+            <div className="pt-1">
+              <ActionButton variant="primary" icon={<IconCheck className="w-5 h-5" />} onClick={handleAddEntry} disabled={!newName.trim()}>
+                Warteliste hinzufügen
+              </ActionButton>
+            </div>
           </div>
 
           <div className="pb-20" />
@@ -477,14 +501,15 @@ export function WaitlistPanel({ onClose, onSeatGuest, tables, embedded = false }
     >
       <div
         className={
-          (embedded ? 'h-full min-h-0 flex flex-col overflow-hidden ' : 'mt-auto rounded-t-2xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col ') +
-          (isClosing ? 'vilo-panel-exit' : 'vilo-panel-enter')
+          embedded
+            ? 'vilo-no-motion h-full min-h-0 flex flex-col overflow-hidden'
+            : 'vilo-no-motion mt-auto rounded-t-2xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col'
         }
         style={{ background: '#1a1a2e' }}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.03] shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-vilo-border-subtle shrink-0">
           <div className="flex items-center gap-3">
             <h2 className="text-xl font-bold text-white">Warteliste</h2>
             {activeEntries.length > 0 && (
@@ -499,7 +524,7 @@ export function WaitlistPanel({ onClose, onSeatGuest, tables, embedded = false }
         </div>
 
         {/* Summary bar */}
-        <div className="px-4 py-2 border-b border-white/[0.03] flex items-center justify-between gap-3" style={{ background: '#1a1a2e' }}>
+        <div className="px-4 py-2 border-b border-vilo-border-subtle flex items-center justify-between gap-3" style={{ background: '#1a1a2e' }}>
           <div className="min-w-0 flex-1">
             <span className="block whitespace-nowrap text-[12px] font-medium text-vilo-text-secondary">{activeEntries.length} wartend</span>
           </div>
@@ -535,7 +560,7 @@ export function WaitlistPanel({ onClose, onSeatGuest, tables, embedded = false }
                 const waitColor = getWaitColor(elapsed);
 
                 return (
-                  <div key={entry.id} className={'border-b border-white/[0.03] ' + (isOverdue ? 'bg-[#32153a]' : '')}>
+                  <div key={entry.id} className={'border-b border-vilo-border-subtle ' + (isOverdue ? 'bg-[#32153a]' : '')}>
                     <button className="w-full px-4 py-3 flex items-center gap-3 text-left"
                       onClick={() => setExpandedId(isExpanded ? null : entry.id)}>
                       {/* Position */}
@@ -640,7 +665,7 @@ export function WaitlistPanel({ onClose, onSeatGuest, tables, embedded = false }
               {/* Recently seated section */}
               {seatedEntries.length > 0 && (
                 <>
-                  <div className="px-5 py-2.5 border-t border-white/[0.03]" style={{ background: '#1a1a2e' }}>
+                  <div className="px-5 py-2.5 border-t border-vilo-border-subtle" style={{ background: '#1a1a2e' }}>
                     <p className="text-xs font-bold text-vilo-text-muted uppercase tracking-wider">Kuerzlich platziert</p>
                   </div>
                   {seatedEntries.map(entry => {
@@ -661,7 +686,7 @@ export function WaitlistPanel({ onClose, onSeatGuest, tables, embedded = false }
           )}
         </div>
 
-        <div className="shrink-0 border-t border-white/[0.03] p-3" style={{ background: '#1d1c31' }}>
+        <div className="shrink-0 border-t border-vilo-border-subtle p-3" style={{ background: '#1d1c31' }}>
           <button
             onClick={() => {
               setNewWaitMinutes(estimateWait(2));

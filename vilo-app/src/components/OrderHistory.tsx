@@ -91,7 +91,7 @@ export function OrderHistory({ onSelectTable: _onSelectTable }: OrderHistoryProp
             </div>
             <button
               onClick={() => { setShowTagesabschluss(false); setConfirmClear(false); }}
-              className="px-3 py-1.5 rounded-lg bg-vilo-elevated text-vilo-text-soft text-sm hover:bg-[#555] transition-colors"
+              className="px-3 py-1.5 rounded-lg bg-vilo-elevated text-vilo-text-soft text-sm hover:bg-[#3a365c] transition-colors"
             >
               Zurück
             </button>
@@ -198,7 +198,7 @@ export function OrderHistory({ onSelectTable: _onSelectTable }: OrderHistoryProp
             className={`w-full py-3.5 rounded-xl font-medium transition-colors ${
               confirmClear
                 ? 'bg-red-600 text-white hover:bg-red-500'
-                : 'bg-vilo-elevated text-vilo-text-soft hover:bg-[#555]'
+                : 'bg-vilo-elevated text-vilo-text-soft hover:bg-[#3a365c]'
             }`}
           >
             {confirmClear ? (

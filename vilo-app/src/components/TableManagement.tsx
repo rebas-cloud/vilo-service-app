@@ -1,9 +1,10 @@
 import { useState, useMemo, useEffect } from 'react';
-import { IconAlertTriangle, IconArrowsRightLeft, IconBan, IconCheck, IconCircleCheck, IconChevronDown, IconChevronUp, IconRotate, IconSearch, IconUser, IconUserPlus, IconUsers, IconToolsKitchen, IconX } from '@tabler/icons-react';
+import { IconAlertTriangle, IconArrowsRightLeft, IconBan, IconCheck, IconCircleCheck, IconChevronDown, IconChevronRight, IconChevronUp, IconRotate, IconSearch, IconUser, IconUserPlus, IconUsers, IconToolsKitchen, IconX } from '@tabler/icons-react';
 
 import { Table, Reservation, Guest } from '../types';
 import { useApp } from '../context/AppContext';
 import { loadReservations, addReservation, findGuestByPhone, addGuest, loadGuests } from '../utils/storage';
+import { ActionButton, StatGrid, SurfaceCard } from './ui';
 
 // Service status info for display
 const SERVICE_STATUS_INFO: Record<string, { label: string; color: string }> = {
@@ -35,6 +36,12 @@ interface TableManagementProps {
   onOpenTableDetail: (tableId: string) => void;
   onReserve: (tableId: string) => void;
   allTables: Table[];
+  isSidebarExpanded?: boolean;
+  inline?: boolean;
+  initialSubView?: SubView;
+  initialWalkInGuestName?: string;
+  initialWalkInGuestCount?: number;
+  onSeatFromWaitlist?: (tableId: string, guestName: string, guestCount: number) => void;
 }
 
 type SubView = 'main' | 'walkin_count' | 'move_picker' | 'reserve_confirm' | 'reserve_wizard';
@@ -49,14 +56,26 @@ function getTodayStr(): string {
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
 
-export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: _onReserve, allTables }: TableManagementProps) {
+export function TableManagement({
+  table,
+  onClose,
+  onOpenTableDetail,
+  onReserve: _onReserve,
+  allTables,
+  isSidebarExpanded = true,
+  inline = false,
+  initialSubView = 'main',
+  initialWalkInGuestName = '',
+  initialWalkInGuestCount = 2,
+  onSeatFromWaitlist,
+}: TableManagementProps) {
   void _onReserve; // kept for interface compatibility
   const { state, dispatch } = useApp();
   const [timelineExpanded, setTimelineExpanded] = useState(false);
   const [showMoreOptions, setShowMoreOptions] = useState(false);
-  const [subView, setSubView] = useState<SubView>('main');
-  const [walkinGuestName, setWalkinGuestName] = useState('');
-  const [walkinGuestCount, setWalkinGuestCount] = useState(2);
+  const [subView, setSubView] = useState<SubView>(initialSubView);
+  const [walkinGuestName, setWalkinGuestName] = useState(initialWalkInGuestName);
+  const [walkinGuestCount, setWalkinGuestCount] = useState(initialWalkInGuestCount);
   const [reservations, setReservations] = useState<Reservation[]>([]);
 
   // Reservation wizard state
@@ -75,6 +94,14 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
       setResGuests(loadGuests());
     }
   }, [subView]);
+
+  useEffect(() => {
+    setTimelineExpanded(false);
+    setShowMoreOptions(false);
+    setSubView(initialSubView);
+    setWalkinGuestName(initialWalkInGuestName);
+    setWalkinGuestCount(initialWalkInGuestCount);
+  }, [table.id, initialSubView, initialWalkInGuestName, initialWalkInGuestCount]);
 
   const handleResGuestSearch = (query: string) => {
     setResGuestSearch(query);
@@ -240,15 +267,67 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
   // Current hour for timeline
   const currentHour = new Date().getHours();
 
-  const panelOverlayClass = 'fixed inset-0 z-50 flex justify-end bg-transparent';
-  const panelShellClass = 'pointer-events-auto h-full w-full max-w-[380px] overflow-y-auto border-l border-[#2c2947] bg-[#1f1d33] shadow-2xl';
-  const panelHeaderClass = 'flex items-center justify-between border-b border-[#2c2947] px-5 py-4';
-  const panelSectionClass = 'border-b border-[#2c2947] px-5 py-4';
+  const panelShellClass = 'vilo-no-motion pointer-events-auto h-full overflow-y-auto border-l border-[#2a2a42] bg-[#1f1d33] shadow-2xl';
+  const panelHeaderClass = 'flex h-[61px] items-center justify-between border-b border-[#2a2a42] px-4';
+  const panelSectionClass = 'border-b border-[#2c2947] px-4 py-3';
+  const inlinePanelWidth = isSidebarExpanded ? 260 : 'calc(100vw - 68px)';
+  const panelShellStyle = {
+    width: inline ? (isSidebarExpanded ? 320 : inlinePanelWidth) : 320,
+    minWidth: inline ? (isSidebarExpanded ? 320 : inlinePanelWidth) : 320,
+    maxWidth: inline ? (isSidebarExpanded ? '36vw' : inlinePanelWidth) : 320,
+    marginLeft: 'auto',
+    flexShrink: 0,
+  } as const;
 
-  const primaryActionClass = 'w-full flex items-center justify-center gap-2 py-4 px-4 rounded-none bg-[#8b5cf6] text-white font-semibold text-base hover:bg-[#7c3aed] transition-colors';
-  const secondaryActionClass = 'w-full flex items-center gap-3 py-4 px-4 rounded-none bg-vilo-card text-[#d7d3ea] font-medium text-base hover:bg-[#312e52] active:bg-vilo-elevated transition-colors';
-  const dangerActionClass = 'w-full flex items-center justify-center gap-2 py-4 px-4 rounded-none bg-[#d946ef] text-white font-semibold text-base hover:bg-[#c026d3] transition-colors';
-  const orangeActionClass = 'w-full flex items-center gap-3 py-4 px-4 rounded-none bg-[#ff7a18] text-white font-semibold text-base hover:bg-[#ea6b0f] transition-colors';
+  const renderPanelFrame = (content: React.ReactNode, extraClassName = '') => {
+    const shell = (
+      <div
+        className={[panelShellClass, extraClassName].filter(Boolean).join(' ')}
+        style={panelShellStyle}
+        onClick={e => e.stopPropagation()}
+      >
+        {content}
+      </div>
+    );
+
+    if (inline) {
+      return shell;
+    }
+
+    return (
+      <div className="fixed inset-0 z-50 flex justify-end bg-transparent" onClick={onClose}>
+        {shell}
+      </div>
+    );
+  };
+
+  const subviewContentClass = 'px-4 py-4 space-y-3';
+  const sectionLabelClass = 'mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8f97b3]';
+  const textInputClass = 'w-full bg-vilo-card px-4 py-3 text-[13px] text-white outline-none placeholder:text-vilo-text-muted';
+  const textAreaClass = 'w-full min-h-[84px] resize-none bg-vilo-card px-4 py-3 text-[13px] text-white outline-none placeholder:text-vilo-text-muted';
+
+  const getPickerButtonClass = (active: boolean) => (
+    'flex min-h-[48px] items-center justify-center px-3 text-[13px] font-semibold transition-colors ' +
+    (active
+      ? 'bg-[#8b5cf6] text-white'
+      : 'bg-vilo-card text-vilo-text-soft hover:bg-vilo-elevated')
+  );
+
+  const renderSubviewHeader = (label: string, onHeaderClose: () => void) => (
+    <div className={panelHeaderClass}>
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8f97b3]">{label}</p>
+      </div>
+      <button onClick={onHeaderClose} className="p-1 text-vilo-text-secondary hover:text-vilo-text-primary">
+        <IconX className="w-6 h-6" />
+      </button>
+    </div>
+  );
+
+  const primaryActionClass = 'w-full flex min-h-[52px] items-center justify-start gap-2.5 px-4 py-3 rounded-none bg-[#8b5cf6] text-left text-white font-semibold text-[12px] whitespace-nowrap hover:bg-[#7c3aed] transition-colors';
+  const secondaryActionClass = 'w-full flex min-h-[52px] items-center justify-start gap-2.5 px-4 py-3 rounded-none bg-vilo-card text-left text-[#d7d3ea] font-semibold text-[12px] whitespace-nowrap hover:bg-[#312e52] active:bg-vilo-elevated transition-colors';
+  const dangerActionClass = 'w-full flex min-h-[52px] items-center justify-start gap-2.5 px-4 py-3 rounded-none bg-[#d946ef] text-left text-white font-semibold text-[12px] whitespace-nowrap hover:bg-[#c026d3] transition-colors';
+  const orangeActionClass = 'w-full flex min-h-[52px] items-center justify-start gap-2.5 px-4 py-3 rounded-none bg-[#ff7a18] text-left text-white font-semibold text-[12px] whitespace-nowrap hover:bg-[#ea6b0f] transition-colors';
 
   // Timeline hours (show from current-2 to current+8)
   const timelineHours = useMemo(() => {
@@ -265,6 +344,7 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
     dispatch({ type: 'SET_GUEST_SOURCE', tableId: table.id, source: 'walk_in' });
     dispatch({ type: 'SET_GUEST_COUNT', tableId: table.id, guestCount });
     dispatch({ type: 'SET_SERVICE_STATUS', tableId: table.id, serviceStatus: 'platziert' });
+    onSeatFromWaitlist?.(table.id, walkinGuestName, guestCount);
     onClose();
   };
 
@@ -313,11 +393,11 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
   // Render timeline bar (compact)
   const renderCompactTimeline = () => {
     return (
-      <div className="px-4 py-3" style={{ background: '#2a2a42' }}>
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-bold text-white tracking-wider">ZEITPLAN</span>
+      <div className="px-4 py-2.5" style={{ background: '#2a2a42' }}>
+        <div className="mb-2 flex items-center justify-between">
+          <span className="text-[11px] font-bold tracking-[0.16em] text-white">ZEITPLAN</span>
           <button onClick={() => setTimelineExpanded(!timelineExpanded)} className="text-vilo-text-secondary hover:text-vilo-text-primary transition-colors">
-            {timelineExpanded ? <IconChevronUp className="w-5 h-5" /> : <IconChevronDown className="w-5 h-5" />}
+            {timelineExpanded ? <IconChevronUp className="w-4.5 h-4.5" /> : <IconChevronDown className="w-4.5 h-4.5" />}
           </button>
         </div>
         <div className="flex items-end gap-0 overflow-x-auto pb-1">
@@ -331,14 +411,14 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
             const isCurrent = h === currentHour;
             const isOccupiedHour = isOccupied && session && h >= new Date(session.startTime).getHours() && h <= currentHour;
             return (
-              <div key={h} className="flex flex-col items-center" style={{ minWidth: 32 }}>
-                <div className="w-6 rounded-sm mb-1" style={{
-                  height: 24,
+              <div key={h} className="flex flex-col items-center" style={{ minWidth: 28 }}>
+                <div className="mb-1 w-5 rounded-sm" style={{
+                  height: 20,
                   background: isOccupiedHour ? '#7c3aed' : hasRes ? '#991b1b' : '#3d3d5c',
                   opacity: isCurrent ? 1 : 0.6,
-                  border: isCurrent ? '2px solid #fff' : '1px solid #6b7280',
+                  border: isCurrent ? '2px solid var(--vilo-border-strong)' : '1px solid var(--vilo-border-subtle)',
                 }} />
-                <span className={'text-[10px] font-bold ' + (isCurrent ? 'text-white' : 'text-vilo-text-muted')}>{hourStr}</span>
+                <span className={'text-[9px] font-bold ' + (isCurrent ? 'text-white' : 'text-vilo-text-muted')}>{hourStr}</span>
               </div>
             );
           })}
@@ -354,11 +434,11 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
     for (let h = 1; h <= 2; h++) hours.push(h);
 
     return (
-      <div className="px-4 py-3" style={{ background: '#2a2a42' }}>
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-bold text-white tracking-wider">ZEITPLAN</span>
+      <div className="px-4 py-2.5" style={{ background: '#2a2a42' }}>
+        <div className="mb-3 flex items-center justify-between">
+          <span className="text-[11px] font-bold tracking-[0.16em] text-white">ZEITPLAN</span>
           <button onClick={() => setTimelineExpanded(false)} className="text-vilo-text-secondary hover:text-vilo-text-primary transition-colors">
-            <IconChevronUp className="w-5 h-5" />
+            <IconChevronUp className="w-4.5 h-4.5" />
           </button>
         </div>
         <div className="relative" style={{ minHeight: hours.length * 48 }}>
@@ -422,35 +502,36 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
 
   // Walk-In guest count picker sub-view
   if (subView === 'walkin_count') {
-    return (
-      <div className={panelOverlayClass} onClick={onClose}>
-        <div className={panelShellClass} onClick={e => e.stopPropagation()}>
-          <div className={panelHeaderClass}>
-            <h2 className="text-lg font-bold text-white">Walk-In · {table.name}</h2>
-            <button onClick={() => setSubView('main')} className="p-1 text-vilo-text-secondary hover:text-vilo-text-primary"><IconX className="w-6 h-6" /></button>
-          </div>
+    return renderPanelFrame(
+      <>
+          {renderSubviewHeader('Walk-In', () => setSubView('main'))}
 
-          <div className="px-5 py-5 space-y-5">
+          <div className={subviewContentClass}>
+            <SurfaceCard className="px-4 py-4">
+              <div className="text-[13px] font-semibold text-white">{table.name}</div>
+              <div className="mt-0.5 text-[11px] text-vilo-text-muted">
+                {hasConflict && conflictReservation
+                  ? `${conflictReservation.time} bereits reserviert`
+                  : 'Freier Tisch für spontane Gäste'}
+              </div>
+            </SurfaceCard>
+
             <div>
-              <p className="text-vilo-text-secondary text-xs font-semibold uppercase tracking-wider mb-2">Gastname (optional)</p>
+              <p className={sectionLabelClass}>Gastname</p>
               <input
                 type="text"
                 placeholder="Name eingeben..."
                 value={walkinGuestName}
                 onChange={e => setWalkinGuestName(e.target.value)}
-                className="w-full h-14 px-4 text-left text-white text-base outline-none rounded-none focus:ring-2 focus:ring-[#8b5cf6] bg-vilo-card placeholder:text-[#8e8aa8]"
+                className={textInputClass}
               />
             </div>
 
             <div>
-              <p className="text-vilo-text-secondary text-xs font-semibold uppercase tracking-wider mb-3">Anzahl Gäste wählen</p>
-                <div className="grid grid-cols-4 gap-3">
+              <p className={sectionLabelClass}>Anzahl Gäste</p>
+                <div className="grid grid-cols-4 gap-2">
                   {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
-                  <button key={n} onClick={() => setWalkinGuestCount(n)}
-                    className={'h-16 text-xl font-bold transition-colors rounded-none ' +
-                      (walkinGuestCount === n
-                        ? 'bg-[#d946ef] text-white'
-                        : 'bg-vilo-card text-[#d7d3ea] hover:bg-[#312e52]')}>
+                  <button key={n} onClick={() => setWalkinGuestCount(n)} className={getPickerButtonClass(walkinGuestCount === n)}>
                     {n}
                   </button>
                 ))}
@@ -459,7 +540,7 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
                 type="number"
                 placeholder="Andere Anzahl..."
                 min={1}
-                className="w-full mt-3 h-14 px-4 text-left text-white outline-none rounded-none focus:ring-2 focus:ring-[#8b5cf6] bg-vilo-card placeholder:text-[#8e8aa8] text-base"
+                className={`${textInputClass} mt-2`}
                 value={walkinGuestCount > 8 ? walkinGuestCount : ''}
                 onChange={e => {
                   const val = parseInt(e.target.value);
@@ -475,71 +556,51 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
             </div>
 
             {hasConflict && conflictReservation && (
-              <p className="text-red-400 font-semibold text-sm">
-                {table.name} ist um {conflictReservation.time} anderen Gästen zugewiesen
-              </p>
+              <SurfaceCard variant="alt" className="px-4 py-4">
+                <div className="text-[13px] font-semibold text-white">Konflikt mit Reservierung</div>
+                <div className="mt-0.5 text-[11px] text-[#c7b8ff]">
+                  {table.name} ist um {conflictReservation.time} anderen Gästen zugewiesen
+                </div>
+              </SurfaceCard>
             )}
 
-            <button
-              onClick={() => handleSeatWalkIn(walkinGuestCount)}
-              className="w-full h-14 bg-[#8b5cf6] text-white font-semibold text-base rounded-none hover:bg-[#7c3aed] transition-colors"
-            >
-              Weiter
-            </button>
+            <ActionButton variant="primary" icon={<IconUserPlus className="w-5 h-5" />} onClick={() => handleSeatWalkIn(walkinGuestCount)}>
+              Walk-In platzieren
+            </ActionButton>
           </div>
-        </div>
-      </div>
+      </>
     );
   }
 
   // Reservation wizard sub-view (within bottom sheet)
   if (subView === 'reserve_wizard') {
-    return (
-      <div className={panelOverlayClass} onClick={onClose}>
-        <div className={panelShellClass + ' flex flex-col'} onClick={e => e.stopPropagation()}>
-          {/* Wizard Header - Teal bar */}
-          <div className="flex items-center justify-between border-b border-[#2c2947] px-3 py-2.5">
-            <button onClick={() => {
-              if (reserveStep === 'guests') { resetResForm(); setSubView('main'); }
-              else { setReserveStep('guests'); }
-            }} className="p-1 text-vilo-text-secondary hover:text-vilo-text-primary"><IconX className="w-5 h-5" /></button>
+    return renderPanelFrame(
+      <>
+          {renderSubviewHeader('Reservierung', () => {
+            resetResForm();
+            setSubView('main');
+          })}
 
-            <div className="flex-1 mx-3">
-              <div className="flex items-center justify-center gap-2 px-4 py-2">
-                {reserveStep === 'guests' && (
-                  <><IconUsers className="w-4 h-4 text-vilo-text-secondary" /><span className="text-white font-semibold text-sm">{resFormData.partySize} {resFormData.partySize === 1 ? 'Gast' : 'Gäste'} · {table.name}</span></>
-                )}
-                {reserveStep === 'guest_info' && (
-                  <><IconUser className="w-4 h-4 text-vilo-text-secondary" /><span className="text-white font-semibold text-sm truncate">{resFormData.guestName || 'Gast'}</span></>
-                )}
-              </div>
-            </div>
-
-            {/* Step dots */}
-            <div className="flex items-center gap-1.5">
-              {['guests', 'guest_info'].map((step, i) => (
-                <div key={step} className={'w-2 h-2 rounded-full transition-colors ' +
-                  (step === reserveStep ? 'bg-[#7bb7ef]' : i < ['guests', 'guest_info'].indexOf(reserveStep) ? 'bg-[#5d9edb]' : 'bg-[#555]')}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Wizard Content */}
-          <div className="flex-1 overflow-y-auto" style={{ maxHeight: '70vh' }}>
+          <div className="flex-1 overflow-y-auto">
             {/* Step 1: Party size + Time */}
             {reserveStep === 'guests' && (
-              <div className="p-4 space-y-4">
-                <div className="text-center">
-                  <p className="text-xs text-vilo-text-secondary mb-0.5">{table.name} · Heute</p>
-                  <h3 className="text-base font-bold text-white">Wie viele Gäste?</h3>
-                </div>
+              <div className={subviewContentClass}>
+                <SurfaceCard className="px-4 py-4">
+                  <div className="text-[13px] font-semibold text-white">{table.name}</div>
+                  <div className="mt-0.5 text-[11px] text-vilo-text-muted">Schritt 1 von 2 · Reservierung vorbereiten</div>
+                </SurfaceCard>
+
+                <StatGrid items={[
+                  { value: `${resFormData.partySize} ${resFormData.partySize === 1 ? 'Gast' : 'Gäste'}` },
+                  { value: resFormData.time },
+                  { value: `${resFormData.duration}m` },
+                ]} />
+
                 <div>
-                  <div className="flex gap-2 flex-wrap">
+                  <p className={sectionLabelClass}>Anzahl Gäste</p>
+                  <div className="grid grid-cols-4 gap-2">
                     {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
-                      <button key={n} onClick={() => setResFormData(prev => ({ ...prev, partySize: n }))}
-                        className={'w-12 h-12 rounded-xl border-2 text-base font-bold transition-colors ' +
-                          (resFormData.partySize === n ? 'border-[#7bb7ef] bg-[#7bb7ef] text-white' : 'border-vilo-border-strong text-vilo-text-soft hover:border-[#7bb7ef]')}>
+                      <button key={n} onClick={() => setResFormData(prev => ({ ...prev, partySize: n }))} className={getPickerButtonClass(resFormData.partySize === n)}>
                         {n}
                       </button>
                     ))}
@@ -547,66 +608,71 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
                   <input type="number" min={1} placeholder="Andere Anzahl..."
                     value={resFormData.partySize > 8 ? resFormData.partySize : ''}
                     onChange={e => { const v = parseInt(e.target.value); if (v > 0) setResFormData(prev => ({ ...prev, partySize: v })); }}
-                    className="w-full mt-2 border border-vilo-border-strong rounded-xl py-2.5 px-4 text-center text-white outline-none focus:border-[#7bb7ef] bg-vilo-surface placeholder:text-vilo-text-muted text-sm" />
+                    className={`${textInputClass} mt-2`} />
                 </div>
 
-                {/* Time + Duration compact row */}
                 <div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <h4 className="text-xs font-semibold text-vilo-text-secondary uppercase tracking-wider">Uhrzeit</h4>
+                  <p className={sectionLabelClass}>Uhrzeit</p>
+                  <div className="mb-2">
                     <input type="time" value={resFormData.time}
                       onChange={e => setResFormData(prev => ({ ...prev, time: e.target.value }))}
-                      className="border border-vilo-border-strong rounded-lg py-1.5 px-3 text-center text-white outline-none focus:border-[#7bb7ef] text-xs bg-vilo-surface w-24" />
+                      className={`${textInputClass} max-w-[132px]`} />
                   </div>
-                  <div className="flex gap-1 overflow-x-auto pb-1">
+                  <div className="grid grid-cols-2 gap-2">
                     {['17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00', '21:30'].map(t => (
-                      <button key={t} onClick={() => setResFormData(prev => ({ ...prev, time: t }))}
-                        className={'shrink-0 px-2.5 py-1.5 rounded-lg text-[11px] font-medium border transition-colors ' +
-                          (resFormData.time === t ? 'border-[#7bb7ef] bg-[#7bb7ef]/20 text-[#7bb7ef]' : 'border-vilo-border-strong text-vilo-text-secondary hover:bg-vilo-surface')}>
+                      <button key={t} onClick={() => setResFormData(prev => ({ ...prev, time: t }))} className={getPickerButtonClass(resFormData.time === t)}>
                         {t}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <h4 className="text-xs font-semibold text-vilo-text-secondary uppercase tracking-wider shrink-0">Dauer</h4>
-                  <div className="flex gap-1.5 flex-1">
+                <div>
+                  <p className={sectionLabelClass}>Dauer</p>
+                  <div className="grid grid-cols-3 gap-2">
                     {[60, 90, 120].map(d => (
-                      <button key={d} onClick={() => setResFormData(prev => ({ ...prev, duration: d }))}
-                        className={'flex-1 py-1.5 rounded-lg text-[11px] font-medium border transition-colors ' +
-                          (resFormData.duration === d ? 'border-[#7bb7ef] bg-[#7bb7ef]/20 text-[#7bb7ef]' : 'border-vilo-border-strong text-vilo-text-secondary hover:bg-vilo-surface')}>
+                      <button key={d} onClick={() => setResFormData(prev => ({ ...prev, duration: d }))} className={getPickerButtonClass(resFormData.duration === d)}>
                         {d}m
                       </button>
                     ))}
                   </div>
                 </div>
 
-                <button onClick={() => setReserveStep('guest_info')}
-                  className="w-full py-3 rounded-xl font-semibold text-white text-sm" style={{ background: '#7c3aed' }}>
+                <ActionButton variant="primary" icon={<IconUsers className="w-5 h-5" />} onClick={() => setReserveStep('guest_info')}>
                   Weiter
-                </button>
+                </ActionButton>
               </div>
             )}
 
             {/* Step 2: Guest info */}
             {reserveStep === 'guest_info' && (
-              <div className="pb-4">
-                {/* Search */}
-                <div className="px-4 py-3 border-b border-vilo-border-subtle">
+              <div className={subviewContentClass}>
+                <SurfaceCard className="px-4 py-4">
+                  <div className="text-[13px] font-semibold text-white">Gastdetails</div>
+                  <div className="mt-0.5 text-[11px] text-vilo-text-muted">Schritt 2 von 2 · {table.name}</div>
+                </SurfaceCard>
+
+                <StatGrid items={[
+                  { value: `${resFormData.partySize} P.` },
+                  { value: resFormData.time },
+                  { value: `${resFormData.duration}m` },
+                ]} />
+
+                <div>
+                  <p className={sectionLabelClass}>Gast suchen</p>
                   <div className="relative">
                     <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-vilo-text-muted" />
                     <input type="text" value={resGuestSearch}
                       onChange={e => handleResGuestSearch(e.target.value)}
                       placeholder="Nach Telefonnummer oder Namen suchen"
-                      className="w-full pl-9 pr-3 py-2.5 border border-vilo-border-strong rounded-lg text-sm text-white outline-none focus:border-[#7bb7ef] bg-vilo-surface placeholder:text-vilo-text-muted" />
+                      className={`pl-9 ${textInputClass}`} />
                   </div>
                   {resSearchResults.length > 0 && (
-                    <div className="mt-1 border border-vilo-border-strong rounded-lg overflow-hidden shadow-lg">
+                    <SurfaceCard className="mt-2 overflow-hidden">
                       {resSearchResults.slice(0, 5).map(g => (
                         <button key={g.id} onClick={() => handleResSelectGuest(g)}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-vilo-elevated text-left border-b border-vilo-border-subtle last:border-0 bg-vilo-surface">
-                          <div className="w-8 h-8 rounded-full bg-purple-900/40 flex items-center justify-center">
+                          className="w-full flex items-center gap-3 border-b border-vilo-border-subtle bg-vilo-card px-3 py-3 text-left hover:bg-vilo-elevated last:border-0">
+                          <div className="flex h-8 w-8 items-center justify-center bg-[#8b5cf6]/15">
                             <IconUser className="w-4 h-4 text-[#7bb7ef]" />
                           </div>
                           <div className="flex-1 min-w-0">
@@ -615,120 +681,135 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
                           </div>
                         </button>
                       ))}
-                    </div>
+                    </SurfaceCard>
                   )}
                 </div>
 
-                {/* Guest fields */}
-                <div className="px-4 py-3 space-y-3">
-                  {resMatchedGuest && (
-                    <div className="rounded-lg bg-[#7bb7ef]/15 border border-purple-700/30 p-3 flex items-center gap-2">
+                {resMatchedGuest && (
+                  <SurfaceCard variant="alt" className="px-4 py-4">
+                    <div className="flex items-center gap-2">
                       <IconUser className="w-4 h-4 text-[#7bb7ef] shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-[#b1d9ff]">{resMatchedGuest.name}</p>
-                        <p className="text-xs text-[#7bb7ef]">{resMatchedGuest.totalVisits || 0} Besuche</p>
+                        <p className="text-sm font-semibold text-white">{resMatchedGuest.name}</p>
+                        <p className="text-xs text-[#b4afd2]">{resMatchedGuest.totalVisits || 0} Besuche</p>
                       </div>
                     </div>
-                  )}
+                  </SurfaceCard>
+                )}
 
-                  <div className="space-y-0 border border-vilo-border-strong rounded-lg overflow-hidden">
-                    <div className="flex items-center border-b border-vilo-border-strong px-3 py-2.5 bg-vilo-surface">
-                      <span className="text-sm text-vilo-text-secondary w-24 shrink-0">Vorname</span>
-                      <input type="text" value={resFormData.guestName.split(' ')[0] || ''}
-                        onChange={e => {
-                          const ln = resFormData.guestName.split(' ').slice(1).join(' ');
-                          setResFormData(prev => ({ ...prev, guestName: e.target.value + (ln ? ' ' + ln : '') }));
-                        }}
-                        placeholder="Vorname" className="flex-1 text-sm text-white outline-none bg-transparent placeholder:text-vilo-text-muted" />
-                    </div>
-                    <div className="flex items-center border-b border-vilo-border-strong px-3 py-2.5 bg-vilo-surface">
-                      <span className="text-sm text-vilo-text-secondary w-24 shrink-0">Nachname</span>
-                      <input type="text" value={resFormData.guestName.split(' ').slice(1).join(' ')}
-                        onChange={e => {
-                          const fn = resFormData.guestName.split(' ')[0] || '';
-                          setResFormData(prev => ({ ...prev, guestName: fn + (e.target.value ? ' ' + e.target.value : '') }));
-                        }}
-                        placeholder="Nachname" className="flex-1 text-sm text-white outline-none bg-transparent placeholder:text-vilo-text-muted" />
-                    </div>
-                    <div className="flex items-center px-3 py-2.5 bg-vilo-surface">
-                      <span className="text-sm text-vilo-text-secondary w-24 shrink-0">Telefon</span>
-                      <input type="tel" value={resFormData.guestPhone}
-                        onChange={e => handleResPhoneChange(e.target.value)}
-                        placeholder="Telefonnummer" className="flex-1 text-sm text-white outline-none bg-transparent placeholder:text-vilo-text-muted" />
-                    </div>
+                <div>
+                  <p className={sectionLabelClass}>Vorname</p>
+                  <input type="text" value={resFormData.guestName.split(' ')[0] || ''}
+                    onChange={e => {
+                      const ln = resFormData.guestName.split(' ').slice(1).join(' ');
+                      setResFormData(prev => ({ ...prev, guestName: e.target.value + (ln ? ' ' + ln : '') }));
+                    }}
+                    placeholder="Vorname"
+                    className={textInputClass}
+                  />
+                </div>
+
+                <div>
+                  <p className={sectionLabelClass}>Nachname</p>
+                  <input type="text" value={resFormData.guestName.split(' ').slice(1).join(' ')}
+                    onChange={e => {
+                      const fn = resFormData.guestName.split(' ')[0] || '';
+                      setResFormData(prev => ({ ...prev, guestName: fn + (e.target.value ? ' ' + e.target.value : '') }));
+                    }}
+                    placeholder="Nachname"
+                    className={textInputClass}
+                  />
+                </div>
+
+                <div>
+                  <p className={sectionLabelClass}>Telefon</p>
+                  <input type="tel" value={resFormData.guestPhone}
+                    onChange={e => handleResPhoneChange(e.target.value)}
+                    placeholder="Telefonnummer"
+                    className={textInputClass}
+                  />
+                </div>
+
+                <div>
+                  <p className={sectionLabelClass}>Quelle</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {([['phone', 'Telefon'], ['online', 'Online'], ['walk_in', 'Walk-In']] as const).map(([key, label]) => (
+                      <button key={key} onClick={() => setResFormData(prev => ({ ...prev, source: key }))} className={getPickerButtonClass(resFormData.source === key)}>
+                        {label}
+                      </button>
+                    ))}
                   </div>
+                </div>
 
-                  {/* Source selector */}
-                  <div>
-                    <p className="text-xs text-vilo-text-secondary font-semibold uppercase tracking-wider mb-2">QUELLE</p>
-                    <div className="grid grid-cols-3 gap-2">
-                      {([['phone', 'Telefon'], ['online', 'Online'], ['walk_in', 'Walk-In']] as const).map(([key, label]) => (
-                        <button key={key} onClick={() => setResFormData(prev => ({ ...prev, source: key }))}
-                          className={'py-2 rounded-lg text-sm font-medium border transition-colors ' +
-                            (resFormData.source === key ? 'border-[#7bb7ef] bg-[#7bb7ef]/20 text-[#7bb7ef]' : 'border-vilo-border-strong text-vilo-text-secondary hover:bg-vilo-surface')}>
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Notes */}
+                <div>
+                  <p className={sectionLabelClass}>Notiz</p>
                   <textarea value={resFormData.notes}
                     onChange={e => setResFormData(prev => ({ ...prev, notes: e.target.value }))}
                     placeholder="z.B. Allergien, Kinderstuhl, Geburtstag..."
-                    rows={2}
-                    className="w-full rounded-lg px-3 py-2.5 border border-vilo-border-strong text-white text-sm outline-none focus:border-[#7bb7ef] resize-none bg-vilo-surface placeholder:text-vilo-text-muted" />
-
-                  {/* Save */}
-                  <button onClick={handleResSave}
-                    disabled={!resFormData.guestName.trim()}
-                    className="w-full py-3 rounded-xl font-semibold text-white text-base flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                    style={{ background: '#7c3aed' }}>
-                    <IconCheck className="w-5 h-5" />
-                    Reservieren
-                  </button>
+                    rows={3}
+                    className={textAreaClass}
+                  />
                 </div>
+
+                <ActionButton variant="primary" icon={<IconCheck className="w-5 h-5" />} onClick={handleResSave} disabled={!resFormData.guestName.trim()}>
+                  Reservieren
+                </ActionButton>
+
+                <ActionButton variant="secondary" className="text-[#d7d3ea]" onClick={() => setReserveStep('guests')}>
+                  Zurück
+                </ActionButton>
               </div>
             )}
           </div>
-        </div>
-      </div>
+      </>,
+      'flex flex-col'
     );
   }
 
   // Move to table picker sub-view
   if (subView === 'move_picker') {
-    return (
-      <div className={panelOverlayClass} onClick={onClose}>
-        <div className={panelShellClass} onClick={e => e.stopPropagation()}>
-          <div className={panelHeaderClass}>
-            <h2 className="text-xl font-bold text-white">Umsetzen - Tisch waehlen</h2>
-            <button onClick={() => setSubView('main')} className="p-1 text-vilo-text-secondary hover:text-vilo-text-primary"><IconX className="w-6 h-6" /></button>
-          </div>
+    return renderPanelFrame(
+      <>
+          {renderSubviewHeader('Tisch wählen', () => setSubView('main'))}
 
-          <div className="px-5 py-4">
+          <div className={subviewContentClass}>
+            <SurfaceCard className="px-4 py-4">
+              <div className="text-[13px] font-semibold text-white">Gast umsetzen</div>
+              <div className="mt-0.5 text-[11px] text-vilo-text-muted">
+                {freeTables.length === 0 ? 'Keine freien Tische verfügbar' : `${freeTables.length} freie Tische verfügbar`}
+              </div>
+            </SurfaceCard>
+
             {freeTables.length === 0 ? (
-              <p className="text-vilo-text-muted text-center py-8">Keine freien Tische verfuegbar</p>
+              <SurfaceCard className="px-4 py-4 text-center text-[12px] text-vilo-text-muted">
+                Keine freien Tische verfügbar
+              </SurfaceCard>
             ) : (
               <div className="space-y-2">
                 {freeTables.map(t => (
-                  <button key={t.id} onClick={() => handleMoveToTable(t.id)}
-                    className="w-full flex items-center justify-between py-3.5 px-4 rounded-xl border border-vilo-border-strong hover:bg-vilo-surface active:bg-vilo-elevated transition-colors">
-                    <span className="text-white text-base font-semibold">{t.name}</span>
-                    <span className="text-sm text-vilo-text-secondary">{t.seats || 4} Plaetze</span>
-                  </button>
+                  <SurfaceCard
+                    key={t.id}
+                    as="button"
+                    onClick={() => handleMoveToTable(t.id)}
+                    className="w-full px-4 py-4 text-left"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-[13px] font-semibold text-white">{t.name}</p>
+                        <p className="mt-0.5 text-[11px] text-vilo-text-muted">{t.seats || 4} Plätze</p>
+                      </div>
+                      <IconArrowsRightLeft className="w-4 h-4 text-[#a9a4ca]" />
+                    </div>
+                  </SurfaceCard>
                 ))}
               </div>
             )}
-          </div>
 
-          <div className="px-5 py-3 pb-20 border-t border-vilo-border-subtle">
-            <button onClick={() => setSubView('main')} className="w-full py-2.5 text-sm text-vilo-text-secondary hover:text-vilo-text-primary">
+            <ActionButton variant="secondary" className="text-[#d7d3ea]" onClick={() => setSubView('main')}>
               Zurück
-            </button>
+            </ActionButton>
           </div>
-        </div>
-      </div>
+      </>
     );
   }
 
@@ -745,23 +826,23 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
       ? '#8b5cf6'
       : '#8b5cf6';
 
-  return (
-    <div className={panelOverlayClass} onClick={onClose}>
-      <div className={panelShellClass} onClick={e => e.stopPropagation()}>
+  return renderPanelFrame(
+    <>
         {/* Header */}
         <div className={panelHeaderClass}>
-          <h2 className="text-2xl font-bold text-white">{table.name}</h2>
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8f97b3]">
+              Tisch {table.name.replace(/^[A-Za-z]+\s*/, '') || table.name}
+            </p>
+          </div>
           <button onClick={onClose} className="p-1 text-vilo-text-secondary hover:text-vilo-text-primary"><IconX className="w-6 h-6" /></button>
         </div>
 
-        <div className="flex items-center justify-between px-5 py-4 text-white" style={{ background: statusBackground }}>
-          <div className="flex items-center gap-3">
-            <IconCheck className="h-5 w-5" />
-            <span className="text-xl font-semibold">{statusLabel}</span>
+        <div className="flex items-center px-4 py-3 text-white" style={{ background: statusBackground }}>
+          <div className="flex items-center gap-2.5">
+            <IconCheck className="h-4.5 w-4.5" />
+            <span className="text-[16px] font-semibold">{statusLabel}</span>
           </div>
-          <button onClick={() => setTimelineExpanded(!timelineExpanded)} className="text-white/85 hover:text-white">
-            {timelineExpanded ? <IconChevronUp className="h-5 w-5" /> : <IconChevronDown className="h-5 w-5" />}
-          </button>
         </div>
 
         {/* Timeline */}
@@ -770,26 +851,31 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
         {/* Current Guest Info (if occupied) */}
         {isOccupied && session && (
           <div className={panelSectionClass}>
-            <p className="text-xs font-bold text-vilo-text-secondary tracking-wider mb-2">ZUR ZEIT PLATZIERT</p>
-            <button onClick={handleOpenOrders} className="w-full flex items-center justify-between border border-vilo-border-strong bg-vilo-card px-4 py-3 text-left hover:bg-vilo-surface active:bg-vilo-elevated transition-colors">
+            <p className="mb-2 text-[11px] font-bold tracking-[0.16em] text-vilo-text-secondary">ZUR ZEIT PLATZIERT</p>
+            <button onClick={handleOpenOrders} className="w-full flex items-center justify-between border border-vilo-border-strong bg-vilo-card px-3 py-3 text-left hover:bg-vilo-surface active:bg-vilo-elevated transition-colors">
               <div>
-                <p className="text-base font-bold text-white">
+                <p className="text-[13px] font-bold text-white">
                   {seatedReservation?.guestName
                     || session.guestName?.trim()
-                    || (session.guestSource === 'walk_in' ? 'Walk-In' : session.guestSource === 'phone' ? 'Telefon' : 'Online') + ' ' + table.name.replace(/^[A-Za-z]+\s*/, '')}
+                    || (session.guestSource === 'walk_in' ? 'Walk-In' : session.guestSource === 'phone' ? 'Telefon' : 'Online')}
                 </p>
-                <p className="text-sm text-vilo-text-secondary">{seatedReservation ? getSeatedDuration(seatedReservation) : getElapsedStr()}</p>
+                <p className="text-[11px] text-vilo-text-secondary">{seatedReservation ? getSeatedDuration(seatedReservation) : getElapsedStr()}</p>
               </div>
-              <span className="text-lg font-bold text-vilo-text-soft">{seatedReservation ? seatedReservation.partySize : (session.guestCount || '?')}</span>
+              <div className="flex items-center gap-2 text-vilo-text-soft">
+                <span className="text-[13px] font-semibold whitespace-nowrap">
+                  {(seatedReservation ? seatedReservation.partySize : (session.guestCount || '?'))} Personen
+                </span>
+                <IconChevronRight className="h-4 w-4 shrink-0 text-[#a9a4ca]" />
+              </div>
             </button>
           </div>
         )}
 
         {isFree && conflictReservation && (
           <div className={panelSectionClass}>
-            <div className="border border-dashed border-[#7a6aab] px-4 py-3">
-              <p className="text-lg font-semibold text-white">{conflictReservation.guestName}</p>
-              <p className="mt-1 text-sm text-[#c7b8ff]">
+            <div className="border border-dashed border-[#7a6aab] px-3 py-3">
+              <p className="text-[13px] font-semibold text-white">{conflictReservation.guestName}</p>
+              <p className="mt-1 text-[11px] text-[#c7b8ff]">
                 {conflictReservation.time} · {conflictReservation.partySize} Gäste
               </p>
             </div>
@@ -797,7 +883,7 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
         )}
 
         {/* Action Buttons */}
-        <div className="px-5 py-4 space-y-3">
+        <div className="px-4 py-3 space-y-2">
           {/* === OCCUPIED TABLE ACTIONS === */}
           {isOccupied && session && (
             <>
@@ -808,21 +894,21 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
               }}
                 className={orangeActionClass}>
                 <IconToolsKitchen className="w-5 h-5" />
-                Abraeumen erforderlich
+                Abräumen
               </button>
 
               {/* Abschliessen */}
               <button onClick={handleCloseTable}
                 className={secondaryActionClass}>
                 <IconCircleCheck className="w-5 h-5 text-[#cfc5ff]" />
-                Abschliessen
+                Abschließen
               </button>
 
               {/* Beenden & Walk-In platzieren */}
               <button onClick={handleFinishAndSeatNew}
                 className={secondaryActionClass}>
                 <IconCircleCheck className="w-5 h-5 text-[#d946ef]" />
-                Beenden & Walk-In platzieren
+                Neu platzieren
               </button>
 
               {!showMoreOptions ? (
@@ -866,9 +952,9 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
           {isFree && hasConflict && conflictReservation && (
             <>
               {/* Warning */}
-              <div className="flex items-center gap-2 py-2">
+              <div className="flex items-center gap-2 py-1">
                 <IconAlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
-                <p className="text-sm font-semibold text-red-500">
+                <p className="text-[12px] font-semibold text-red-500">
                   {table.name} ist anderen Gästen zugewiesen
                 </p>
               </div>
@@ -876,13 +962,13 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
               {/* Walk-In dennoch platzieren (red) */}
               <button onClick={() => setSubView('walkin_count')}
                 className={dangerActionClass}>
-                Walk-In dennoch platzieren
+                Trotzdem platzieren
               </button>
 
               {/* Walk-In teilweise platzieren (teal) */}
               <button onClick={() => setSubView('walkin_count')}
                 className={primaryActionClass}>
-                Walk-In teilweise platzieren
+                Teilweise platzieren
               </button>
 
               {/* Tisch sperren */}
@@ -916,9 +1002,9 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
           {/* === BLOCKED TABLE === */}
           {isBlocked && (
             <>
-              <div className="flex items-center gap-2 py-2">
-                <IconBan className="w-5 h-5 text-red-400" />
-                <p className="text-base font-semibold text-red-400">Tisch ist gesperrt</p>
+              <div className="flex items-center gap-2 py-1">
+                <IconBan className="w-4.5 h-4.5 text-red-400" />
+                <p className="text-[12px] font-semibold text-red-400">Tisch ist gesperrt</p>
               </div>
 
               <button onClick={handleUnblockTable}
@@ -984,7 +1070,6 @@ export function TableManagement({ table, onClose, onOpenTableDetail, onReserve: 
         )}
 
         <div className="h-6" />
-      </div>
-    </div>
+    </>
   );
 }

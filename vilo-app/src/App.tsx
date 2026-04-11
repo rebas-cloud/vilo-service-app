@@ -1,5 +1,5 @@
 import { useCallback, useState, useRef, useEffect, lazy, Suspense } from 'react';
-import { IconAlertTriangle, IconChartBar, IconCalendar, IconChefHat, IconChevronLeft, IconChevronRight, IconEye, IconLayoutGrid, IconLogout, IconMenu2, IconSettings, IconSparkles } from '@tabler/icons-react';
+import { IconAlertTriangle, IconChartBar, IconCalendar, IconChefHat, IconChevronLeft, IconChevronRight, IconEye, IconLayoutGrid, IconLogout, IconMenu2, IconSettings, IconSparkles, IconX } from '@tabler/icons-react';
 
 import './App.css';
 import { AppProvider, useApp } from './context/AppContext';
@@ -178,24 +178,11 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
     );
   }
 
-  // Helper: get shift name
-  const getShiftName = () => {
-    const h = selectedDate.getHours() || new Date().getHours();
-    if (h < 11) return 'Fruehstueck';
-    if (h < 15) return 'Lunch';
-    return 'Abend';
-  };
-
   const getDateHeader = () => {
     const d = selectedDate;
     const days = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
     const months = ['Jan', 'Feb', 'März', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
     return `${days[d.getDay()]}. ${d.getDate()}. ${months[d.getMonth()]}`;
-  };
-
-  const isToday = () => {
-    const today = new Date();
-    return selectedDate.toDateString() === today.toDateString();
   };
 
   const changeDate = (offset: number) => {
@@ -243,67 +230,31 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
       {/* Top Header */}
       {subTab !== 'reservierungen' && (
         <>
-          <header className="grid grid-cols-[auto_1fr_auto] items-center gap-2 px-3 py-2" style={{ background: '#1a1a2e', paddingTop: 'max(0.625rem, env(safe-area-inset-top))' }}>
+          <header className="flex items-center justify-between gap-3 border-b border-vilo-border-subtle px-3 py-2" style={{ background: '#1a1a2e', paddingTop: 'max(0.625rem, env(safe-area-inset-top))' }}>
             {/* Left: logo */}
             <div className="flex items-center">
               <img src={viloLogo} alt="Vilo" className="h-4 w-auto flex-shrink-0" />
             </div>
 
-            {/* Center: date with chevrons */}
-            <div className="min-w-0 flex items-center justify-center gap-1">
-              <button onClick={() => changeDate(-1)} className="shrink-0 p-1 text-vilo-text-secondary hover:text-white transition-colors">
-                <IconChevronLeft className="w-4 h-4" />
+            <div className="min-w-0 flex items-center justify-end gap-1.5 overflow-x-auto">
+              <button
+                onClick={() => changeDate(-1)}
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-vilo-border-subtle bg-vilo-elevated text-vilo-text-secondary transition-colors hover:text-white"
+              >
+                <IconChevronLeft className="h-3.5 w-3.5" />
               </button>
               <button
                 onClick={() => setShowDatePicker(true)}
-                className="min-w-0 max-w-full flex items-center justify-center gap-2 hover:opacity-80 transition-opacity"
+                className="flex h-7 shrink-0 items-center rounded-md border border-vilo-border-subtle bg-vilo-elevated px-2.5 text-white transition-colors hover:bg-[#2b2b44]"
               >
-                <h1 className="truncate text-white font-bold text-[14px] sm:text-[15px] leading-none">{getDateHeader()}</h1>
-                <span className="truncate text-vilo-text-secondary text-[12px] sm:text-[13px] font-medium leading-none max-w-[92px] sm:max-w-none">
-                  {getShiftName()}
-                </span>
-                {!isToday() && <span className="hidden sm:inline text-[#cf45f3] text-[10px] leading-none">(nicht heute)</span>}
+                <span className="truncate text-[12px] font-semibold leading-none">{getDateHeader()}</span>
               </button>
-              <button onClick={() => changeDate(1)} className="shrink-0 p-1 text-vilo-text-secondary hover:text-white transition-colors">
-                <IconChevronRight className="w-4 h-4" />
+              <button
+                onClick={() => changeDate(1)}
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-vilo-border-subtle bg-vilo-elevated text-vilo-text-secondary transition-colors hover:text-white"
+              >
+                <IconChevronRight className="h-3.5 w-3.5" />
               </button>
-            </div>
-
-            {/* Right: actions */}
-            <div className="flex items-center justify-end gap-1">
-              {!isToday() && (
-                <button
-                  onClick={() => setSelectedDate(new Date())}
-                  className="hidden sm:inline-flex shrink-0 text-[#cf45f3] text-[11px] font-medium px-2 py-1 bg-[#cf45f3]/10 hover:bg-[#cf45f3]/20 transition-colors"
-                >
-                  Heute
-                </button>
-              )}
-              <div className="relative">
-                <button
-                  onClick={() => setShowMoreMenu(prev => !prev)}
-                  className="p-1.5 text-vilo-text-secondary hover:text-white hover:bg-vilo-surface transition-colors"
-                >
-                  <IconSettings className="w-4.5 h-4.5" />
-                </button>
-                {showMoreMenu && (
-                  <div className="absolute right-0 top-full mt-1 bg-vilo-surface border border-vilo-border-subtle rounded-xl shadow-xl z-50 min-w-[180px] overflow-hidden animate-fade-in">
-                    <button onClick={() => { setShowMoreMenu(false); setShowSettings(true); }}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-vilo-text-soft text-sm hover:bg-vilo-elevated transition-colors">
-                      <IconSettings className="w-4 h-4" /> Einstellungen
-                    </button>
-                    <button onClick={() => { setShowKitchenBar(true); setShowMoreMenu(false); }}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-vilo-text-soft text-sm hover:bg-vilo-elevated transition-colors">
-                      🍳 Küche / Bar
-                    </button>
-                    <div className="border-t border-vilo-border-subtle" />
-                    <button onClick={() => { setShowMoreMenu(false); onLogout(); }}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-red-400 text-sm hover:bg-red-900/20 transition-colors">
-                      <IconLogout className="w-4 h-4" /> Abmelden
-                    </button>
-                  </div>
-                )}
-              </div>
             </div>
           </header>
 
@@ -312,7 +263,17 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
             <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setShowDatePicker(false)}>
               <div className="absolute inset-0 bg-black/50" />
               <div className="relative w-full max-w-sm bg-vilo-surface rounded-t-2xl p-4 pb-8 animate-fade-in" onClick={e => e.stopPropagation()}>
-                <div className="w-10 h-1 bg-[#555] rounded-full mx-auto mb-4" />
+                <div className="mx-[-1rem] mt-[-1rem] mb-4 flex items-center justify-between border-b border-vilo-border-subtle px-5 py-4 shrink-0">
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-[16px] font-bold text-white">Datum</h2>
+                  </div>
+                  <button
+                    onClick={() => setShowDatePicker(false)}
+                    className="ml-3 p-1 text-vilo-text-secondary hover:text-vilo-text-primary transition-colors shrink-0"
+                  >
+                    <IconX className="w-5 h-5" />
+                  </button>
+                </div>
                 <input
                   type="date"
                   value={selectedDate.toISOString().split('T')[0]}
@@ -350,7 +311,7 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
       {/* Sub-Tabs + Content Wrapper */}
       <div className="flex-1 overflow-hidden relative flex flex-col">
         {/* Scrollable Sub-Tabs */}
-        {subTab !== 'reservierungen' && (
+        {subTab !== 'reservierungen' && !isFloorPlanSection && (
           <div className="flex overflow-x-auto hide-scrollbar border-b border-vilo-border-subtle shrink-0" style={{ background: '#1a1a2e' }}>
             {(isHomeSection
               ? [
@@ -358,12 +319,7 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
                   { id: 'uebersicht' as SubTab, label: 'Übersicht' },
                   { id: 'probleme' as SubTab, label: 'Probleme' },
                 ]
-              : isFloorPlanSection
-                ? [
-                    { id: 'raumplan' as SubTab, label: 'Raumplanung' },
-                    { id: 'bearbeiten' as SubTab, label: 'Bearbeiten' },
-                  ]
-                : [
+              : [
                     { id: 'liste' as SubTab, label: 'Liste' },
                     { id: 'timeline' as SubTab, label: 'Timeline' },
                   ]
