@@ -1,8 +1,8 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
-import { Table, TableShape, Reservation, Guest, GuestNote, ReservationStatus, OccasionLabel, WaitlistEntry } from '../types';
+import { Table, TableCombination, TablePlacementType, TableRotation, TableShape, TableVariant, Reservation, Guest, GuestNote, ReservationStatus, OccasionLabel, WaitlistEntry } from '../types';
 
-import { IconAdjustmentsHorizontal, IconAlertTriangleFilled, IconAlignLeft, IconArmchair, IconBabyCarriage, IconBell, IconBriefcaseFilled, IconCake, IconCheck, IconChevronDown, IconChevronRight, IconChevronUp, IconCircleCheckFilled, IconCircleX, IconCreditCard, IconClock, IconCoinFilled, IconConfetti, IconEdit, IconGiftFilled, IconGlobeFilled, IconHeartFilled, IconHeartHandshake, IconLayoutSidebarLeftCollapse, IconLayoutSidebarLeftExpand, IconLeaf, IconMail, IconMasksTheater, IconMessage, IconNews, IconPhone, IconPhoneFilled, IconPlant2, IconPlus, IconSchool, IconSparkles, IconStar, IconStarFilled, IconTrash, IconUser, IconUserCheck, IconUserPlus, IconUsers, IconWalk, IconWheelchair, IconX } from '@tabler/icons-react';
+import { IconAdjustmentsHorizontal, IconAlertTriangleFilled, IconAlignLeft, IconArmchair, IconBabyCarriage, IconBell, IconBriefcaseFilled, IconCake, IconCashBanknoteFilled, IconCheck, IconChevronDown, IconChevronRight, IconChevronUp, IconCircleCheckFilled, IconCircleX, IconCreditCard, IconClock, IconCoinFilled, IconConfetti, IconEdit, IconGiftFilled, IconGlobeFilled, IconHeartFilled, IconHeartHandshake, IconLayoutSidebarLeftCollapse, IconLayoutSidebarLeftExpand, IconLeaf, IconMail, IconMasksTheater, IconMessage, IconNews, IconPhone, IconPhoneFilled, IconPlant2, IconPlus, IconSchool, IconSparkles, IconStar, IconStarFilled, IconTrash, IconUser, IconUserCheck, IconUserPlus, IconUsers, IconWalk, IconWheelchair, IconX } from '@tabler/icons-react';
 import { saveStorage, loadStorage, loadReservations, loadWaitlist, loadGuests, addGuest, addGuestNote, removeGuestNote, updateWaitlistEntry } from '../utils/storage';
 import { ReservationPanel } from './Reservations';
 import { TableManagement } from './TableManagement';
@@ -42,58 +42,555 @@ type PendingWaitlistPlacementState = {
   partySize: number;
 };
 
-type BadgePlacement = 'bottom' | 'left' | 'right' | 'top';
-
-// OpenTable-style: size varies by seat count
-function getTableSize(table: { shape?: string; seats?: number }): { w: number; h: number } {
-  const shape = table.shape || 'rect';
-  const seats = table.seats || 4;
-  if (shape === 'barstool') return { w: 34, h: 34 };
-  if (shape === 'round') {
-    if (seats >= 10) return { w: 82, h: 82 };
-    if (seats >= 8) return { w: 76, h: 76 };
-    if (seats >= 6) return { w: 68, h: 68 };
-    return { w: 58, h: 58 };
-  }
-  if (shape === 'diamond') {
-    if (seats >= 8) return { w: 70, h: 70 };
-    return { w: 62, h: 62 };
-  }
-  // rect, rect_v, square - scale by seats
-  if (shape === 'square') {
-    if (seats >= 8) return { w: 62, h: 62 };
-    if (seats >= 6) return { w: 58, h: 58 };
-    return { w: 50, h: 50 };
-  }
-  if (shape === 'rect_v') {
-    if (seats >= 8) return { w: 52, h: 76 };
-    if (seats >= 6) return { w: 50, h: 72 };
-    return { w: 46, h: 68 };
-  }
-  // rect
-  if (seats >= 10) return { w: 82, h: 56 };
-  if (seats >= 8) return { w: 74, h: 52 };
-  if (seats >= 6) return { w: 68, h: 48 };
-  return { w: 60, h: 44 };
-}
-
-const SHAPE_SIZES: Record<string, { w: number; h: number }> = {
-  diamond: { w: 70, h: 70 },
-  rect: { w: 75, h: 54 },
-  rect_v: { w: 56, h: 80 },
-  square: { w: 56, h: 56 },
-  round: { w: 80, h: 80 },
-  barstool: { w: 40, h: 40 },
+type TableSeatPoint = { x: number; y: number };
+type TableSvgRect = {
+  kind: 'rect';
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rx: number;
+  rotate?: number;
+  originX?: number;
+  originY?: number;
+};
+type TableSvgCircle = {
+  kind: 'circle';
+  cx: number;
+  cy: number;
+  r: number;
+};
+type TableVariantDefinition = {
+  id: TableVariant;
+  label: string;
+  shape: TableShape;
+  viewBoxWidth: number;
+  viewBoxHeight: number;
+  bodyBounds: { x: number; y: number; width: number; height: number };
+  body: TableSvgRect | TableSvgCircle;
+  seatRects: TableSvgRect[];
+  seats: number;
+  defaultMinPartySize: number;
+  defaultMaxPartySize: number;
+  palette?: boolean;
 };
 
-const SHAPE_OPTIONS: { value: TableShape; label: string }[] = [
-  { value: 'rect', label: 'Rechteck' },
-  { value: 'rect_v', label: 'Rechteck (hoch)' },
-  { value: 'square', label: 'Quadrat' },
-  { value: 'diamond', label: 'Diamant' },
-  { value: 'round', label: 'Rund' },
-  { value: 'barstool', label: 'Barhocker' },
+const TABLE_VARIANTS: TableVariantDefinition[] = [
+  {
+    id: 'round-2',
+    label: 'Rund 2',
+    shape: 'round',
+    viewBoxWidth: 40,
+    viewBoxHeight: 50,
+    bodyBounds: { x: 0, y: 5, width: 40, height: 40 },
+    body: { kind: 'circle', cx: 20, cy: 25, r: 20 },
+    seatRects: [
+      { kind: 'rect', x: 10, y: 0, width: 20, height: 17, rx: 4 },
+      { kind: 'rect', x: 10, y: 33, width: 20, height: 17, rx: 4 },
+    ],
+    seats: 2,
+    defaultMinPartySize: 1,
+    defaultMaxPartySize: 2,
+  },
+  {
+    id: 'rect-2-v-narrow',
+    label: 'Hoch 2 schmal',
+    shape: 'rect_v',
+    viewBoxWidth: 30,
+    viewBoxHeight: 50,
+    bodyBounds: { x: 0, y: 5, width: 30, height: 40 },
+    body: { kind: 'rect', x: 0, y: 5, width: 30, height: 40, rx: 3 },
+    seatRects: [
+      { kind: 'rect', x: 5, y: 0, width: 20, height: 17, rx: 4 },
+      { kind: 'rect', x: 5, y: 33, width: 20, height: 17, rx: 4 },
+    ],
+    seats: 2,
+    defaultMinPartySize: 1,
+    defaultMaxPartySize: 2,
+  },
+  {
+    id: 'rect-2-v-wide',
+    label: 'Hoch 2 breit',
+    shape: 'rect_v',
+    viewBoxWidth: 40,
+    viewBoxHeight: 50,
+    bodyBounds: { x: 0, y: 5, width: 40, height: 40 },
+    body: { kind: 'rect', x: 0, y: 5, width: 40, height: 40, rx: 3 },
+    seatRects: [
+      { kind: 'rect', x: 10, y: 0, width: 20, height: 17, rx: 4 },
+      { kind: 'rect', x: 10, y: 33, width: 20, height: 17, rx: 4 },
+    ],
+    seats: 2,
+    defaultMinPartySize: 1,
+    defaultMaxPartySize: 2,
+  },
+  {
+    id: 'round-2-alt',
+    label: 'Rund 1',
+    shape: 'round',
+    viewBoxWidth: 40,
+    viewBoxHeight: 45,
+    bodyBounds: { x: 0, y: 5, width: 40, height: 40 },
+    body: { kind: 'circle', cx: 20, cy: 25, r: 20 },
+    seatRects: [
+      { kind: 'rect', x: 10, y: 0, width: 20, height: 17, rx: 4 },
+    ],
+    seats: 1,
+    defaultMinPartySize: 1,
+    defaultMaxPartySize: 1,
+  },
+  {
+    id: 'square-4',
+    shape: 'square',
+    label: 'Quadrat 4',
+    viewBoxWidth: 40,
+    viewBoxHeight: 40,
+    bodyBounds: { x: 0, y: 5, width: 40, height: 30 },
+    body: { kind: 'rect', x: 0, y: 5, width: 40, height: 30, rx: 3 },
+    seatRects: [
+      { kind: 'rect', x: 2, y: 20, width: 20, height: 17, rx: 4, rotate: -90, originX: 2, originY: 20 },
+      { kind: 'rect', x: 21, y: 20, width: 20, height: 17, rx: 4, rotate: -90, originX: 21, originY: 20 },
+      { kind: 'rect', x: 2, y: 40, width: 20, height: 17, rx: 4, rotate: -90, originX: 2, originY: 40 },
+      { kind: 'rect', x: 21, y: 40, width: 20, height: 17, rx: 4, rotate: -90, originX: 21, originY: 40 },
+    ],
+    seats: 4,
+    defaultMinPartySize: 2,
+    defaultMaxPartySize: 4,
+  },
+  {
+    id: 'square-4-wide',
+    label: 'Quadrat 4 breit',
+    shape: 'square',
+    viewBoxWidth: 50,
+    viewBoxHeight: 50,
+    bodyBounds: { x: 5, y: 5, width: 40, height: 40 },
+    body: { kind: 'rect', x: 5, y: 5, width: 40, height: 40, rx: 3 },
+    seatRects: [
+      { kind: 'rect', x: 15, y: 33, width: 20, height: 17, rx: 4 },
+      { kind: 'rect', x: 17, y: 14, width: 20, height: 17, rx: 4, rotate: 90, originX: 17, originY: 14 },
+      { kind: 'rect', x: 15, y: 0, width: 20, height: 17, rx: 4 },
+      { kind: 'rect', x: 50, y: 14, width: 20, height: 17, rx: 4, rotate: 90, originX: 50, originY: 14 },
+    ],
+    seats: 4,
+    defaultMinPartySize: 2,
+    defaultMaxPartySize: 4,
+  },
+  {
+    id: 'round-4',
+    label: 'Rund 4',
+    shape: 'round',
+    viewBoxWidth: 50,
+    viewBoxHeight: 50,
+    bodyBounds: { x: 5, y: 5, width: 40, height: 40 },
+    body: { kind: 'circle', cx: 25, cy: 25, r: 20 },
+    seatRects: [
+      { kind: 'rect', x: 15, y: 0, width: 20, height: 17, rx: 4 },
+      { kind: 'rect', x: 50, y: 15, width: 20, height: 17, rx: 4, rotate: 90, originX: 50, originY: 15 },
+      { kind: 'rect', x: 15, y: 33, width: 20, height: 17, rx: 4 },
+      { kind: 'rect', x: 17, y: 15, width: 20, height: 17, rx: 4, rotate: 90, originX: 17, originY: 15 },
+    ],
+    seats: 4,
+    defaultMinPartySize: 2,
+    defaultMaxPartySize: 4,
+  },
+  {
+    id: 'rect-6-h',
+    label: 'Rechteck 6',
+    shape: 'rect',
+    viewBoxWidth: 59,
+    viewBoxHeight: 50,
+    bodyBounds: { x: 0, y: 5, width: 59, height: 40 },
+    body: { kind: 'rect', x: 0, y: 5, width: 59, height: 40, rx: 3 },
+    seatRects: [
+      { kind: 'rect', x: 2, y: 20, width: 20, height: 17, rx: 4, rotate: -90, originX: 2, originY: 20 },
+      { kind: 'rect', x: 21, y: 20, width: 20, height: 17, rx: 4, rotate: -90, originX: 21, originY: 20 },
+      { kind: 'rect', x: 40, y: 20, width: 20, height: 17, rx: 4, rotate: -90, originX: 40, originY: 20 },
+      { kind: 'rect', x: 2, y: 50, width: 20, height: 17, rx: 4, rotate: -90, originX: 2, originY: 50 },
+      { kind: 'rect', x: 21, y: 50, width: 20, height: 17, rx: 4, rotate: -90, originX: 21, originY: 50 },
+      { kind: 'rect', x: 40, y: 50, width: 20, height: 17, rx: 4, rotate: -90, originX: 40, originY: 50 },
+    ],
+    seats: 6,
+    defaultMinPartySize: 3,
+    defaultMaxPartySize: 6,
+  },
+  {
+    id: 'rect-8-h',
+    label: 'Rechteck 8',
+    shape: 'rect',
+    viewBoxWidth: 78,
+    viewBoxHeight: 50,
+    bodyBounds: { x: 0, y: 5, width: 78, height: 40 },
+    body: { kind: 'rect', x: 0, y: 5, width: 78, height: 40, rx: 3 },
+    seatRects: [
+      { kind: 'rect', x: 2, y: 20, width: 20, height: 17, rx: 4, rotate: -90, originX: 2, originY: 20 },
+      { kind: 'rect', x: 21, y: 20, width: 20, height: 17, rx: 4, rotate: -90, originX: 21, originY: 20 },
+      { kind: 'rect', x: 40, y: 20, width: 20, height: 17, rx: 4, rotate: -90, originX: 40, originY: 20 },
+      { kind: 'rect', x: 59, y: 20, width: 20, height: 17, rx: 4, rotate: -90, originX: 59, originY: 20 },
+      { kind: 'rect', x: 2, y: 50, width: 20, height: 17, rx: 4, rotate: -90, originX: 2, originY: 50 },
+      { kind: 'rect', x: 21, y: 50, width: 20, height: 17, rx: 4, rotate: -90, originX: 21, originY: 50 },
+      { kind: 'rect', x: 40, y: 50, width: 20, height: 17, rx: 4, rotate: -90, originX: 40, originY: 50 },
+      { kind: 'rect', x: 59, y: 50, width: 20, height: 17, rx: 4, rotate: -90, originX: 59, originY: 50 },
+    ],
+    seats: 8,
+    defaultMinPartySize: 4,
+    defaultMaxPartySize: 8,
+  },
+  {
+    id: 'round-6',
+    label: 'Rund 6',
+    shape: 'round',
+    viewBoxWidth: 44,
+    viewBoxHeight: 50,
+    bodyBounds: { x: 1.9203, y: 5, width: 40, height: 40 },
+    body: { kind: 'circle', cx: 21.9203, cy: 25, r: 20 },
+    seatRects: [
+      { kind: 'rect', x: 15.9203, y: 0, width: 12, height: 17, rx: 4 },
+      { kind: 'rect', x: 15.9203, y: 33, width: 12, height: 17, rx: 4 },
+      { kind: 'rect', x: 43.8406, y: 38.435, width: 12, height: 17, rx: 4, rotate: 135, originX: 43.8406, originY: 38.435 },
+      { kind: 'rect', x: 20.5061, y: 15.1005, width: 12, height: 17, rx: 4, rotate: 135, originX: 20.5061, originY: 15.1005 },
+      { kind: 'rect', x: 8.48528, y: 46.8406, width: 12, height: 17, rx: 4, rotate: -135, originX: 8.48528, originY: 46.8406 },
+      { kind: 'rect', x: 31.8198, y: 23.5061, width: 12, height: 17, rx: 4, rotate: -135, originX: 31.8198, originY: 23.5061 },
+    ],
+    seats: 6,
+    defaultMinPartySize: 3,
+    defaultMaxPartySize: 6,
+  },
+  {
+    id: 'round-8',
+    label: 'Rund 8',
+    shape: 'round',
+    viewBoxWidth: 50,
+    viewBoxHeight: 50,
+    bodyBounds: { x: 5, y: 5, width: 40, height: 40 },
+    body: { kind: 'circle', cx: 25, cy: 25, r: 20 },
+    seatRects: [
+      { kind: 'rect', x: 19, y: 0, width: 12, height: 17, rx: 4 },
+      { kind: 'rect', x: 19, y: 33, width: 12, height: 17, rx: 4 },
+      { kind: 'rect', x: 50, y: 19, width: 12, height: 17, rx: 4, rotate: 90, originX: 50, originY: 19 },
+      { kind: 'rect', x: 17, y: 19, width: 12, height: 17, rx: 4, rotate: 90, originX: 17, originY: 19 },
+      { kind: 'rect', x: 46.9203, y: 38.435, width: 12, height: 17, rx: 4, rotate: 135, originX: 46.9203, originY: 38.435 },
+      { kind: 'rect', x: 23.5858, y: 15.1005, width: 12, height: 17, rx: 4, rotate: 135, originX: 23.5858, originY: 15.1005 },
+      { kind: 'rect', x: 11.565, y: 46.8406, width: 12, height: 17, rx: 4, rotate: -135, originX: 11.565, originY: 46.8406 },
+      { kind: 'rect', x: 34.8995, y: 23.5061, width: 12, height: 17, rx: 4, rotate: -135, originX: 34.8995, originY: 23.5061 },
+    ],
+    seats: 8,
+    defaultMinPartySize: 4,
+    defaultMaxPartySize: 8,
+  },
+  {
+    id: 'barstool-1',
+    label: 'Barhocker',
+    shape: 'barstool',
+    viewBoxWidth: 24,
+    viewBoxHeight: 24,
+    bodyBounds: { x: 0, y: 0, width: 24, height: 24 },
+    body: { kind: 'circle', cx: 12, cy: 12, r: 12 },
+    seatRects: [],
+    seats: 1,
+    defaultMinPartySize: 1,
+    defaultMaxPartySize: 1,
+  },
+  {
+    id: 'rect-10-h',
+    label: 'Rechteck 10',
+    shape: 'rect',
+    viewBoxWidth: 98,
+    viewBoxHeight: 40,
+    bodyBounds: { x: 0, y: 5, width: 98, height: 30 },
+    body: { kind: 'rect', x: 0, y: 5, width: 98, height: 30, rx: 3 },
+    seatRects: [
+      { kind: 'rect', x: 2, y: 20, width: 20, height: 17, rx: 4, rotate: -90, originX: 2, originY: 20 },
+      { kind: 'rect', x: 21, y: 20, width: 20, height: 17, rx: 4, rotate: -90, originX: 21, originY: 20 },
+      { kind: 'rect', x: 40, y: 20, width: 20, height: 17, rx: 4, rotate: -90, originX: 40, originY: 20 },
+      { kind: 'rect', x: 59, y: 20, width: 20, height: 17, rx: 4, rotate: -90, originX: 59, originY: 20 },
+      { kind: 'rect', x: 78, y: 20, width: 20, height: 17, rx: 4, rotate: -90, originX: 78, originY: 20 },
+      { kind: 'rect', x: 2, y: 40, width: 20, height: 17, rx: 4, rotate: -90, originX: 2, originY: 40 },
+      { kind: 'rect', x: 21, y: 40, width: 20, height: 17, rx: 4, rotate: -90, originX: 21, originY: 40 },
+      { kind: 'rect', x: 40, y: 40, width: 20, height: 17, rx: 4, rotate: -90, originX: 40, originY: 40 },
+      { kind: 'rect', x: 59, y: 40, width: 20, height: 17, rx: 4, rotate: -90, originX: 59, originY: 40 },
+      { kind: 'rect', x: 78, y: 40, width: 20, height: 17, rx: 4, rotate: -90, originX: 78, originY: 40 },
+    ],
+    seats: 10,
+    defaultMinPartySize: 4,
+    defaultMaxPartySize: 10,
+  },
+  {
+    id: 'round-10',
+    label: 'Rund 10',
+    shape: 'round',
+    viewBoxWidth: 51,
+    viewBoxHeight: 50,
+    bodyBounds: { x: 4.8503, y: 5, width: 40, height: 40 },
+    body: { kind: 'circle', cx: 24.8503, cy: 25, r: 20 },
+    seatRects: [
+      { kind: 'rect', x: 20.8503, y: 0, width: 8, height: 17, rx: 4 },
+      { kind: 'rect', x: 20.8503, y: 33, width: 8, height: 17, rx: 4 },
+      { kind: 'rect', x: 49.7007, y: 29.8435, width: 8, height: 17, rx: 4, rotate: 110.119, originX: 49.7007, originY: 29.8435 },
+      { kind: 'rect', x: 18.7144, y: 18.4923, width: 8, height: 17, rx: 4, rotate: 110.119, originX: 18.7144, originY: 18.4923 },
+      { kind: 'rect', x: 43.1687, y: 42.4767, width: 8, height: 17, rx: 4, rotate: 142.743, originX: 43.1687, originY: 42.4767 },
+      { kind: 'rect', x: 23.191, y: 16.211, width: 8, height: 17, rx: 4, rotate: 142.743, originX: 23.191, originY: 16.211 },
+      { kind: 'rect', x: 12.7738, y: 46.7583, width: 8, height: 17, rx: 4, rotate: -142.421, originX: 12.7738, originY: 46.7583 },
+      { kind: 'rect', x: 32.8993, y: 20.6055, width: 8, height: 17, rx: 4, rotate: -142.421, originX: 32.8993, originY: 20.6055 },
+      { kind: 'rect', x: 2.95346, y: 36.3004, width: 8, height: 17, rx: 4, rotate: -108.675, originX: 2.95346, originY: 36.3004 },
+      { kind: 'rect', x: 34.2161, y: 25.7339, width: 8, height: 17, rx: 4, rotate: -108.675, originX: 34.2161, originY: 25.7339 },
+    ],
+    seats: 10,
+    defaultMinPartySize: 4,
+    defaultMaxPartySize: 10,
+  },
+  {
+    id: 'diamond-4',
+    label: 'Diamant',
+    shape: 'diamond',
+    viewBoxWidth: 62,
+    viewBoxHeight: 62,
+    bodyBounds: { x: 0, y: 0, width: 62, height: 62 },
+    body: { kind: 'rect', x: 0, y: 0, width: 62, height: 62, rx: 0, rotate: 45, originX: 31, originY: 31 },
+    seatRects: [],
+    seats: 4,
+    defaultMinPartySize: 2,
+    defaultMaxPartySize: 4,
+    palette: false,
+  },
 ];
+
+const TABLE_VARIANT_MAP: Record<TableVariant, TableVariantDefinition> = Object.fromEntries(
+  TABLE_VARIANTS.map(variant => [variant.id, variant]),
+) as Record<TableVariant, TableVariantDefinition>;
+
+const EDITOR_TABLE_VARIANTS = TABLE_VARIANTS.filter(variant => variant.palette !== false);
+
+const DEFAULT_TABLE_VARIANT: TableVariant = 'square-4';
+const EDITOR_GRID_SIZE = 16;
+const EDITOR_OBJECT_SNAP_SIZE = 4;
+const EDITOR_GRID_OFFSET = 0;
+const EDITOR_MIN_CANVAS_WIDTH = 640;
+const EDITOR_MIN_CANVAS_HEIGHT = 530;
+const ROTATION_SNAP_DEGREES = 45;
+const ROTATION_HANDLE_OFFSET = 22;
+const ROTATION_HANDLE_SIZE = 18;
+const BAR_SEAT_VARIANT: TableVariant = 'barstool-1';
+
+const inferTableVariant = (table: Pick<Table, 'variant' | 'shape' | 'seats'>): TableVariant => {
+  if (table.variant && TABLE_VARIANT_MAP[table.variant]) return table.variant;
+  const shape = table.shape || 'rect';
+  const seats = table.seats || 4;
+
+  if (shape === 'barstool') return 'barstool-1';
+  if (shape === 'diamond') return 'diamond-4';
+  if (shape === 'round') {
+    if (seats <= 2) return 'round-2';
+    if (seats <= 4) return 'round-4';
+    if (seats <= 6) return 'round-6';
+    if (seats <= 8) return 'round-8';
+    return 'round-10';
+  }
+  if (shape === 'rect_v') return 'rect-2-v-wide';
+  if (shape === 'square') return 'square-4';
+  if (seats <= 6) return 'rect-6-h';
+  if (seats <= 8) return 'rect-8-h';
+  return 'rect-10-h';
+};
+
+const inferPlacementType = (
+  table: Pick<Table, 'placementType' | 'variant' | 'shape' | 'seats'>,
+): TablePlacementType => {
+  if (table.placementType) return table.placementType;
+  const variant = inferTableVariant(table);
+  return variant === BAR_SEAT_VARIANT || table.shape === 'barstool' ? 'bar_seat' : 'table';
+};
+
+const getTableLabelNumber = (table: Pick<Table, 'name'>): string =>
+  table.name.replace(/^(Tisch|Barplatz|Bar-Sitz|Bar|[A-Za-z])\s*/i, '').trim() || table.name;
+
+const getTableKindLabel = (
+  table: Pick<Table, 'placementType' | 'variant' | 'shape' | 'seats'>,
+): string => inferPlacementType(table) === 'bar_seat' ? 'Bar-Sitz' : 'Tisch';
+
+const getTableDisplayLabel = (
+  table: Pick<Table, 'name' | 'placementType' | 'variant' | 'shape' | 'seats'>,
+): string => inferPlacementType(table) === 'bar_seat' ? `Barplatz ${getTableLabelNumber(table)}` : table.name;
+
+const snapCanvasSize = (value: number): number =>
+  Math.max(EDITOR_GRID_SIZE, Math.round(value / EDITOR_GRID_SIZE) * EDITOR_GRID_SIZE);
+
+const getTableVariantConfig = (table: Pick<Table, 'variant' | 'shape' | 'seats'>): TableVariantDefinition =>
+  TABLE_VARIANT_MAP[inferTableVariant(table)] || TABLE_VARIANT_MAP[DEFAULT_TABLE_VARIANT];
+
+function getTableSize(table: Pick<Table, 'variant' | 'shape' | 'seats'>): { w: number; h: number } {
+  const variant = getTableVariantConfig(table);
+  return { w: variant.bodyBounds.width, h: variant.bodyBounds.height };
+}
+
+const normalizeRotation = (angle: number): TableRotation => {
+  const normalized = ((Math.round(angle) % 360) + 360) % 360;
+  return (normalized === 360 ? 0 : normalized) as TableRotation;
+};
+
+const snapRotation = (angle: number): TableRotation =>
+  normalizeRotation(Math.round(angle / ROTATION_SNAP_DEGREES) * ROTATION_SNAP_DEGREES);
+
+const getTableRotation = (table: Pick<Table, 'rotation'>): TableRotation =>
+  normalizeRotation(table.rotation || 0);
+
+const getTableCenter = (table: Pick<Table, 'variant' | 'shape' | 'seats' | 'x' | 'y'>): TableSeatPoint => {
+  const size = getTableSize(table);
+  return {
+    x: (table.x || 0) + size.w / 2,
+    y: (table.y || 0) + size.h / 2,
+  };
+};
+
+const getRotatedBodyBounds = (
+  table: Pick<Table, 'variant' | 'shape' | 'seats' | 'x' | 'y' | 'rotation'>,
+) => {
+  const size = getTableSize(table);
+  const center = getTableCenter(table);
+  const rotation = (getTableRotation(table) * Math.PI) / 180;
+  const halfWidth = size.w / 2;
+  const halfHeight = size.h / 2;
+  const corners = [
+    { x: -halfWidth, y: -halfHeight },
+    { x: halfWidth, y: -halfHeight },
+    { x: halfWidth, y: halfHeight },
+    { x: -halfWidth, y: halfHeight },
+  ].map(corner => ({
+    x: center.x + corner.x * Math.cos(rotation) - corner.y * Math.sin(rotation),
+    y: center.y + corner.x * Math.sin(rotation) + corner.y * Math.cos(rotation),
+  }));
+  const left = Math.min(...corners.map(corner => corner.x));
+  const top = Math.min(...corners.map(corner => corner.y));
+  const right = Math.max(...corners.map(corner => corner.x));
+  const bottom = Math.max(...corners.map(corner => corner.y));
+  return {
+    left,
+    top,
+    right,
+    bottom,
+    width: right - left,
+    height: bottom - top,
+  };
+};
+
+const getRotatedWrapperBounds = (
+  wrapperLeft: number,
+  wrapperTop: number,
+  width: number,
+  height: number,
+  center: TableSeatPoint,
+  rotation: TableRotation,
+) => {
+  const angle = (rotation * Math.PI) / 180;
+  const corners = [
+    { x: wrapperLeft, y: wrapperTop },
+    { x: wrapperLeft + width, y: wrapperTop },
+    { x: wrapperLeft + width, y: wrapperTop + height },
+    { x: wrapperLeft, y: wrapperTop + height },
+  ].map(corner => ({
+    x: center.x + (corner.x - center.x) * Math.cos(angle) - (corner.y - center.y) * Math.sin(angle),
+    y: center.y + (corner.x - center.x) * Math.sin(angle) + (corner.y - center.y) * Math.cos(angle),
+  }));
+
+  return {
+    left: Math.min(...corners.map(corner => corner.x)),
+    top: Math.min(...corners.map(corner => corner.y)),
+    right: Math.max(...corners.map(corner => corner.x)),
+    bottom: Math.max(...corners.map(corner => corner.y)),
+  };
+};
+
+const setTableCenterAndRotation = (
+  table: Pick<Table, 'variant' | 'shape' | 'seats'>,
+  center: TableSeatPoint,
+  rotation: number,
+  stageWidth: number,
+  stageHeight: number,
+) => {
+  const size = getTableSize(table);
+  const snappedCenter = snapPointToGrid(center.x, center.y);
+  const snappedRotation = snapRotation(rotation);
+  const nextX = snappedCenter.x - size.w / 2;
+  const nextY = snappedCenter.y - size.h / 2;
+  const clamped = clampTableToBounds(nextX, nextY, { ...table, rotation: snappedRotation }, stageWidth, stageHeight);
+  return {
+    x: clamped.x,
+    y: clamped.y,
+    rotation: snappedRotation,
+  };
+};
+
+const snapToGrid = (value: number) =>
+  Math.round((value - EDITOR_GRID_OFFSET) / EDITOR_OBJECT_SNAP_SIZE) * EDITOR_OBJECT_SNAP_SIZE + EDITOR_GRID_OFFSET;
+
+const snapPointToGrid = (x: number, y: number) => ({
+  x: snapToGrid(x),
+  y: snapToGrid(y),
+});
+
+const clampTableToBounds = (
+  x: number,
+  y: number,
+  table: Pick<Table, 'variant' | 'shape' | 'seats' | 'rotation'>,
+  stageWidth: number,
+  stageHeight: number,
+) => {
+  let nextX = x;
+  let nextY = y;
+  const clampPadding = 24;
+  const rightLimit = stageWidth - clampPadding;
+  const bottomLimit = stageHeight - clampPadding;
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const bounds = getRotatedBodyBounds({ ...table, x: nextX, y: nextY });
+    if (bounds.left < clampPadding) {
+      nextX += clampPadding - bounds.left;
+    }
+    if (bounds.top < clampPadding) {
+      nextY += clampPadding - bounds.top;
+    }
+    if (bounds.right > rightLimit) {
+      nextX -= bounds.right - rightLimit;
+    }
+    if (bounds.bottom > bottomLimit) {
+      nextY -= bounds.bottom - bottomLimit;
+    }
+  }
+
+  return {
+    x: nextX,
+    y: nextY,
+  };
+};
+
+const scaleSvgRect = (rect: TableSvgRect, scaleFactor: number): TableSvgRect => ({
+  ...rect,
+  x: rect.x * scaleFactor,
+  y: rect.y * scaleFactor,
+  width: rect.width * scaleFactor,
+  height: rect.height * scaleFactor,
+  rx: rect.rx * scaleFactor,
+  rotate: rect.rotate,
+  originX: typeof rect.originX === 'number' ? rect.originX * scaleFactor : undefined,
+  originY: typeof rect.originY === 'number' ? rect.originY * scaleFactor : undefined,
+});
+
+const rotatePoint = (point: TableSeatPoint, angleDeg: number, origin: TableSeatPoint): TableSeatPoint => {
+  const angle = (angleDeg * Math.PI) / 180;
+  const dx = point.x - origin.x;
+  const dy = point.y - origin.y;
+  return {
+    x: origin.x + dx * Math.cos(angle) - dy * Math.sin(angle),
+    y: origin.y + dx * Math.sin(angle) + dy * Math.cos(angle),
+  };
+};
+
+const getRectCenter = (rect: TableSvgRect): TableSeatPoint => {
+  const center = { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
+  if (typeof rect.rotate !== 'number' || typeof rect.originX !== 'number' || typeof rect.originY !== 'number') {
+    return center;
+  }
+  return rotatePoint(center, rect.rotate, { x: rect.originX, y: rect.originY });
+};
 
 const SERVICE_STATUS_SHORT: Record<string, string> = {
   teilweise_platziert: 'Teilw.',
@@ -128,11 +625,21 @@ type PersistedFloorPlanInspector =
 
 const FLOORPLAN_INSPECTOR_STORAGE_KEY = 'vilo.floorplan.inspector';
 const FLOORPLAN_VIEWPORT_STORAGE_KEY = 'vilo.floorplan.viewport';
+const FLOORPLAN_EDITOR_CANVAS_STORAGE_KEY = 'vilo.floorplan.editorCanvasSizes';
+const FLOORPLAN_BADGE_VISIBILITY_STORAGE_KEY = 'vilo.floorplan.badges';
 
 type PersistedFloorPlanViewport = {
   activeZone: string;
   scale: number;
   translate: { x: number; y: number };
+};
+
+type PersistedEditorCanvasSizes = Record<string, { width: number; height: number }>;
+type PersistedFloorPlanBadges = {
+  showTimeBadges: boolean;
+  showMoneyBadges: boolean;
+  showStatusBadges: boolean;
+  showServerBadges: boolean;
 };
 
 function loadPersistedFloorPlanViewport(fallbackZone: string): PersistedFloorPlanViewport {
@@ -160,19 +667,81 @@ function loadPersistedFloorPlanViewport(fallbackZone: string): PersistedFloorPla
   }
 }
 
+function loadPersistedEditorCanvasSizes(): PersistedEditorCanvasSizes {
+  if (typeof window === 'undefined') return {};
+
+  try {
+    const raw = window.localStorage.getItem(FLOORPLAN_EDITOR_CANVAS_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as PersistedEditorCanvasSizes;
+    return Object.fromEntries(
+      Object.entries(parsed || {}).filter(([, size]) =>
+        typeof size?.width === 'number' && typeof size?.height === 'number',
+      ),
+    );
+  } catch {
+    return {};
+  }
+}
+
+function loadPersistedFloorPlanBadges(): PersistedFloorPlanBadges {
+  if (typeof window === 'undefined') {
+    return { showTimeBadges: true, showMoneyBadges: false, showStatusBadges: false, showServerBadges: false };
+  }
+
+  try {
+    const raw = window.localStorage.getItem(FLOORPLAN_BADGE_VISIBILITY_STORAGE_KEY);
+    if (!raw) {
+      return { showTimeBadges: true, showMoneyBadges: false, showStatusBadges: false, showServerBadges: false };
+    }
+
+    const parsed = JSON.parse(raw) as Partial<PersistedFloorPlanBadges>;
+    return {
+      showTimeBadges: typeof parsed.showTimeBadges === 'boolean' ? parsed.showTimeBadges : true,
+      showMoneyBadges: typeof parsed.showMoneyBadges === 'boolean' ? parsed.showMoneyBadges : false,
+      showStatusBadges: typeof parsed.showStatusBadges === 'boolean' ? parsed.showStatusBadges : false,
+      showServerBadges: typeof parsed.showServerBadges === 'boolean' ? parsed.showServerBadges : false,
+    };
+  } catch {
+    return { showTimeBadges: true, showMoneyBadges: false, showStatusBadges: false, showServerBadges: false };
+  }
+}
+
 export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanProps) {
   const { state, dispatch } = useApp();
+  const seatAssignmentEnabled = false;
   type SidebarSortKey = 'reservation_time' | 'arrival_time' | 'name' | 'party_size' | 'table' | 'created_at' | 'payment_status';
   type SidebarSectionKey = 'waitlist' | 'reservations' | 'seated' | 'finished' | 'removed';
+  const sidebarSortOptions: { value: SidebarSortKey; label: string }[] = [
+    { value: 'reservation_time', label: 'Reservierungszeit' },
+    { value: 'arrival_time', label: 'Ankunftszeit' },
+    { value: 'name', label: 'Name' },
+    { value: 'party_size', label: 'Personenzahl' },
+    { value: 'table', label: 'Tisch' },
+    { value: 'created_at', label: 'Erstelltes Datum' },
+    { value: 'payment_status', label: 'Kreditkartenstatus' },
+  ];
   const initialViewportRef = useRef<PersistedFloorPlanViewport>(
     loadPersistedFloorPlanViewport(state.zones[0]?.id || ''),
   );
   const [activeZone, setActiveZone] = useState<string>(initialViewportRef.current.activeZone || state.zones[0]?.id || '');
   const [editMode, setEditMode] = useState(initialEditMode);
+  const [editorMode, setEditorMode] = useState<'layout' | 'combos'>('layout');
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
+  const [editorTool, setEditorTool] = useState<'select' | 'move'>('move');
+  const [placementVariant, setPlacementVariant] = useState<TableVariant | null>(null);
+  const [draggedVariant, setDraggedVariant] = useState<TableVariant | null>(null);
+  const [layoutUndoStack, setLayoutUndoStack] = useState<Table[][]>([]);
+  const [layoutRedoStack, setLayoutRedoStack] = useState<Table[][]>([]);
+  const [editorNameDraft, setEditorNameDraft] = useState('');
+  const [comboDraftTableIds, setComboDraftTableIds] = useState<string[]>([]);
+  const [focusedCombinationId, setFocusedCombinationId] = useState<string | null>(null);
+  const [focusedCombinationTableId, setFocusedCombinationTableId] = useState<string | null>(null);
+  const [comboError, setComboError] = useState('');
+  const [comboSaveFeedback, setComboSaveFeedback] = useState<'idle' | 'saved'>('idle');
   const [tableManagementId, setTableManagementId] = useState<string | null>(null);
-  const [newTableShape, setNewTableShape] = useState<TableShape>('rect');
-  const [showShapePicker, setShowShapePicker] = useState(false);
+  const [moveSelection, setMoveSelection] = useState<{ fromTableId: string } | null>(null);
+  const [newTableVariant, setNewTableVariant] = useState<TableVariant>(DEFAULT_TABLE_VARIANT);
   const [showReservations, setShowReservations] = useState(false);
   const [openReservationsInAddMode, setOpenReservationsInAddMode] = useState(false);
   const [showReservationCreatePanel, setShowReservationCreatePanel] = useState(false);
@@ -196,6 +765,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     finished: 'reservation_time',
     removed: 'reservation_time',
   });
+  const [sidebarSortMenuOpen, setSidebarSortMenuOpen] = useState<SidebarSectionKey | null>(null);
   const [sidebarResCollapsed, setSidebarResCollapsed] = useState(false);
   const [sidebarWaitlistCollapsed, setSidebarWaitlistCollapsed] = useState(false);
   const [sidebarSeatedCollapsed, setSidebarSeatedCollapsed] = useState(false);
@@ -219,27 +789,55 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
   const [seatOverlayZone, setSeatOverlayZone] = useState<string>(activeZone);
   const [showPartySizeOverlay, setShowPartySizeOverlay] = useState(false);
   const [showDurationOverlay, setShowDurationOverlay] = useState(false);
+  const initialBadgeVisibilityRef = useRef<PersistedFloorPlanBadges>(loadPersistedFloorPlanBadges());
+  const [showFloorTimeBadges, setShowFloorTimeBadges] = useState(initialBadgeVisibilityRef.current.showTimeBadges);
+  const [showFloorMoneyBadges, setShowFloorMoneyBadges] = useState(initialBadgeVisibilityRef.current.showMoneyBadges);
+  const [showFloorStatusBadges, setShowFloorStatusBadges] = useState(initialBadgeVisibilityRef.current.showStatusBadges);
+  const [showFloorServerBadges, setShowFloorServerBadges] = useState(initialBadgeVisibilityRef.current.showServerBadges);
   const [resDetailId, setResDetailId] = useState<string | null>(null);
   const [seatInspector, setSeatInspector] = useState<SeatInspectorState | null>(null);
   const [seatQuickAction, setSeatQuickAction] = useState<SeatQuickActionState | null>(null);
   const [seatGuestSearch, setSeatGuestSearch] = useState('');
   const [seatGuestName, setSeatGuestName] = useState('');
   const [seatGuestPhone, setSeatGuestPhone] = useState('');
-  const sidebarWidth = 'min(88vw, 360px)';
+  const sidebarWidth = 'min(78vw, 320px)';
   const [, setMinuteTick] = useState(0);
   const isMobileViewport = typeof window !== 'undefined' && window.innerWidth < 768;
 
   const [scale, setScale] = useState(initialViewportRef.current.scale);
   const [translate, setTranslate] = useState(initialViewportRef.current.translate);
+  const [liveScaleFactor, setLiveScaleFactor] = useState(() => Math.min(2.4, Math.max(1, initialViewportRef.current.scale || 1)));
+  const [liveTranslate, setLiveTranslate] = useState(initialViewportRef.current.translate);
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+  const [editorCanvasSizeByZone, setEditorCanvasSizeByZone] = useState<PersistedEditorCanvasSizes>(
+    loadPersistedEditorCanvasSizes(),
+  );
   const canvasRef = useRef<HTMLDivElement>(null);
+  const editorFrameRef = useRef<HTMLDivElement>(null);
+  const editorStageRef = useRef<HTMLDivElement>(null);
   const pinchRef = useRef({ startDist: 0, startScale: 1, startX: 0, startY: 0, startTx: 0, startTy: 0, isPinching: false, isPanning: false });
-  const dragRef = useRef<{ tableId: string; startX: number; startY: number; origX: number; origY: number; moved: boolean } | null>(null);
+  const dragRef = useRef<{ tableId: string; startX: number; startY: number; origX: number; origY: number; moved: boolean; snapshot: Table[] } | null>(null);
+  const rotateRef = useRef<{ tableId: string; snapshot: Table[]; rotated: boolean } | null>(null);
+  const canvasPanRef = useRef<{ startX: number; startY: number; startTranslate: { x: number; y: number } } | null>(null);
+  const livePanRef = useRef<{ startX: number; startY: number; startTranslate: { x: number; y: number }; moved: boolean } | null>(null);
+  const suppressLiveStageClickRef = useRef(false);
+  const resizeRef = useRef<{
+    zoneId: string;
+    startX: number;
+    startY: number;
+    startWidth: number;
+    startHeight: number;
+    minWidth: number;
+    minHeight: number;
+  } | null>(null);
 
   const switchZone = useCallback((zoneId: string) => {
     setActiveZone(zoneId);
     setSelectedTable(null);
     setScale(1);
     setTranslate({ x: 0, y: 0 });
+    setLiveScaleFactor(1);
+    setLiveTranslate({ x: 0, y: 0 });
     const zone = state.zones.find(z => z.id === zoneId);
     if (onZoneChange && zone) onZoneChange(zoneId, zone.name);
   }, [state.zones, onZoneChange]);
@@ -254,8 +852,8 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
         e.preventDefault();
         const d = getDistance(e.touches[0], e.touches[1]);
         pinchRef.current = { ...pinchRef.current, startDist: d, startScale: scale, isPinching: true, isPanning: false };
-      } else if (e.touches.length === 1 && scale > 1 && !editMode) {
-        pinchRef.current = { ...pinchRef.current, startX: e.touches[0].clientX, startY: e.touches[0].clientY, startTx: translate.x, startTy: translate.y, isPanning: true, isPinching: false };
+      } else if (e.touches.length === 1 && !editMode) {
+        pinchRef.current = { ...pinchRef.current, startX: e.touches[0].clientX, startY: e.touches[0].clientY, startTx: liveTranslate.x, startTy: liveTranslate.y, isPanning: true, isPinching: false };
       }
     };
     const handleTouchMove = (e: TouchEvent) => {
@@ -263,17 +861,25 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
         e.preventDefault();
         const d = getDistance(e.touches[0], e.touches[1]);
         const ns = Math.min(3, Math.max(0.5, pinchRef.current.startScale * (d / pinchRef.current.startDist)));
-        setScale(ns);
-      } else if (pinchRef.current.isPanning && e.touches.length === 1 && scale > 1) {
+        setLiveScaleFactor(Math.min(2.4, Math.max(0.75, ns)));
+      } else if (pinchRef.current.isPanning && e.touches.length === 1 && !editMode) {
+        e.preventDefault();
         const dx = e.touches[0].clientX - pinchRef.current.startX;
         const dy = e.touches[0].clientY - pinchRef.current.startY;
-        setTranslate({ x: pinchRef.current.startTx + dx, y: pinchRef.current.startTy + dy });
+        suppressLiveStageClickRef.current = true;
+        setLiveTranslate({ x: pinchRef.current.startTx + dx, y: pinchRef.current.startTy + dy });
       }
     };
     const handleTouchEnd = () => {
       pinchRef.current.isPinching = false;
       pinchRef.current.isPanning = false;
-      if (scale <= 0.6) { setScale(1); setTranslate({ x: 0, y: 0 }); }
+      if (liveScaleFactor <= 0.76) {
+        setLiveScaleFactor(1);
+        setLiveTranslate({ x: 0, y: 0 });
+      }
+      window.setTimeout(() => {
+        suppressLiveStageClickRef.current = false;
+      }, 0);
     };
     el.addEventListener('touchstart', handleTouchStart, { passive: false });
     el.addEventListener('touchmove', handleTouchMove, { passive: false });
@@ -283,7 +889,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
       el.removeEventListener('touchmove', handleTouchMove);
       el.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [scale, translate, editMode]);
+  }, [editMode, liveScaleFactor, liveTranslate.x, liveTranslate.y]);
 
   const syncReservations = useCallback(() => {
     const nextReservations = loadReservations();
@@ -332,14 +938,53 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     if (typeof window === 'undefined') return;
     window.localStorage.setItem(
       FLOORPLAN_VIEWPORT_STORAGE_KEY,
-      JSON.stringify({ activeZone, scale, translate }),
+      JSON.stringify({ activeZone, scale: liveScaleFactor, translate: liveTranslate }),
     );
-  }, [activeZone, scale, translate]);
+  }, [activeZone, liveScaleFactor, liveTranslate]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(
+      FLOORPLAN_EDITOR_CANVAS_STORAGE_KEY,
+      JSON.stringify(editorCanvasSizeByZone),
+    );
+  }, [editorCanvasSizeByZone]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(
+      FLOORPLAN_BADGE_VISIBILITY_STORAGE_KEY,
+      JSON.stringify({
+        showTimeBadges: showFloorTimeBadges,
+        showMoneyBadges: showFloorMoneyBadges,
+        showStatusBadges: showFloorStatusBadges,
+        showServerBadges: showFloorServerBadges,
+      }),
+    );
+  }, [showFloorMoneyBadges, showFloorServerBadges, showFloorStatusBadges, showFloorTimeBadges]);
 
   useEffect(() => {
     const timer = window.setInterval(() => setMinuteTick(tick => tick + 1), 60000);
     return () => window.clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    const element = canvasRef.current;
+    if (!element || typeof ResizeObserver === 'undefined') return;
+
+    const updateCanvasSize = () => {
+      setCanvasSize({
+        width: element.clientWidth,
+        height: element.clientHeight,
+      });
+    };
+
+    updateCanvasSize();
+    const observer = new ResizeObserver(() => updateCanvasSize());
+    observer.observe(element);
+
+    return () => observer.disconnect();
+  }, [editMode, showSidebar, showReservationCreatePanel, showWaitlist, tableManagementId]);
 
   // Get today's active reservations for table indicators
   const tableReservationMap = useMemo(() => {
@@ -359,20 +1004,26 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     const today = new Date();
     const todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
     const nowMins = today.getHours() * 60 + today.getMinutes();
-    const map: Record<string, string> = {};
+    const map: Record<string, Reservation> = {};
     reservations
       .filter(r => r.date === todayStr && r.status === 'confirmed' && r.tableId)
       .forEach(r => {
         const [rh, rm] = r.time.split(':').map(Number);
         const resMins = rh * 60 + rm;
         if (resMins >= nowMins - 30 && r.tableId) {
-          if (!map[r.tableId] || r.time < map[r.tableId]) {
-            map[r.tableId] = r.time;
+          if (!map[r.tableId] || r.time < map[r.tableId].time) {
+            map[r.tableId] = r;
           }
         }
       });
     return map;
   }, [reservations]);
+
+  const formatDurationLabel = useCallback((duration: number) => (
+    duration >= 60
+      ? `${Math.floor(duration / 60)}h ${duration % 60}m`
+      : `${duration}m`
+  ), []);
 
   const activeReservationByTableId = useMemo(() => {
     const today = new Date();
@@ -408,6 +1059,51 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
   }, [reservations]);
 
   const zoneTables = state.tables.filter(t => t.zone === activeZone);
+  const zoneCombinations = useMemo(
+    () => state.tableCombinations.filter(combination => combination.zoneId === activeZone),
+    [activeZone, state.tableCombinations],
+  );
+
+  const getCombinationByTableId = useCallback((tableId: string) => (
+    state.tableCombinations.find(combination => combination.tableIds.includes(tableId)) || null
+  ), [state.tableCombinations]);
+
+  const getActiveCombinationContext = useCallback((tableId: string) => {
+    const direct = Object.values(state.sessions).find(session => session.tableId === tableId || session.combinedTableIds?.includes(tableId));
+    if (!direct) return null;
+    return {
+      ownerTableId: direct.tableId,
+      memberTableIds: [direct.tableId, ...(direct.combinedTableIds || [])],
+      session: direct,
+    };
+  }, [state.sessions]);
+
+  const getDisplaySessionForTable = useCallback((tableId: string) => {
+    const directSession = state.sessions[tableId];
+    if (directSession) {
+      return {
+        ownerTableId: directSession.tableId,
+        memberTableIds: [directSession.tableId, ...(directSession.combinedTableIds || [])],
+        session: directSession,
+        isCombinationActive: Boolean(directSession.combinedTableIds?.length),
+      };
+    }
+
+    const combinationContext = getActiveCombinationContext(tableId);
+    if (!combinationContext) return null;
+
+    return {
+      ...combinationContext,
+      isCombinationActive: combinationContext.memberTableIds.length > 1,
+    };
+  }, [getActiveCombinationContext, state.sessions]);
+
+  const getServerBadgeLabel = useCallback((tableId: string) => {
+    const displaySession = getDisplaySessionForTable(tableId);
+    const rawName = displaySession?.session?.servedByName?.trim();
+    if (!rawName) return null;
+    return rawName.split(/\s+/)[0] || rawName;
+  }, [getDisplaySessionForTable]);
 
   useEffect(() => {
     const unpositioned = state.tables.filter(t => t.zone === activeZone && (t.x === undefined || t.y === undefined));
@@ -423,14 +1119,80 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     });
     const storage = loadStorage();
     saveStorage({ ...storage, tables: updatedTables });
-    dispatch({ type: 'UPDATE_CONFIG', restaurant: state.restaurant, zones: state.zones, tables: updatedTables, menu: state.menu, staff: state.staff });
+    dispatch({ type: 'UPDATE_CONFIG', restaurant: state.restaurant, zones: state.zones, tables: updatedTables, tableCombinations: state.tableCombinations, menu: state.menu, staff: state.staff });
   }, [activeZone]);
 
   const saveTableUpdate = useCallback((updatedTables: Table[]) => {
-    dispatch({ type: 'UPDATE_CONFIG', restaurant: state.restaurant, zones: state.zones, tables: updatedTables, menu: state.menu, staff: state.staff });
+    dispatch({ type: 'UPDATE_CONFIG', restaurant: state.restaurant, zones: state.zones, tables: updatedTables, tableCombinations: state.tableCombinations, menu: state.menu, staff: state.staff });
     const storage = loadStorage();
     saveStorage({ ...storage, tables: updatedTables });
   }, [state, dispatch]);
+
+  const saveTableCombinationsUpdate = useCallback((updatedTableCombinations: TableCombination[]) => {
+    dispatch({
+      type: 'UPDATE_CONFIG',
+      restaurant: state.restaurant,
+      zones: state.zones,
+      tables: state.tables,
+      tableCombinations: updatedTableCombinations,
+      menu: state.menu,
+      staff: state.staff,
+    });
+    const storage = loadStorage();
+    saveStorage({ ...storage, tableCombinations: updatedTableCombinations });
+  }, [dispatch, state.menu, state.restaurant, state.staff, state.tables, state.zones]);
+
+  const commitLayoutUpdate = useCallback((updatedTables: Table[], previousTables: Table[] = state.tables) => {
+    setLayoutUndoStack(prev => [...prev, previousTables]);
+    setLayoutRedoStack([]);
+    saveTableUpdate(updatedTables);
+  }, [saveTableUpdate, state.tables]);
+
+  const handleUndoLayout = useCallback(() => {
+    setLayoutUndoStack(prev => {
+      if (prev.length === 0) return prev;
+      const previous = prev[prev.length - 1];
+      setLayoutRedoStack(redoPrev => [...redoPrev, state.tables]);
+      saveTableUpdate(previous);
+      return prev.slice(0, -1);
+    });
+  }, [saveTableUpdate, state.tables]);
+
+  const handleRedoLayout = useCallback(() => {
+    setLayoutRedoStack(prev => {
+      if (prev.length === 0) return prev;
+      const next = prev[prev.length - 1];
+      setLayoutUndoStack(undoPrev => [...undoPrev, state.tables]);
+      saveTableUpdate(next);
+      return prev.slice(0, -1);
+    });
+  }, [saveTableUpdate, state.tables]);
+
+  const updateTableField = useCallback((tableId: string, field: keyof Table, value: Table[keyof Table]) => {
+    const previousTables = state.tables;
+    const updatedTables = state.tables.map(table => (
+      table.id === tableId ? { ...table, [field]: value } : table
+    ));
+    commitLayoutUpdate(updatedTables, previousTables);
+  }, [commitLayoutUpdate, state.tables]);
+
+  const duplicateSelectedTable = useCallback(() => {
+    if (!selectedTable) return;
+    const table = state.tables.find(entry => entry.id === selectedTable);
+    if (!table) return;
+    const duplicated: Table = {
+      ...table,
+      id: 'table-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+      x: (table.x || 0) + 48,
+      y: (table.y || 0) + 48,
+      rotation: getTableRotation(table),
+      status: 'free',
+      sessionId: undefined,
+      name: `${table.name} Kopie`,
+    };
+    commitLayoutUpdate([...state.tables, duplicated], state.tables);
+    setSelectedTable(duplicated.id);
+  }, [commitLayoutUpdate, selectedTable, state.tables]);
 
   const closeSeatInspector = useCallback(() => {
     setSeatInspector(null);
@@ -474,20 +1236,28 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
   }, [formatCompactMinutes]);
 
   const getTableDisplayMeta = useCallback((table: Table) => {
-    const tableSession = state.sessions[table.id];
-    const statusMeta = TABLE_STATUS_META[table.status];
+    const displaySession = getDisplaySessionForTable(table.id);
+    const tableSession = displaySession?.session;
+    const effectiveStatus: Table['status'] = table.status === 'blocked'
+      ? 'blocked'
+      : displaySession
+        ? (table.status === 'billing' ? 'billing' : 'occupied')
+        : table.status;
+    const statusMeta = TABLE_STATUS_META[effectiveStatus];
     const seats = table.seats || 4;
-    const guestCount = tableSession?.guestCount || (table.status === 'free' ? 0 : seats);
+    const guestCount = tableSession?.guestCount || (effectiveStatus === 'free' ? 0 : seats);
     const problemCount = tableSession?.orders.filter(order => order.state === 'problem').length || 0;
-    const nextReservationTime = nextReservationMap[table.id];
+    const nextReservation = nextReservationMap[table.id];
+    const nextReservationTime = nextReservation?.time || null;
     const hasReservation = Boolean(nextReservationTime);
     const activeReservation = activeReservationByTableId[table.id];
     const serviceStatusKey = tableSession?.serviceStatus;
     const serviceStatusLabel = serviceStatusKey ? SERVICE_STATUS_SHORT[serviceStatusKey] || serviceStatusKey : null;
 
     let nextActionLabel: string | null = null;
+    let nextActionSubLabel: string | null = null;
     let nextActionTone: 'billing' | 'problem' | 'service' | 'neutral' = 'neutral';
-    if (table.status === 'occupied' || table.status === 'billing') {
+    if (effectiveStatus === 'occupied' || effectiveStatus === 'billing') {
       if (activeReservation?.duration) {
         nextActionLabel = getReservationCountdownLabel(activeReservation);
         nextActionTone = 'neutral';
@@ -498,7 +1268,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
         nextActionTone = 'neutral';
       }
 
-      if (!nextActionLabel && (table.status === 'billing' || serviceStatusKey === 'rechnung_faellig')) {
+      if (!nextActionLabel && (effectiveStatus === 'billing' || serviceStatusKey === 'rechnung_faellig')) {
         nextActionLabel = 'Rechnung';
         nextActionTone = 'billing';
       } else if (!nextActionLabel && problemCount > 0) {
@@ -508,20 +1278,23 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
         nextActionLabel = serviceStatusLabel;
         nextActionTone = 'service';
       }
-    } else if (table.status === 'free' && hasReservation) {
+    } else if (effectiveStatus === 'free' && hasReservation) {
       nextActionLabel = nextReservationTime;
+      nextActionSubLabel = nextReservation?.duration ? formatDurationLabel(nextReservation.duration) : null;
       nextActionTone = 'service';
     }
 
     return {
+      effectiveStatus,
       statusMeta,
       guestCount,
       serviceStatusLabel,
       nextReservationTime,
       nextActionLabel,
+      nextActionSubLabel,
       nextActionTone,
     };
-  }, [activeReservationByTableId, getElapsedSessionLabel, getReservationCountdownLabel, nextReservationMap, state.sessions]);
+  }, [activeReservationByTableId, formatDurationLabel, getDisplaySessionForTable, getElapsedSessionLabel, getReservationCountdownLabel, nextReservationMap]);
 
   const persistInspectorState = useCallback((next: PersistedFloorPlanInspector | null) => {
     if (typeof window === 'undefined') return;
@@ -541,6 +1314,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     if (table?.zone && table.zone !== activeZone) {
       setActiveZone(table.zone);
     }
+    setMoveSelection(null);
     setSelectedReservationId(null);
     setHighlightedTableId(null);
     setGuestProfileGuest(null);
@@ -556,6 +1330,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
   }, [activeZone, closeSeatInspector, persistInspectorState, state.tables]);
 
   const openReservationInspector = useCallback((reservation: Reservation) => {
+    setMoveSelection(null);
     setShowReservationCreatePanel(false);
     setShowGuestProfileView(false);
     setShowWaitlist(false);
@@ -596,7 +1371,8 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
   }, [activeZone, persistInspectorState, state.tables]);
 
   const getOrderInfo = (tableId: string) => {
-    const session = state.sessions[tableId];
+    const displaySession = getDisplaySessionForTable(tableId);
+    const session = displaySession?.session;
     if (!session) return { count: 0, total: 0, hasReady: false, startTime: 0 };
     const count = session.orders.length;
     const total = session.orders.reduce((s, o) => s + o.price * o.quantity, 0);
@@ -604,9 +1380,83 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     return { count, total, hasReady, startTime: session.startTime };
   };
 
+  const getSeatDisplayStateForTable = useCallback((tableId: string, localSeatNumber: number) => {
+    const displaySession = getDisplaySessionForTable(tableId);
+    const session = displaySession?.session;
+    if (!session) {
+      return {
+        globalSeatNumber: localSeatNumber,
+        isActiveSeat: false,
+        seatAssignment: null,
+      };
+    }
+
+    const guestCount = Math.max(0, session.guestCount || 0);
+    if (!displaySession.isCombinationActive || displaySession.memberTableIds.length < 2) {
+      return {
+        globalSeatNumber: localSeatNumber,
+        isActiveSeat: localSeatNumber <= guestCount,
+        seatAssignment: session.seatAssignments?.find(assignment => assignment.seatNumber === localSeatNumber) || null,
+      };
+    }
+
+    let seatOffset = 0;
+    for (const memberTableId of displaySession.memberTableIds) {
+      const memberTable = state.tables.find(entry => entry.id === memberTableId);
+      if (!memberTable || inferPlacementType(memberTable) !== 'table') continue;
+
+      const capacity = Math.max(1, getTableVariantConfig(memberTable).seats || memberTable.seats || 1);
+      if (memberTableId === tableId) {
+        const globalSeatNumber = seatOffset + localSeatNumber;
+        return {
+          globalSeatNumber,
+          isActiveSeat: globalSeatNumber <= guestCount,
+          seatAssignment: session.seatAssignments?.find(assignment => assignment.seatNumber === globalSeatNumber) || null,
+        };
+      }
+
+      seatOffset += capacity;
+    }
+
+    return {
+      globalSeatNumber: localSeatNumber,
+      isActiveSeat: localSeatNumber <= guestCount,
+      seatAssignment: session.seatAssignments?.find(assignment => assignment.seatNumber === localSeatNumber) || null,
+    };
+  }, [getDisplaySessionForTable, state.tables]);
+
   const handleTableClick = (table: Table) => {
     if (editMode) {
-      setSelectedTable(prev => prev === table.id ? null : table.id);
+      if (editorMode === 'combos') {
+        if (inferPlacementType(table) === 'bar_seat') {
+          setComboError('Bar-Sitze können nicht kombiniert werden.');
+          return;
+        }
+        setComboError('');
+        setFocusedCombinationTableId(table.id);
+        setFocusedCombinationId(getCombinationByTableId(table.id)?.id || null);
+        setSelectedTable(null);
+        setComboDraftTableIds(current => (
+          current.includes(table.id)
+            ? current.filter(id => id !== table.id)
+            : [...current, table.id]
+        ));
+        return;
+      }
+      setSelectedTable(table.id);
+      return;
+    }
+    if (moveSelection) {
+      if (table.id === moveSelection.fromTableId) return;
+      if (table.status !== 'free') return;
+      closeGuestPanel();
+      setShowWaitlist(false);
+      setShowReservationCreatePanel(false);
+      setResDetailId(null);
+      setPendingWaitlistPlacement(null);
+      dispatch({ type: 'MOVE_TABLE_SESSION', fromTableId: moveSelection.fromTableId, toTableId: table.id });
+      setMoveSelection(null);
+      openTableManagementInspector(table.id);
       return;
     }
     if (pendingWaitlistPlacement && table.status === 'free') {
@@ -626,7 +1476,12 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     setTableManagementId(null);
     clearPersistedInspector();
 
-    const isActiveTable = table.status === 'occupied' || table.status === 'billing';
+    const displaySession = getDisplaySessionForTable(table.id);
+    const isActiveTable = (
+      table.status === 'occupied' ||
+      table.status === 'billing' ||
+      Boolean(displaySession?.session)
+    );
     if (isActiveTable) {
       dispatch({ type: 'SET_ACTIVE_TABLE', tableId: table.id });
       return;
@@ -635,110 +1490,232 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     openTableManagementInspector(table.id);
   };
 
-  const handleAddTable = () => {
+  const editorMinimumCanvasSize = useMemo(() => {
+    const maxX = zoneTables.reduce((best, table) => {
+      const size = getTableSize(table);
+      return Math.max(best, (table.x || 0) + size.w + 120);
+    }, 0);
+    const maxY = zoneTables.reduce((best, table) => {
+      const size = getTableSize(table);
+      return Math.max(best, (table.y || 0) + size.h + 120);
+    }, 0);
+    return {
+      width: Math.max(EDITOR_MIN_CANVAS_WIDTH, Math.ceil(maxX / 80) * 80),
+      height: Math.max(EDITOR_MIN_CANVAS_HEIGHT, Math.ceil(maxY / 80) * 80),
+    };
+  }, [zoneTables]);
+
+  const clampEditorCanvasSize = useCallback((next: { width: number; height: number }) => ({
+    width: Math.max(editorMinimumCanvasSize.width, snapCanvasSize(next.width)),
+    height: Math.max(editorMinimumCanvasSize.height, snapCanvasSize(next.height)),
+  }), [editorMinimumCanvasSize.height, editorMinimumCanvasSize.width]);
+
+  const editorCanvasSize = useMemo(() => {
+    const saved = editorCanvasSizeByZone[activeZone];
+    return clampEditorCanvasSize(saved || editorMinimumCanvasSize);
+  }, [activeZone, clampEditorCanvasSize, editorCanvasSizeByZone, editorMinimumCanvasSize]);
+
+  useEffect(() => {
+    setEditorCanvasSizeByZone(prev => {
+      const current = prev[activeZone];
+      const next = clampEditorCanvasSize(current || editorMinimumCanvasSize);
+      if (current && current.width === next.width && current.height === next.height) {
+        return prev;
+      }
+      return { ...prev, [activeZone]: next };
+    });
+  }, [activeZone, clampEditorCanvasSize, editorMinimumCanvasSize]);
+
+  const getEditorStagePointFromClient = useCallback((clientX: number, clientY: number) => {
+    const rect = editorStageRef.current?.getBoundingClientRect();
+    if (!rect) return null;
+    return {
+      x: (clientX - rect.left) / scale,
+      y: (clientY - rect.top) / scale,
+    };
+  }, [scale]);
+
+  const handleAddTable = (coords?: { x: number; y: number }, variantOverride?: TableVariant) => {
     const zoneName = state.zones.find(z => z.id === activeZone)?.name || 'Tisch';
     const existingNumbers = zoneTables.map(t => {
       const match = t.name.match(/(\d+)$/);
       return match ? parseInt(match[1]) : 0;
     });
     const nextNum = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
-    const shape = newTableShape;
-    const size = SHAPE_SIZES[shape] || SHAPE_SIZES.rect;
-    let px = 30, py = 30;
-    const occupied = zoneTables.map(t => ({ x: t.x || 0, y: t.y || 0, w: SHAPE_SIZES[t.shape || 'rect']?.w || 80, h: SHAPE_SIZES[t.shape || 'rect']?.h || 56 }));
-    let placed = false;
-    for (let row = 0; row < 10 && !placed; row++) {
-      for (let col = 0; col < 5 && !placed; col++) {
-        const cx = 30 + col * 100;
-        const cy = 30 + row * 100;
-        const overlaps = occupied.some(o => Math.abs(o.x - cx) < Math.max(o.w, size.w) && Math.abs(o.y - cy) < Math.max(o.h, size.h));
-        if (!overlaps) { px = cx; py = cy; placed = true; }
+    const variantId = variantOverride || placementVariant || newTableVariant;
+    const variant = TABLE_VARIANT_MAP[variantId] || TABLE_VARIANT_MAP[DEFAULT_TABLE_VARIANT];
+    const placementType = variant.id === BAR_SEAT_VARIANT ? 'bar_seat' : 'table';
+    const size = { w: variant.bodyBounds.width, h: variant.bodyBounds.height };
+    let px = typeof coords?.x === 'number' ? coords.x - size.w / 2 : EDITOR_GRID_SIZE * 2;
+    let py = typeof coords?.y === 'number' ? coords.y - size.h / 2 : EDITOR_GRID_SIZE * 2;
+    const occupied = zoneTables.map(t => {
+      const existingSize = getTableSize(t);
+      return { x: t.x || 0, y: t.y || 0, w: existingSize.w, h: existingSize.h };
+    });
+    if (!coords) {
+      let placed = false;
+      for (let row = 0; row < 18 && !placed; row++) {
+        for (let col = 0; col < 12 && !placed; col++) {
+          const cx = EDITOR_GRID_SIZE * 2 + col * (EDITOR_GRID_SIZE * 6);
+          const cy = EDITOR_GRID_SIZE * 2 + row * (EDITOR_GRID_SIZE * 6);
+          const overlaps = occupied.some(o => Math.abs(o.x - cx) < Math.max(o.w, size.w) && Math.abs(o.y - cy) < Math.max(o.h, size.h));
+          if (!overlaps) { px = cx; py = cy; placed = true; }
+        }
       }
     }
+    const snapped = snapPointToGrid(px, py);
+    const clamped = clampTableToBounds(snapped.x, snapped.y, variant, editorCanvasSize.width, editorCanvasSize.height);
     const newTable: Table = {
       id: 'table-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
-      name: zoneName.charAt(0).toUpperCase() + ' ' + nextNum,
+      name: placementType === 'bar_seat' ? `Barplatz ${nextNum}` : zoneName.charAt(0).toUpperCase() + ' ' + nextNum,
       zone: activeZone,
       status: 'free',
-      shape: shape,
-      seats: shape === 'barstool' ? 1 : shape === 'round' ? 6 : 4,
-      x: px,
-      y: py,
+      variant: variant.id,
+      shape: variant.shape,
+      seats: variant.seats,
+      minPartySize: variant.defaultMinPartySize,
+      maxPartySize: variant.defaultMaxPartySize,
+      placementType,
+      x: clamped.x,
+      y: clamped.y,
+      rotation: 0,
     };
-    saveTableUpdate([...state.tables, newTable]);
+    commitLayoutUpdate([...state.tables, newTable], state.tables);
     setSelectedTable(newTable.id);
   };
 
   const handleDeleteTable = () => {
     if (!selectedTable) return;
-    saveTableUpdate(state.tables.filter(t => t.id !== selectedTable));
+    commitLayoutUpdate(state.tables.filter(t => t.id !== selectedTable), state.tables);
     setSelectedTable(null);
   };
 
-  const handleChangeShape = (shape: TableShape) => {
+  const handleChangeVariant = (variantId: TableVariant) => {
+    const variant = TABLE_VARIANT_MAP[variantId] || TABLE_VARIANT_MAP[DEFAULT_TABLE_VARIANT];
     if (selectedTable) {
-      saveTableUpdate(state.tables.map(t => t.id === selectedTable ? { ...t, shape } : t));
+      const updatedTables = state.tables.map(t => t.id === selectedTable
+        ? {
+            ...t,
+            variant: variant.id,
+            shape: variant.shape,
+            seats: variant.seats,
+            minPartySize: Math.min(t.minPartySize || variant.defaultMinPartySize, variant.defaultMaxPartySize),
+            maxPartySize: Math.max(t.minPartySize || variant.defaultMinPartySize, variant.defaultMaxPartySize),
+            placementType: (variant.id === BAR_SEAT_VARIANT ? 'bar_seat' : 'table') as TablePlacementType,
+          }
+        : t);
+      commitLayoutUpdate(updatedTables, state.tables);
     } else {
-      setNewTableShape(shape);
+      setNewTableVariant(variant.id);
     }
-    setShowShapePicker(false);
   };
 
   const handleMouseDown = (e: React.MouseEvent, tableId: string) => {
-    if (!editMode) return;
+    if (editorMode !== 'combos') {
+      setSelectedTable(tableId);
+    }
+    if (editorMode === 'combos') return;
+    if (!editMode || editorTool !== 'move') return;
     e.preventDefault();
     e.stopPropagation();
     const table = state.tables.find(t => t.id === tableId);
     if (!table) return;
-    dragRef.current = { tableId, startX: e.clientX, startY: e.clientY, origX: table.x || 0, origY: table.y || 0, moved: false };
-    setSelectedTable(tableId);
+    dragRef.current = {
+      tableId,
+      startX: e.clientX,
+      startY: e.clientY,
+      origX: table.x || 0,
+      origY: table.y || 0,
+      moved: false,
+      snapshot: state.tables,
+    };
   };
 
   const handleTouchDown = (e: React.TouchEvent, tableId: string) => {
-    if (!editMode) return;
+    if (editorMode !== 'combos') {
+      setSelectedTable(tableId);
+    }
+    if (editorMode === 'combos') return;
+    if (!editMode || editorTool !== 'move') return;
     e.stopPropagation();
     const table = state.tables.find(t => t.id === tableId);
     if (!table) return;
-    dragRef.current = { tableId, startX: e.touches[0].clientX, startY: e.touches[0].clientY, origX: table.x || 0, origY: table.y || 0, moved: false };
-    setSelectedTable(tableId);
+    dragRef.current = {
+      tableId,
+      startX: e.touches[0].clientX,
+      startY: e.touches[0].clientY,
+      origX: table.x || 0,
+      origY: table.y || 0,
+      moved: false,
+      snapshot: state.tables,
+    };
   };
+
+  const startRotationDrag = useCallback((event: { stopPropagation: () => void; preventDefault: () => void }, tableId: string) => {
+    event.stopPropagation();
+    event.preventDefault();
+    const table = state.tables.find(entry => entry.id === tableId);
+    if (!table) return;
+    setSelectedTable(tableId);
+    rotateRef.current = {
+      tableId,
+      snapshot: state.tables,
+      rotated: false,
+    };
+  }, [state.tables]);
 
   useEffect(() => {
     if (!editMode) return;
     const handleMouseMove = (e: MouseEvent) => {
-      if (!dragRef.current) return;
+      if (!dragRef.current || rotateRef.current) return;
       const dx = (e.clientX - dragRef.current.startX) / scale;
       const dy = (e.clientY - dragRef.current.startY) / scale;
       if (Math.abs(dx) > 3 || Math.abs(dy) > 3) dragRef.current.moved = true;
-      const newX = Math.max(0, dragRef.current.origX + dx);
-      const newY = Math.max(0, dragRef.current.origY + dy);
+      const snapped = snapPointToGrid(dragRef.current.origX + dx, dragRef.current.origY + dy);
+      const draggedTable = state.tables.find(t => t.id === dragRef.current!.tableId);
+      if (!draggedTable) return;
+      const clamped = clampTableToBounds(snapped.x, snapped.y, draggedTable, editorCanvasSize.width, editorCanvasSize.height);
       const updatedTables = state.tables.map(t =>
-        t.id === dragRef.current!.tableId ? { ...t, x: Math.round(newX), y: Math.round(newY) } : t
+        t.id === dragRef.current!.tableId ? { ...t, x: clamped.x, y: clamped.y } : t
       );
-      dispatch({ type: 'UPDATE_CONFIG', restaurant: state.restaurant, zones: state.zones, tables: updatedTables, menu: state.menu, staff: state.staff });
+      dispatch({ type: 'UPDATE_CONFIG', restaurant: state.restaurant, zones: state.zones, tables: updatedTables, tableCombinations: state.tableCombinations, menu: state.menu, staff: state.staff });
     };
     const handleMouseUp = () => {
+      if (rotateRef.current) return;
       if (dragRef.current) {
+        const currentDrag = dragRef.current;
+        if (currentDrag.moved) {
+          setLayoutUndoStack(prev => [...prev, currentDrag.snapshot]);
+          setLayoutRedoStack([]);
+        }
         const storage = loadStorage();
         saveStorage({ ...storage, tables: state.tables });
         dragRef.current = null;
       }
     };
     const handleTouchMoveDoc = (e: TouchEvent) => {
-      if (!dragRef.current) return;
+      if (!dragRef.current || rotateRef.current) return;
       e.preventDefault();
       const dx = (e.touches[0].clientX - dragRef.current.startX) / scale;
       const dy = (e.touches[0].clientY - dragRef.current.startY) / scale;
       if (Math.abs(dx) > 3 || Math.abs(dy) > 3) dragRef.current.moved = true;
-      const newX = Math.max(0, dragRef.current.origX + dx);
-      const newY = Math.max(0, dragRef.current.origY + dy);
+      const snapped = snapPointToGrid(dragRef.current.origX + dx, dragRef.current.origY + dy);
+      const draggedTable = state.tables.find(t => t.id === dragRef.current!.tableId);
+      if (!draggedTable) return;
+      const clamped = clampTableToBounds(snapped.x, snapped.y, draggedTable, editorCanvasSize.width, editorCanvasSize.height);
       const updatedTables = state.tables.map(t =>
-        t.id === dragRef.current!.tableId ? { ...t, x: Math.round(newX), y: Math.round(newY) } : t
+        t.id === dragRef.current!.tableId ? { ...t, x: clamped.x, y: clamped.y } : t
       );
-      dispatch({ type: 'UPDATE_CONFIG', restaurant: state.restaurant, zones: state.zones, tables: updatedTables, menu: state.menu, staff: state.staff });
+      dispatch({ type: 'UPDATE_CONFIG', restaurant: state.restaurant, zones: state.zones, tables: updatedTables, tableCombinations: state.tableCombinations, menu: state.menu, staff: state.staff });
     };
     const handleTouchEndDoc = () => {
+      if (rotateRef.current) return;
       if (dragRef.current) {
+        const currentDrag = dragRef.current;
+        if (currentDrag.moved) {
+          setLayoutUndoStack(prev => [...prev, currentDrag.snapshot]);
+          setLayoutRedoStack([]);
+        }
         const storage = loadStorage();
         saveStorage({ ...storage, tables: state.tables });
         dragRef.current = null;
@@ -754,7 +1731,77 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
       window.removeEventListener('touchmove', handleTouchMoveDoc);
       window.removeEventListener('touchend', handleTouchEndDoc);
     };
-  }, [editMode, state.tables, scale, dispatch, state.restaurant, state.zones, state.menu, state.staff]);
+  }, [editMode, editorTool, state.tables, scale, dispatch, state.restaurant, state.zones, state.menu, state.staff, editorCanvasSize.width, editorCanvasSize.height]);
+
+  useEffect(() => {
+    if (!editMode) return;
+
+    const updateRotatedTable = (clientX: number, clientY: number) => {
+      if (!rotateRef.current) return;
+      const rotatedTable = state.tables.find(table => table.id === rotateRef.current!.tableId);
+      if (!rotatedTable) return;
+      const stagePoint = getEditorStagePointFromClient(clientX, clientY);
+      if (!stagePoint) return;
+      const currentCenter = getTableCenter(rotatedTable);
+      const snappedCenter = snapPointToGrid(currentCenter.x, currentCenter.y);
+      const angleDeg = (Math.atan2(stagePoint.y - snappedCenter.y, stagePoint.x - snappedCenter.x) * 180) / Math.PI;
+      const nextAngle = snapRotation(angleDeg);
+      const nextState = setTableCenterAndRotation(
+        rotatedTable,
+        snappedCenter,
+        nextAngle,
+        editorCanvasSize.width,
+        editorCanvasSize.height,
+      );
+      if (
+        nextState.rotation === getTableRotation(rotatedTable) &&
+        nextState.x === (rotatedTable.x || 0) &&
+        nextState.y === (rotatedTable.y || 0)
+      ) {
+        return;
+      }
+      rotateRef.current.rotated = true;
+      const updatedTables = state.tables.map(table => (
+        table.id === rotatedTable.id
+          ? { ...table, x: nextState.x, y: nextState.y, rotation: nextState.rotation }
+          : table
+      ));
+      dispatch({ type: 'UPDATE_CONFIG', restaurant: state.restaurant, zones: state.zones, tables: updatedTables, tableCombinations: state.tableCombinations, menu: state.menu, staff: state.staff });
+    };
+
+    const finishRotation = () => {
+      if (!rotateRef.current) return;
+      const currentRotation = rotateRef.current;
+      if (currentRotation.rotated) {
+        setLayoutUndoStack(prev => [...prev, currentRotation.snapshot]);
+        setLayoutRedoStack([]);
+      }
+      const storage = loadStorage();
+      saveStorage({ ...storage, tables: state.tables });
+      rotateRef.current = null;
+    };
+
+    const handleMouseMove = (event: MouseEvent) => updateRotatedTable(event.clientX, event.clientY);
+    const handleTouchMove = (event: TouchEvent) => {
+      if (!rotateRef.current) return;
+      event.preventDefault();
+      const touch = event.touches[0];
+      if (!touch) return;
+      updateRotatedTable(touch.clientX, touch.clientY);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', finishRotation);
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', finishRotation);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', finishRotation);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', finishRotation);
+    };
+  }, [dispatch, editMode, editorCanvasSize.height, editorCanvasSize.width, getEditorStagePointFromClient, state.menu, state.restaurant, state.staff, state.tableCombinations, state.tables, state.zones]);
 
   const applySidebarControls = useCallback((items: SidebarPlacedItem[], sectionKey: SidebarSectionKey) => {
     const q = sidebarSearch[sectionKey].trim().toLowerCase();
@@ -763,7 +1810,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
 
     const filtered = items.filter(r => {
       if (!q) return true;
-      const tableName = r.tableId ? (state.tables.find(t => t.id === r.tableId)?.name || '') : '';
+      const tableName = r.tableId ? (getTableDisplayLabel(state.tables.find(t => t.id === r.tableId) || { name: '' }) || '') : '';
       return (
         r.guestName.toLowerCase().includes(q) ||
         r.time.toLowerCase().includes(q) ||
@@ -779,8 +1826,8 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
         case 'party_size':
           return b.partySize - a.partySize || a.time.localeCompare(b.time);
         case 'table': {
-          const aTable = a.tableId ? (state.tables.find(t => t.id === a.tableId)?.name || '') : 'ZZZ';
-          const bTable = b.tableId ? (state.tables.find(t => t.id === b.tableId)?.name || '') : 'ZZZ';
+          const aTable = a.tableId ? (getTableDisplayLabel(state.tables.find(t => t.id === a.tableId) || { name: '' }) || '') : 'ZZZ';
+          const bTable = b.tableId ? (getTableDisplayLabel(state.tables.find(t => t.id === b.tableId) || { name: '' }) || '') : 'ZZZ';
           return aTable.localeCompare(bTable, 'de') || a.time.localeCompare(b.time);
         }
         case 'created_at':
@@ -843,7 +1890,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
       const startedAt = new Date(startedAtValue);
       const time = startedAt.getHours().toString().padStart(2, '0') + ':' + startedAt.getMinutes().toString().padStart(2, '0');
       const duration = Math.max(1, Math.round((Date.now() - startedAtValue) / 60000));
-      const strippedTableName = table.name.replace(/^Tisch\s*/i, '').trim() || table.name;
+      const strippedTableName = getTableLabelNumber(table);
       const source = session?.guestSource === 'phone' || session?.guestSource === 'online' ? session.guestSource : 'walk_in';
       const fallbackGuestName = source === 'walk_in' ? 'Walk-In' : `${source === 'phone' ? 'Telefon' : 'Online'} ${strippedTableName}`;
       const guestName = session?.guestName?.trim() || fallbackGuestName;
@@ -901,115 +1948,105 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
   const sidebarFinishedCovers = sidebarFinished.reduce((s, r) => s + r.partySize, 0);
   const sidebarRemovedParties = sidebarRemoved.length;
   const sidebarRemovedCovers = sidebarRemoved.reduce((s, r) => s + r.partySize, 0);
+  const sidebarReservationsEmpty = sidebarReservations.length === 0;
+  const sidebarSeatedEmpty = sidebarSeated.length === 0;
+  const sidebarWaitlistEmpty = sidebarWaitlist.length === 0;
+  const resolvedSidebarResCollapsed = sidebarReservationsEmpty || sidebarResCollapsed;
+  const resolvedSidebarSeatedCollapsed = sidebarSeatedEmpty || sidebarSeatedCollapsed;
+  const resolvedSidebarWaitlistCollapsed = sidebarWaitlistEmpty || sidebarWaitlistCollapsed;
 
-  // SVG-based table rendering with separate seat indicator circles.
-  const buildTableSvg = (shape: string, w: number, h: number, seats: number, _color: string) => {
-    const isBarstool = shape === 'barstool';
-    const isRound = shape === 'round' || isBarstool;
-    const isDiamond = shape === 'diamond';
-    const seatCount = Math.min(Math.max(seats, 1), 10);
-    const seatRadius = seatCount >= 8 ? 5 : 6;
-    const seatGap = seatCount >= 8 ? 3 : 5;
-    const pad = seatRadius * 2 + seatGap;
-    const svgW = w + pad * 2;
-    const svgH = h + pad * 2;
-    const ox = pad;
-    const oy = pad;
-
-    const bodyPath: string[] = [];
-    const seatPositions: { x: number; y: number }[] = [];
-
-    // Table body path
-    if (isRound) {
-      const cx = svgW / 2, cy = svgH / 2, r = w / 2;
-      bodyPath.push(`M${cx + r},${cy} A${r},${r} 0 1,1 ${cx - r},${cy} A${r},${r} 0 1,1 ${cx + r},${cy}Z`);
-    } else if (isDiamond) {
-      const cx = ox + w / 2, cy = oy + h / 2;
-      bodyPath.push(`M${cx},${oy} L${ox + w},${cy} L${cx},${oy + h} L${ox},${cy}Z`);
-    } else {
-      const br = shape === 'square' ? 5 : 7;
-      bodyPath.push(`M${ox + br},${oy} h${w - br * 2} a${br},${br} 0 0 1 ${br},${br} v${h - br * 2} a${br},${br} 0 0 1 -${br},${br} h-${w - br * 2} a${br},${br} 0 0 1 -${br},-${br} v-${h - br * 2} a${br},${br} 0 0 1 ${br},-${br}Z`);
+  useEffect(() => {
+    if (sidebarReservationsEmpty && !sidebarResCollapsed) {
+      setSidebarResCollapsed(true);
     }
-
-    // Seat circle positions
-    if (isBarstool) {
-      seatPositions.push({ x: svgW / 2, y: oy - seatRadius - 1 });
-    } else if (isRound) {
-      const cx = svgW / 2;
-      const cy = svgH / 2;
-      const radius = w / 2 + seatRadius + (seatCount >= 8 ? 2 : 4);
-      for (let i = 0; i < seatCount; i++) {
-        const angle = (i / seatCount) * Math.PI * 2 - Math.PI / 2;
-        seatPositions.push({
-          x: cx + Math.cos(angle) * radius,
-          y: cy + Math.sin(angle) * radius,
-        });
-      }
-    } else if (shape === 'rect_v') {
-      const leftCount = Math.ceil(seatCount / 2);
-      const rightCount = Math.floor(seatCount / 2);
-      const leftStep = h / Math.max(leftCount, 1);
-      const rightStep = h / Math.max(rightCount, 1);
-
-      for (let i = 0; i < leftCount; i++) {
-        seatPositions.push({
-          x: ox - seatRadius - 2,
-          y: oy + leftStep * (i + 0.5),
-        });
-      }
-
-      for (let i = 0; i < rightCount; i++) {
-        seatPositions.push({
-          x: ox + w + seatRadius + 2,
-          y: oy + rightStep * (i + 0.5),
-        });
-      }
-    } else {
-      const topCount = Math.ceil(seatCount / 2);
-      const bottomCount = Math.floor(seatCount / 2);
-      const topStep = w / Math.max(topCount, 1);
-      const bottomStep = w / Math.max(bottomCount, 1);
-
-      for (let i = 0; i < topCount; i++) {
-        seatPositions.push({
-          x: ox + topStep * (i + 0.5),
-          y: oy - seatRadius - 2,
-        });
-      }
-
-      for (let i = 0; i < bottomCount; i++) {
-        seatPositions.push({
-          x: ox + bottomStep * (i + 0.5),
-          y: oy + h + seatRadius + 2,
-        });
-      }
+    if (sidebarSeatedEmpty && !sidebarSeatedCollapsed) {
+      setSidebarSeatedCollapsed(true);
     }
+    if (sidebarWaitlistEmpty && !sidebarWaitlistCollapsed) {
+      setSidebarWaitlistCollapsed(true);
+    }
+  }, [
+    sidebarReservationsEmpty,
+    sidebarResCollapsed,
+    sidebarSeatedEmpty,
+    sidebarSeatedCollapsed,
+    sidebarWaitlistEmpty,
+    sidebarWaitlistCollapsed,
+  ]);
 
-    return { bodyPath: bodyPath[0], seatPositions, svgW, svgH, ox, oy, seatRadius };
+  const buildTableSvg = (variantId: TableVariant, scaleFactor = 1) => {
+    const variant = TABLE_VARIANT_MAP[variantId] || TABLE_VARIANT_MAP[DEFAULT_TABLE_VARIANT];
+    const body = variant.body.kind === 'circle'
+      ? {
+          ...variant.body,
+          cx: variant.body.cx * scaleFactor,
+          cy: variant.body.cy * scaleFactor,
+          r: variant.body.r * scaleFactor,
+        }
+      : scaleSvgRect(variant.body, scaleFactor);
+    const seatRects = variant.seatRects.map(rect => scaleSvgRect(rect, scaleFactor));
+    const seatAnchors = seatRects.map(rect => getRectCenter(rect));
+    const bodyBounds = {
+      x: variant.bodyBounds.x * scaleFactor,
+      y: variant.bodyBounds.y * scaleFactor,
+      width: variant.bodyBounds.width * scaleFactor,
+      height: variant.bodyBounds.height * scaleFactor,
+    };
+
+    return {
+      variant,
+      svgW: variant.viewBoxWidth * scaleFactor,
+      svgH: variant.viewBoxHeight * scaleFactor,
+      body,
+      bodyBounds,
+      seatRects,
+      seatAnchors,
+    };
   };
 
-  const estimateBadgeSize = useCallback((label: string) => {
+  const renderRectSvg = (rect: TableSvgRect, fill: string, key: string, stroke?: string, strokeWidth?: number) => (
+    <rect
+      key={key}
+      x={rect.x}
+      y={rect.y}
+      width={rect.width}
+      height={rect.height}
+      rx={rect.rx}
+      fill={fill}
+      stroke={stroke}
+      strokeWidth={strokeWidth}
+      transform={typeof rect.rotate === 'number' ? `rotate(${rect.rotate} ${rect.originX || 0} ${rect.originY || 0})` : undefined}
+    />
+  );
+
+  const estimateBadgeSize = useCallback((label: string, subLabel?: string | null) => {
     const compactLabel = label.length <= 5;
+    const baseWidth = compactLabel ? Math.max(36, label.length * 7 + 12) : Math.max(48, label.length * 6 + 16);
+    const subLabelWidth = subLabel ? Math.max(40, subLabel.length * 5 + 14) : 0;
     return {
-      width: compactLabel ? Math.max(42, label.length * 8 + 16) : Math.max(54, label.length * 7 + 18),
-      height: 24,
+      width: Math.max(baseWidth, subLabelWidth),
+      height: subLabel ? 42 : 20,
     };
   }, []);
 
   const tableLayoutMap = useMemo(() => {
     return Object.fromEntries(zoneTables.map(table => {
       const displayMeta = getTableDisplayMeta(table);
-      const effectiveSeats = Math.min(10, Math.max(table.seats || 4, displayMeta.guestCount || 0));
-      const size = getTableSize({ ...table, seats: effectiveSeats });
-      const svg = buildTableSvg(table.shape || 'rect', size.w, size.h, effectiveSeats, '#000');
-      const wrapperLeft = (table.x || 0) - (svg.svgW - size.w) / 2;
-      const wrapperTop = (table.y || 0) - (svg.svgH - size.h) / 2;
+      const size = getTableSize(table);
+      const svg = buildTableSvg(inferTableVariant(table));
+      const wrapperLeft = (table.x || 0) - svg.bodyBounds.x;
+      const wrapperTop = (table.y || 0) - svg.bodyBounds.y;
+      const center = getTableCenter(table);
+      const rotation = getTableRotation(table);
+      const rotatedWrapperBounds = getRotatedWrapperBounds(wrapperLeft, wrapperTop, svg.svgW, svg.svgH, center, rotation);
 
       return [table.id, {
         wrapperLeft,
         wrapperTop,
-        wrapperRight: wrapperLeft + svg.svgW,
-        wrapperBottom: wrapperTop + svg.svgH,
+        wrapperRight: rotatedWrapperBounds.right,
+        wrapperBottom: rotatedWrapperBounds.bottom,
+        wrapperVisibleLeft: rotatedWrapperBounds.left,
+        wrapperVisibleTop: rotatedWrapperBounds.top,
         size,
         svg,
         displayMeta,
@@ -1017,105 +2054,281 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     }));
   }, [getTableDisplayMeta, zoneTables]);
 
-  const getCandidateIntersectionArea = useCallback((candidate: { left: number; top: number; right: number; bottom: number }, tableId: string) => {
-    return Object.entries(tableLayoutMap).reduce((sum, [otherTableId, layout]) => {
-      if (otherTableId === tableId) return sum;
-      const overlapWidth = Math.max(0, Math.min(candidate.right, layout.wrapperRight) - Math.max(candidate.left, layout.wrapperLeft));
-      const overlapHeight = Math.max(0, Math.min(candidate.bottom, layout.wrapperBottom) - Math.max(candidate.top, layout.wrapperTop));
-      return sum + overlapWidth * overlapHeight;
-    }, 0);
-  }, [tableLayoutMap]);
-
-  const getDirectionalClearance = useCallback((placement: BadgePlacement, tableId: string, candidate: { left: number; top: number; right: number; bottom: number }) => {
-    const relevantLayouts = Object.entries(tableLayoutMap).filter(([otherTableId]) => otherTableId !== tableId);
-    if (placement === 'left') {
-      return relevantLayouts.reduce((best, [, layout]) => {
-        const verticalOverlap = !(candidate.bottom < layout.wrapperTop || candidate.top > layout.wrapperBottom);
-        if (!verticalOverlap || layout.wrapperRight > candidate.left) return best;
-        return Math.min(best, candidate.left - layout.wrapperRight);
-      }, 9999);
+  const liveViewport = useMemo(() => {
+    const layouts = Object.values(tableLayoutMap);
+    if (layouts.length === 0 || canvasSize.width === 0 || canvasSize.height === 0) {
+      return { scale: 1, translate: { x: 0, y: 0 } };
     }
-    if (placement === 'right') {
-      return relevantLayouts.reduce((best, [, layout]) => {
-        const verticalOverlap = !(candidate.bottom < layout.wrapperTop || candidate.top > layout.wrapperBottom);
-        if (!verticalOverlap || layout.wrapperLeft < candidate.right) return best;
-        return Math.min(best, layout.wrapperLeft - candidate.right);
-      }, 9999);
-    }
-    if (placement === 'top') {
-      return relevantLayouts.reduce((best, [, layout]) => {
-        const horizontalOverlap = !(candidate.right < layout.wrapperLeft || candidate.left > layout.wrapperRight);
-        if (!horizontalOverlap || layout.wrapperBottom > candidate.top) return best;
-        return Math.min(best, candidate.top - layout.wrapperBottom);
-      }, 9999);
-    }
-    return relevantLayouts.reduce((best, [, layout]) => {
-      const horizontalOverlap = !(candidate.right < layout.wrapperLeft || candidate.left > layout.wrapperRight);
-      if (!horizontalOverlap || layout.wrapperTop < candidate.bottom) return best;
-      return Math.min(best, layout.wrapperTop - candidate.bottom);
-    }, 9999);
-  }, [tableLayoutMap]);
 
-  const getBadgePlacement = useCallback((tableId: string, label: string, wrapperLeft: number, wrapperTop: number, size: { w: number; h: number }, svg: { ox: number; oy: number }) => {
-    const badgeSize = estimateBadgeSize(label);
-    const centerX = wrapperLeft + svg.ox + size.w / 2;
-    const centerY = wrapperTop + svg.oy + size.h / 2;
+    const minLeft = Math.min(...layouts.map(layout => layout.wrapperVisibleLeft));
+    const minTop = Math.min(...layouts.map(layout => layout.wrapperVisibleTop));
+    const maxRight = Math.max(...layouts.map(layout => layout.wrapperRight));
+    const maxBottom = Math.max(...layouts.map(layout => layout.wrapperBottom));
 
-    const candidates: Record<BadgePlacement, { left: number; top: number; right: number; bottom: number }> = {
-      bottom: {
-        left: centerX - badgeSize.width / 2,
-        top: wrapperTop + svg.oy + size.h + 6,
-        right: centerX + badgeSize.width / 2,
-        bottom: wrapperTop + svg.oy + size.h + 6 + badgeSize.height,
-      },
-      left: {
-        left: wrapperLeft - badgeSize.width - 8,
-        top: centerY - badgeSize.height / 2,
-        right: wrapperLeft - 8,
-        bottom: centerY + badgeSize.height / 2,
-      },
-      right: {
-        left: wrapperLeft + svg.ox + size.w + 8,
-        top: centerY - badgeSize.height / 2,
-        right: wrapperLeft + svg.ox + size.w + 8 + badgeSize.width,
-        bottom: centerY + badgeSize.height / 2,
-      },
-      top: {
-        left: centerX - badgeSize.width / 2,
-        top: wrapperTop - badgeSize.height - 6,
-        right: centerX + badgeSize.width / 2,
-        bottom: wrapperTop - 6,
+    const contentWidth = Math.max(1, maxRight - minLeft);
+    const contentHeight = Math.max(1, maxBottom - minTop);
+    const horizontalPadding = Math.max(28, canvasSize.width * 0.06);
+    const verticalPadding = Math.max(28, canvasSize.height * 0.08);
+    const fitScaleX = (canvasSize.width - horizontalPadding * 2) / contentWidth;
+    const fitScaleY = (canvasSize.height - verticalPadding * 2) / contentHeight;
+    const nextScale = Math.max(0.45, Math.min(1.8, Math.min(fitScaleX, fitScaleY)));
+
+    const scaledWidth = contentWidth * nextScale;
+    const scaledHeight = contentHeight * nextScale;
+    const translateX = (canvasSize.width - scaledWidth) / 2 - minLeft * nextScale;
+    const translateY = (canvasSize.height - scaledHeight) / 2 - minTop * nextScale;
+
+    return {
+      scale: nextScale,
+      translate: {
+        x: Math.round(translateX),
+        y: Math.round(translateY),
       },
     };
+  }, [canvasSize.height, canvasSize.width, tableLayoutMap]);
 
-    if (getCandidateIntersectionArea(candidates.bottom, tableId) === 0) {
-      return { placement: 'bottom' as const, badgeSize };
-    }
+  const effectiveLiveViewport = useMemo(() => ({
+    scale: liveViewport.scale * liveScaleFactor,
+    translate: {
+      x: liveViewport.translate.x + liveTranslate.x,
+      y: liveViewport.translate.y + liveTranslate.y,
+    },
+  }), [liveScaleFactor, liveTranslate.x, liveTranslate.y, liveViewport.scale, liveViewport.translate.x, liveViewport.translate.y]);
 
-    const placements: BadgePlacement[] = ['left', 'right', 'top'];
-    const bestPlacement = placements.reduce((best, placement) => {
-      const collision = getCandidateIntersectionArea(candidates[placement], tableId);
-      const clearance = getDirectionalClearance(placement, tableId, candidates[placement]);
-      if (!best) return { placement, collision, clearance };
-      if (collision < best.collision) return { placement, collision, clearance };
-      if (collision === best.collision && clearance > best.clearance) return { placement, collision, clearance };
-      return best;
-    }, null as null | { placement: BadgePlacement; collision: number; clearance: number });
+  const resetLiveViewport = useCallback(() => {
+    setLiveScaleFactor(1);
+    setLiveTranslate({ x: 0, y: 0 });
+  }, []);
 
-    return { placement: bestPlacement?.placement || 'top', badgeSize };
-  }, [estimateBadgeSize, getCandidateIntersectionArea, getDirectionalClearance]);
+  const handleLiveCanvasMouseDown = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    if (editMode || event.target !== event.currentTarget) return;
+    livePanRef.current = {
+      startX: event.clientX,
+      startY: event.clientY,
+      startTranslate: liveTranslate,
+      moved: false,
+    };
+  }, [editMode, liveTranslate]);
+
+  useEffect(() => {
+    if (editMode) return;
+
+    const handleMouseMove = (event: MouseEvent) => {
+      if (!livePanRef.current) return;
+      const dx = event.clientX - livePanRef.current.startX;
+      const dy = event.clientY - livePanRef.current.startY;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+        livePanRef.current.moved = true;
+        suppressLiveStageClickRef.current = true;
+      }
+      setLiveTranslate({
+        x: livePanRef.current.startTranslate.x + dx,
+        y: livePanRef.current.startTranslate.y + dy,
+      });
+    };
+
+    const handleMouseUp = () => {
+      if (livePanRef.current?.moved) {
+        window.setTimeout(() => {
+          suppressLiveStageClickRef.current = false;
+        }, 0);
+      }
+      livePanRef.current = null;
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [editMode]);
+
+  const activeCombinationOverlays = useMemo(() => {
+    const seenOwners = new Set<string>();
+
+    return zoneTables.flatMap(table => {
+      const displaySession = getDisplaySessionForTable(table.id);
+      if (!displaySession || !displaySession.isCombinationActive || seenOwners.has(displaySession.ownerTableId)) {
+        return [];
+      }
+
+      seenOwners.add(displaySession.ownerTableId);
+
+      const memberTables = displaySession.memberTableIds
+        .map(id => zoneTables.find(entry => entry.id === id))
+        .filter((entry): entry is Table => Boolean(entry))
+        .filter(entry => inferPlacementType(entry) === 'table');
+
+      if (memberTables.length < 2) return [];
+
+      const ownerTable = memberTables.find(entry => entry.id === displaySession.ownerTableId) || memberTables[0];
+      const ownerDisplayMeta = getTableDisplayMeta(ownerTable);
+      const ownerServerLabel = getServerBadgeLabel(displaySession.ownerTableId);
+      const info = getOrderInfo(displaySession.ownerTableId);
+      const totalLabel = info.total > 0
+        ? `${info.total.toFixed(2)}${state.restaurant?.currency === 'EUR' ? ' €' : ` ${state.restaurant?.currency || 'EUR'}`}`
+        : null;
+
+      const badges = [
+        showFloorTimeBadges && ownerDisplayMeta.nextActionLabel
+          ? {
+              label: ownerDisplayMeta.nextActionLabel,
+              subLabel: ownerDisplayMeta.nextActionSubLabel,
+              border: ownerDisplayMeta.nextActionTone === 'billing'
+                ? '1px solid rgba(245,158,11,0.55)'
+                : ownerDisplayMeta.nextActionTone === 'problem'
+                  ? '1px solid rgba(239,68,68,0.5)'
+                  : ownerDisplayMeta.nextActionTone === 'service'
+                    ? '1px solid rgba(125,211,252,0.35)'
+                    : '1px solid rgba(255,255,255,0.08)',
+              color: ownerDisplayMeta.nextActionTone === 'billing'
+                ? '#fde68a'
+                : ownerDisplayMeta.nextActionTone === 'problem'
+                  ? '#fecaca'
+                  : '#f8fafc',
+            }
+          : null,
+        showFloorServerBadges && ownerDisplayMeta.effectiveStatus !== 'free' && ownerServerLabel
+          ? {
+              label: ownerServerLabel,
+              subLabel: null,
+              border: '1px solid rgba(139,92,246,0.35)',
+              color: '#efe5ff',
+            }
+          : null,
+        showFloorStatusBadges && ownerDisplayMeta.effectiveStatus !== 'free' && ownerDisplayMeta.serviceStatusLabel
+          ? {
+              label: ownerDisplayMeta.serviceStatusLabel,
+              subLabel: null,
+              border: '1px solid rgba(192,132,252,0.38)',
+              color: '#f5d0fe',
+            }
+          : null,
+        showFloorMoneyBadges && totalLabel
+          ? {
+              label: totalLabel,
+              subLabel: null,
+              border: '1px solid rgba(168,85,247,0.35)',
+              color: '#e9dcff',
+              interactive: true,
+            }
+          : null,
+      ].filter(Boolean) as { label: string; subLabel?: string | null; border: string; color: string; interactive?: boolean }[];
+
+      if (badges.length === 0) return [];
+
+      const centers = memberTables.map(memberTable => {
+        const layout = tableLayoutMap[memberTable.id];
+        return layout ? getTableCenter(memberTable) : null;
+      }).filter((center): center is { x: number; y: number } => Boolean(center));
+
+      if (centers.length < 2) return [];
+
+      const tableAnchors = memberTables
+        .map(memberTable => {
+          const layout = tableLayoutMap[memberTable.id];
+          if (!layout) return null;
+          const center = getTableCenter(memberTable);
+          return {
+            tableId: memberTable.id,
+            x: center.x,
+            y: center.y,
+            top: layout.wrapperVisibleTop,
+            width: layout.size.w,
+          };
+        })
+        .filter((anchor): anchor is { tableId: string; x: number; y: number; top: number; width: number } => Boolean(anchor))
+        .sort((a, b) => a.x - b.x);
+
+      if (tableAnchors.length < 2) return [];
+
+      const minCenterX = Math.min(...centers.map(center => center.x));
+      const maxCenterX = Math.max(...centers.map(center => center.x));
+      const topMostTableTop = Math.min(...memberTables.map(memberTable => {
+        const layout = tableLayoutMap[memberTable.id];
+        return layout ? layout.wrapperVisibleTop : memberTable.y || 0;
+      }));
+      const anchorX = (minCenterX + maxCenterX) / 2;
+      const averageBodyWidth = tableAnchors.reduce((sum, anchor) => sum + anchor.width, 0) / tableAnchors.length;
+      const groupWidth = maxCenterX - minCenterX;
+      const groupHeight = Math.max(...centers.map(center => center.y)) - Math.min(...centers.map(center => center.y));
+
+      const maxBadgeWidth = Math.max(...badges.map(badge => estimateBadgeSize(badge.label, badge.subLabel).width));
+      const totalBadgeHeight = badges.reduce((sum, badge) => sum + estimateBadgeSize(badge.label, badge.subLabel).height, 0) + Math.max(0, badges.length - 1) * 4;
+      const kind: 'shared' | 'split' = (
+        groupWidth <= Math.max(maxBadgeWidth + averageBodyWidth * 1.2, averageBodyWidth * tableAnchors.length * 1.15) &&
+        groupHeight <= averageBodyWidth * 1.4
+      ) ? 'shared' : 'split';
+      const routeSegments = tableAnchors.slice(0, -1).map((anchor, index) => {
+        const nextAnchor = tableAnchors[index + 1];
+        return {
+          x1: anchor.x,
+          y1: anchor.y,
+          x2: nextAnchor.x,
+          y2: nextAnchor.y,
+        };
+      });
+
+      const sharedBadge = kind === 'shared'
+        ? {
+            left: anchorX - maxBadgeWidth / 2,
+            top: topMostTableTop - totalBadgeHeight + 4,
+            width: maxBadgeWidth,
+          }
+        : null;
+
+      const splitBadges = kind === 'split'
+        ? tableAnchors.map(anchor => ({
+            tableId: anchor.tableId,
+            left: anchor.x - maxBadgeWidth / 2,
+            top: anchor.top - totalBadgeHeight - 10,
+            width: maxBadgeWidth,
+          }))
+        : [];
+
+      return [{
+        ownerTableId: displaySession.ownerTableId,
+        memberTableIds: tableAnchors.map(anchor => anchor.tableId),
+        kind,
+        routeSegments,
+        sharedBadge,
+        splitBadges,
+        badges,
+      }];
+    });
+  }, [estimateBadgeSize, getDisplaySessionForTable, getOrderInfo, getServerBadgeLabel, getTableDisplayMeta, showFloorMoneyBadges, showFloorServerBadges, showFloorStatusBadges, showFloorTimeBadges, state.restaurant?.currency, tableLayoutMap, zoneTables]);
+
+  const sharedCombinationMemberIds = useMemo(() => {
+    const ids = new Set<string>();
+    activeCombinationOverlays.forEach(overlay => {
+      if (overlay.kind !== 'shared') return;
+      overlay.memberTableIds.forEach(id => ids.add(id));
+    });
+    return ids;
+  }, [activeCombinationOverlays]);
 
   const renderTableShape = (table: Table) => {
-    const shape = table.shape || 'rect';
+    const variant = getTableVariantConfig(table);
+    const shape = variant.shape;
+    const placementType = inferPlacementType(table);
+    const displaySession = getDisplaySessionForTable(table.id);
     const info = getOrderInfo(table.id);
-    const isOccupied = table.status === 'occupied';
-    const isBilling = table.status === 'billing';
     const isSelected = selectedTable === table.id;
     const hasReservation = !!tableReservationMap[table.id];
     const reservation = tableReservationMap[table.id];
-    const isBlocked = table.status === 'blocked';
+    const effectiveStatus = table.status === 'blocked'
+      ? 'blocked'
+      : displaySession
+        ? (table.status === 'billing' ? 'billing' : 'occupied')
+        : table.status;
+    const isOccupied = effectiveStatus === 'occupied';
+    const isBilling = effectiveStatus === 'billing';
+    const isBlocked = effectiveStatus === 'blocked';
     const isActive = isOccupied || isBilling;
     const displayMeta = getTableDisplayMeta(table);
+    const serverBadgeLabel = getServerBadgeLabel(table.id);
+    const isBarSeat = placementType === 'bar_seat';
     const bgColor = isBlocked
       ? TABLE_STATUS_META.blocked.color
       : isOccupied
@@ -1124,18 +2337,26 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
           ? TABLE_STATUS_META.billing.color
           : (hasReservation && table.status === 'free')
             ? '#0ea5e9'
-            : TABLE_STATUS_META.free.color;
-    const effectiveSeats = Math.min(10, Math.max(table.seats || 4, displayMeta.guestCount || 0));
-    const size = getTableSize({ ...table, seats: effectiveSeats });
+            : isBarSeat
+              ? '#4a4f86'
+              : TABLE_STATUS_META.free.color;
+    const size = getTableSize(table);
     const tableX = table.x || 0;
     const tableY = table.y || 0;
-    const displayName = table.name.replace(/^[A-Za-z]+\s*/, '') || table.name;
+    const tableRotation = getTableRotation(table);
+    const displayName = getTableLabelNumber(table);
     const isBarstool = shape === 'barstool';
     const isRound = shape === 'round' || isBarstool;
     const isDiamond = shape === 'diamond';
     const isPopupActive = !!(selectedReservationId && reservation && reservation.id === selectedReservationId);
     const isTableInspectorActive = tableManagementId === table.id;
-    const seats = effectiveSeats;
+    const draftComboSelected = comboDraftTableIds.includes(table.id);
+    const focusedCombination = focusedCombinationId ? state.tableCombinations.find(combination => combination.id === focusedCombinationId) || null : null;
+    const isFocusedCombinationMember = Boolean(focusedCombination?.tableIds.includes(table.id));
+    const isFocusedCombinationTable = focusedCombinationTableId === table.id;
+    const activeCombinationContext = getActiveCombinationContext(table.id);
+    const isActiveCombinationMember = Boolean(activeCombinationContext?.memberTableIds.includes(table.id));
+    const showsSharedCombinationOverlay = sharedCombinationMemberIds.has(table.id);
 
     // Progress bar for occupied tables (like OpenTable)
     let progressPct = 0;
@@ -1145,34 +2366,53 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     }
 
     // Build SVG
-    const svg = buildTableSvg(shape, size.w, size.h, seats, bgColor);
-    const { bodyPath, seatPositions, svgW, svgH, ox, oy, seatRadius } = svg;
-    const activeSeatCount = isBlocked ? 0 : Math.min(displayMeta.guestCount, seatPositions.length);
-    const tableSession = state.sessions[table.id];
+    const svg = buildTableSvg(variant.id);
+    const { body, bodyBounds, seatRects, seatAnchors, svgW, svgH } = svg;
+    const totalLabel = info.total > 0
+      ? `${info.total.toFixed(2)}${state.restaurant?.currency === 'EUR' ? ' €' : ` ${state.restaurant?.currency || 'EUR'}`}`
+      : null;
+    const hasVisibleBadges = !showsSharedCombinationOverlay && Boolean(displayMeta.nextActionLabel || totalLabel);
 
     const isHighlighted = highlightedTableId === table.id;
     const isLinkedInspectorTable = isPopupActive || isTableInspectorActive;
+    const isMoveSelectionSource = moveSelection?.fromTableId === table.id;
+    const isMoveSelectionTarget = Boolean(moveSelection) && !isMoveSelectionSource && table.status === 'free';
+    const isMoveSelectionBlocked = Boolean(moveSelection) && !isMoveSelectionSource && table.status !== 'free';
 
     const wrapperStyle: React.CSSProperties = {
       position: 'absolute',
-      left: tableX - (svgW - size.w) / 2,
-      top: tableY - (svgH - size.h) / 2,
+      left: tableX - bodyBounds.x,
+      top: tableY - bodyBounds.y,
       width: svgW,
       height: svgH,
-      cursor: editMode ? 'grab' : 'pointer',
-      zIndex: isSelected || isHighlighted || isLinkedInspectorTable ? 10 : 1,
+      cursor: editMode ? (editorMode === 'combos' ? 'pointer' : 'grab') : moveSelection ? (isMoveSelectionTarget ? 'pointer' : 'not-allowed') : 'pointer',
+      zIndex: isSelected || isHighlighted || isLinkedInspectorTable || isMoveSelectionSource || isMoveSelectionTarget || draftComboSelected || isFocusedCombinationMember || isFocusedCombinationTable
+        ? 10
+        : hasVisibleBadges || isActiveCombinationMember || isActive
+          ? 6
+          : 1,
+      transform: `rotate(${tableRotation}deg)`,
+      transformOrigin: `${bodyBounds.x + size.w / 2}px ${bodyBounds.y + size.h / 2}px`,
       filter: isSelected
         ? `drop-shadow(0 0 12px ${displayMeta.statusMeta.glow})`
+        : isMoveSelectionSource
+          ? 'drop-shadow(0 0 14px rgba(251,191,36,0.32)) brightness(1.08)'
+          : isMoveSelectionTarget
+            ? 'drop-shadow(0 0 14px rgba(96,165,250,0.28)) brightness(1.12)'
+            : draftComboSelected
+              ? 'drop-shadow(0 0 14px rgba(96,165,250,0.26)) brightness(1.08)'
+              : isFocusedCombinationMember
+                ? 'drop-shadow(0 0 14px rgba(168,85,247,0.22)) brightness(1.04)'
         : isHighlighted
           ? 'drop-shadow(0 0 12px rgba(236,72,153,0.8)) brightness(1.2)'
           : isLinkedInspectorTable
             ? 'drop-shadow(0 0 12px rgba(168,85,247,0.45)) brightness(1.08)'
+            : isActiveCombinationMember
+              ? 'drop-shadow(0 0 10px rgba(96,165,250,0.18))'
           : 'none',
-      transition: dragRef.current?.tableId === table.id ? 'none' : 'filter 0.15s',
+      opacity: isMoveSelectionBlocked ? 0.38 : 1,
+      transition: dragRef.current?.tableId === table.id || rotateRef.current?.tableId === table.id ? 'none' : 'filter 0.15s',
     };
-    const wrapperLeft = wrapperStyle.left as number;
-    const wrapperTop = wrapperStyle.top as number;
-
     const handleClick = (e: React.MouseEvent) => {
       e.stopPropagation();
       if (dragRef.current?.moved) return;
@@ -1185,48 +2425,60 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
         onTouchStart={(e) => handleTouchDown(e, table.id)}>
         {/* SVG table shape */}
         <svg width={svgW} height={svgH} viewBox={`0 0 ${svgW} ${svgH}`} className="absolute inset-0">
-          <path d={bodyPath} fill={bgColor} />
+          {seatRects.map((seatRect, index) => {
+            const seatNumber = index + 1;
+            const { isActiveSeat, seatAssignment } = getSeatDisplayStateForTable(table.id, seatNumber);
+            const hasProfile = Boolean(seatAssignment?.guestName);
+            const fill = hasProfile ? '#dbeafe' : isActiveSeat ? '#f8fafc' : '#28274C';
+            const stroke = hasProfile
+              ? 'rgba(96,165,250,0.95)'
+              : isActiveSeat
+                ? 'rgba(255,255,255,0.35)'
+                : undefined;
+            return renderRectSvg(seatRect, fill, `${table.id}-seat-${index}`, stroke, stroke ? 1 : undefined);
+          })}
+          {body.kind === 'circle' ? (
+            <circle cx={body.cx} cy={body.cy} r={body.r} fill={bgColor} />
+          ) : (
+            renderRectSvg(body, bgColor, `${table.id}-body`)
+          )}
         </svg>
-        {seatPositions.map((seat, index) => {
-          const isActiveSeat = index < activeSeatCount;
+        {seatRects.map((seatRect, index) => {
           const seatNumber = index + 1;
-          const seatAssignment = tableSession?.seatAssignments?.find(assignment => assignment.seatNumber === seatNumber);
+          const { globalSeatNumber, isActiveSeat, seatAssignment } = getSeatDisplayStateForTable(table.id, seatNumber);
           const hasProfile = Boolean(seatAssignment?.guestName);
+          const seat = seatAnchors[index];
+          const hitPadding = 3;
           return (
             <button
               key={`seat-${table.id}-${index}`}
               type="button"
+              onMouseDown={event => event.stopPropagation()}
+              onTouchStart={event => event.stopPropagation()}
               onClick={(event) => {
                 event.stopPropagation();
-                if (!isActiveSeat || editMode) return;
-                handleSeatCircleClick(table.id, seatNumber, hasProfile, {
+                if (!seatAssignmentEnabled || !isActiveSeat || editMode) return;
+                handleSeatCircleClick(table.id, globalSeatNumber, hasProfile, {
                   x: seat.x,
                   y: seat.y,
                 });
               }}
-              className={'absolute rounded-full transition-all ' + (isActiveSeat && !editMode ? 'cursor-pointer hover:scale-110' : 'pointer-events-none')}
+              className={'absolute transition-all ' + (seatAssignmentEnabled && isActiveSeat && !editMode ? 'cursor-pointer hover:scale-105' : 'pointer-events-none')}
               style={{
-                left: seat.x - seatRadius,
-                top: seat.y - seatRadius,
-                width: seatRadius * 2,
-                height: seatRadius * 2,
-                background: hasProfile ? '#dbeafe' : isActiveSeat ? '#f8fafc' : 'rgba(15,23,42,0.46)',
-                border: hasProfile
-                  ? '1px solid rgba(96,165,250,0.9)'
-                  : isActiveSeat
-                    ? '1px solid rgba(255,255,255,0.75)'
-                  : '1px solid rgba(148,163,184,0.24)',
-                boxShadow: hasProfile
-                  ? '0 0 10px rgba(96,165,250,0.3)'
-                  : isActiveSeat
-                    ? '0 0 10px rgba(255,255,255,0.3)'
-                    : 'none',
+                left: seatRect.x - hitPadding,
+                top: seatRect.y - hitPadding,
+                width: seatRect.width + hitPadding * 2,
+                height: seatRect.height + hitPadding * 2,
+                background: 'transparent',
+                border: 'none',
+                boxShadow: 'none',
                 padding: 0,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                borderRadius: Math.max(10, seatRect.rx + hitPadding),
               }}
-              aria-label={`Sitz ${seatNumber}`}
+              aria-label={`Sitz ${globalSeatNumber}`}
             >
               {hasProfile && (
                 <span className="block text-center text-[8px] font-bold leading-none text-[#1e3a8a]">
@@ -1236,11 +2488,11 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
             </button>
           );
         })}
-        {seatQuickAction?.tableId === table.id && (
+        {seatAssignmentEnabled && seatQuickAction?.tableId === table.id && (
           <div
             className="absolute z-20 flex items-center gap-1 rounded-lg border border-white/[0.08] px-1.5 py-1 shadow-xl"
             style={{
-              left: seatQuickAction.x + seatRadius + 4,
+              left: seatQuickAction.x + 18,
               top: seatQuickAction.y - 14,
               background: 'rgba(15,23,42,0.94)',
             }}
@@ -1265,120 +2517,499 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
         {/* Selection borders */}
         {isSelected && editMode && (
           <div className="absolute pointer-events-none" style={{
-            left: ox - 2, top: oy - 2, width: size.w + 4, height: size.h + 4,
+            left: bodyBounds.x - 2, top: bodyBounds.y - 2, width: size.w + 4, height: size.h + 4,
             border: '2px solid #a78bfa', borderRadius: isRound ? '50%' : isDiamond ? 8 : 10,
-            transform: isDiamond ? 'rotate(45deg)' : undefined, transformOrigin: 'center',
           }} />
         )}
         {isLinkedInspectorTable && !editMode && (
           <div className="absolute pointer-events-none" style={{
-            left: ox - 2, top: oy - 2, width: size.w + 4, height: size.h + 4,
+            left: bodyBounds.x - 2, top: bodyBounds.y - 2, width: size.w + 4, height: size.h + 4,
             border: isPopupActive ? '2px solid #ffffff' : '2px solid rgba(168,85,247,0.9)',
             boxShadow: isPopupActive ? 'none' : '0 0 18px rgba(168,85,247,0.22)',
             borderRadius: isRound ? '50%' : isDiamond ? 8 : 10,
-            transform: isDiamond ? 'rotate(45deg)' : undefined, transformOrigin: 'center',
           }} />
+        )}
+        {isMoveSelectionSource && !editMode && (
+          <div className="absolute pointer-events-none" style={{
+            left: bodyBounds.x - 3, top: bodyBounds.y - 3, width: size.w + 6, height: size.h + 6,
+            border: '2px solid rgba(251,191,36,0.92)',
+            boxShadow: '0 0 18px rgba(251,191,36,0.18)',
+            borderRadius: isRound ? '50%' : isDiamond ? 8 : 10,
+          }} />
+        )}
+        {isMoveSelectionTarget && !editMode && (
+          <div className="absolute pointer-events-none" style={{
+            left: bodyBounds.x - 3, top: bodyBounds.y - 3, width: size.w + 6, height: size.h + 6,
+            border: '2px solid rgba(96,165,250,0.95)',
+            boxShadow: '0 0 18px rgba(96,165,250,0.18)',
+            borderRadius: isRound ? '50%' : isDiamond ? 8 : 10,
+          }} />
+        )}
+        {editMode && editorMode === 'combos' && (draftComboSelected || isFocusedCombinationMember || isFocusedCombinationTable) && (
+          <div className="absolute pointer-events-none" style={{
+            left: bodyBounds.x - 3,
+            top: bodyBounds.y - 3,
+            width: size.w + 6,
+            height: size.h + 6,
+            border: draftComboSelected
+              ? '2px solid rgba(96,165,250,0.95)'
+              : isFocusedCombinationTable
+                ? '2px solid rgba(255,255,255,0.9)'
+                : '2px solid rgba(168,85,247,0.82)',
+            boxShadow: draftComboSelected
+              ? '0 0 18px rgba(96,165,250,0.18)'
+              : '0 0 16px rgba(168,85,247,0.14)',
+            borderRadius: isRound ? '50%' : isDiamond ? 8 : 10,
+          }} />
+        )}
+        {editMode && editorMode !== 'combos' && isSelected && (
+          <button
+            type="button"
+            onMouseDown={event => startRotationDrag(event, table.id)}
+            onTouchStart={event => startRotationDrag(event, table.id)}
+            className="absolute z-20 flex items-center justify-center rounded-full border border-[#b79bff] bg-[#241f3d] text-[#e9dcff] shadow-[0_0_0_1px_rgba(139,92,246,0.22),0_10px_28px_rgba(12,11,24,0.35)]"
+            style={{
+              left: bodyBounds.x + size.w + ROTATION_HANDLE_OFFSET - ROTATION_HANDLE_SIZE / 2,
+              top: bodyBounds.y + size.h / 2 - ROTATION_HANDLE_SIZE / 2,
+              width: ROTATION_HANDLE_SIZE,
+              height: ROTATION_HANDLE_SIZE,
+              cursor: 'grab',
+            }}
+            aria-label="Tisch drehen"
+          >
+            <div
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: '999px',
+                background: '#7dd3fc',
+              }}
+            />
+          </button>
         )}
         {/* Overlay: table info (positioned on table body area) */}
         <div className="absolute flex flex-col items-center justify-center pointer-events-none"
-          style={{ left: ox, top: oy, width: size.w, height: size.h, transform: isDiamond ? 'rotate(0deg)' : undefined }}>
-          {!isBlocked && isActive && !isBarstool && (
-            <div className="absolute" style={{ top: isRound ? 12 : 10, left: '16%', right: '16%', height: 3, borderRadius: 999, background: 'rgba(255,255,255,0.16)' }}>
-              <div style={{ width: `${Math.max(8, progressPct)}%`, height: '100%', borderRadius: 999, background: '#fff', transition: 'width 1s ease' }} />
+          style={{
+            left: bodyBounds.x,
+            top: bodyBounds.y,
+            width: size.w,
+            height: size.h,
+            transform: `rotate(${-tableRotation}deg)`,
+            transformOrigin: 'center',
+          }}>
+          {!isBlocked && !isBarstool && (
+            <div
+              className="absolute"
+              style={{
+                top: isRound ? 12 : 10,
+                left: '16%',
+                right: '16%',
+                height: 3,
+                borderRadius: 999,
+                background: 'rgba(255,255,255,0.16)',
+              }}
+            >
+              <div
+                style={{
+                  width: isActive ? `${Math.max(8, progressPct)}%` : '0%',
+                  height: '100%',
+                  borderRadius: 999,
+                  background: '#fff',
+                  transition: 'width 1s ease',
+                }}
+              />
             </div>
           )}
           <span className="font-bold leading-none select-none" style={{
             color: '#fff',
-            fontSize: isBarstool ? 11 : isDiamond ? 14 : 18,
+            fontSize: isBarstool ? 9 : isDiamond ? 12 : 14,
             marginTop: isBarstool ? 0 : isRound ? 6 : 4,
             textShadow: '0 1px 2px rgba(0,0,0,0.28)',
           }}>
             {displayName}
           </span>
+          {isBarSeat && !isBarstool && (
+            <span
+              className="absolute bottom-[6px] text-[8px] font-semibold uppercase tracking-[0.18em] text-[#c9d4ff]"
+              style={{ opacity: 0.88 }}
+            >
+              Bar
+            </span>
+          )}
         </div>
-        {!isBarstool && displayMeta.nextActionLabel && (
-          (() => {
-            const { placement, badgeSize } = getBadgePlacement(table.id, displayMeta.nextActionLabel, wrapperLeft, wrapperTop, size, { ox, oy });
-            const badgeBorder = displayMeta.nextActionTone === 'billing'
-              ? '1px solid rgba(245,158,11,0.55)'
-              : displayMeta.nextActionTone === 'problem'
-                ? '1px solid rgba(239,68,68,0.5)'
-                : displayMeta.nextActionTone === 'service'
-                  ? '1px solid rgba(125,211,252,0.35)'
-                  : '1px solid rgba(255,255,255,0.08)';
-            const badgeTextColor = displayMeta.nextActionTone === 'billing'
-              ? '#fde68a'
-              : displayMeta.nextActionTone === 'problem'
-                ? '#fecaca'
-                : '#f8fafc';
-            const baseStyle: React.CSSProperties = {
-              background: 'rgba(15,23,42,0.82)',
-              border: badgeBorder,
-              borderRadius: 8,
-              minWidth: 0,
-              width: badgeSize.width,
-              height: badgeSize.height,
-              padding: placement === 'left' || placement === 'right' ? '4px 8px' : '4px 10px',
-              textAlign: 'center',
-              boxShadow: '0 8px 22px rgba(2,6,23,0.25)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            };
-
-            const left = placement === 'bottom' || placement === 'top'
-              ? ox + size.w / 2 - badgeSize.width / 2
-              : placement === 'left'
-                ? -badgeSize.width - 8
-                : ox + size.w + 8;
-            const top = placement === 'bottom'
-              ? oy + size.h + 6
-              : placement === 'top'
-                ? -badgeSize.height - 11
-                : oy + size.h / 2 - badgeSize.height / 2;
-
-            return (
-              <div
-                className={
-                  'absolute pointer-events-none ' +
-                  ((placement === 'bottom' || placement === 'top') ? 'flex flex-col items-center' : '')
+        {!showsSharedCombinationOverlay && ((showFloorTimeBadges && displayMeta.nextActionLabel) || (showFloorServerBadges && isActive && serverBadgeLabel) || (showFloorMoneyBadges && totalLabel) || (showFloorStatusBadges && isActive && displayMeta.serviceStatusLabel)) && (() => {
+          const badges = [
+            showFloorTimeBadges && displayMeta.nextActionLabel
+              ? {
+                  label: displayMeta.nextActionLabel,
+                  subLabel: displayMeta.nextActionSubLabel,
+                  border: displayMeta.nextActionTone === 'billing'
+                    ? '1px solid rgba(245,158,11,0.55)'
+                    : displayMeta.nextActionTone === 'problem'
+                      ? '1px solid rgba(239,68,68,0.5)'
+                      : displayMeta.nextActionTone === 'service'
+                        ? '1px solid rgba(125,211,252,0.35)'
+                        : '1px solid rgba(255,255,255,0.08)',
+                  color: displayMeta.nextActionTone === 'billing'
+                    ? '#fde68a'
+                    : displayMeta.nextActionTone === 'problem'
+                      ? '#fecaca'
+                      : '#f8fafc',
                 }
-                style={{ left, top, width: placement === 'bottom' || placement === 'top' ? badgeSize.width : undefined }}
-              >
-                {(placement === 'bottom' || placement === 'top') && (
-                  <div style={{
-                    width: 0,
-                    height: 0,
-                    borderLeft: '5px solid transparent',
-                    borderRight: '5px solid transparent',
-                    ...(placement === 'bottom'
-                      ? { borderBottom: '5px solid rgba(15,23,42,0.82)', marginBottom: -1 }
-                      : { borderTop: '5px solid rgba(15,23,42,0.82)', marginTop: 2 }),
-                  }} />
-                )}
-                <div style={baseStyle}>
+              : null,
+            showFloorServerBadges && isActive && serverBadgeLabel
+              ? {
+                  label: serverBadgeLabel,
+                  subLabel: null,
+                  border: '1px solid rgba(139,92,246,0.35)',
+                  color: '#efe5ff',
+                }
+              : null,
+            showFloorStatusBadges && isActive && displayMeta.serviceStatusLabel
+              ? {
+                  label: displayMeta.serviceStatusLabel,
+                  subLabel: null,
+                  border: '1px solid rgba(192,132,252,0.38)',
+                  color: '#f5d0fe',
+                }
+              : null,
+            showFloorMoneyBadges && totalLabel
+              ? {
+                  label: totalLabel,
+                  subLabel: null,
+                  border: '1px solid rgba(168,85,247,0.35)',
+                  color: '#e9dcff',
+                  interactive: true,
+                }
+              : null,
+          ].filter(Boolean) as { label: string; subLabel?: string | null; border: string; color: string; interactive?: boolean }[];
+
+          const maxBadgeWidth = Math.max(...badges.map(badge => estimateBadgeSize(badge.label, badge.subLabel).width));
+          const totalBadgeHeight = badges.reduce((sum, badge) => sum + estimateBadgeSize(badge.label, badge.subLabel).height, 0) + Math.max(0, badges.length - 1) * 4;
+          const left = bodyBounds.x + size.w / 2 - maxBadgeWidth / 2;
+          const top = bodyBounds.y - totalBadgeHeight + 6;
+
+          return (
+            <div
+              className="absolute flex flex-col items-center gap-1"
+              style={{
+                left,
+                top,
+                width: maxBadgeWidth,
+                transform: `rotate(${-tableRotation}deg)`,
+                transformOrigin: 'center',
+                zIndex: 30,
+                pointerEvents: 'auto',
+              }}
+            >
+              {badges.map(badge => {
+                const badgeSize = estimateBadgeSize(badge.label, badge.subLabel);
+                return (
                   <div
+                    key={`${table.id}-${badge.label}`}
                     style={{
-                      color: badgeTextColor,
-                      fontSize: 11,
-                      fontWeight: 700,
-                      lineHeight: '14px',
-                      whiteSpace: 'nowrap',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: badge.subLabel ? 4 : 0,
+                      width: badgeSize.width,
                     }}
                   >
-                    {displayMeta.nextActionLabel}
+                    <div
+                      className={badge.interactive && !editMode ? 'cursor-pointer transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgba(139,92,246,0.28)] active:scale-[0.98]' : ''}
+                      onClick={badge.interactive && !editMode ? event => {
+                        event.stopPropagation();
+                        handleTableClick(table);
+                      } : undefined}
+                      title={badge.interactive && !editMode ? 'POS öffnen' : undefined}
+                      style={{
+                        background: 'rgba(15,23,42,0.82)',
+                        border: badge.border,
+                        borderRadius: 8,
+                        minWidth: 0,
+                        width: badgeSize.width,
+                        height: 20,
+                        padding: '3px 10px',
+                        textAlign: 'center',
+                        boxShadow: badge.interactive
+                          ? '0 8px 24px rgba(76,29,149,0.22)'
+                          : '0 8px 22px rgba(2,6,23,0.25)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <div
+                        style={{
+                          color: badge.color,
+                          fontSize: 10,
+                          fontWeight: 700,
+                          lineHeight: '12px',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {badge.label}
+                      </div>
+                    </div>
+                    {badge.subLabel && (
+                      <div
+                        style={{
+                          background: 'rgba(15,23,42,0.82)',
+                          border: '1px solid rgba(125,211,252,0.2)',
+                          borderRadius: 8,
+                          minWidth: 0,
+                          width: badgeSize.width,
+                          height: 18,
+                          padding: '2px 10px',
+                          textAlign: 'center',
+                          boxShadow: '0 8px 22px rgba(2,6,23,0.2)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <div
+                          style={{
+                            color: '#eef1fb',
+                            fontSize: 9,
+                            fontWeight: 700,
+                            lineHeight: '11px',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {badge.subLabel}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
-              </div>
-            );
-          })()
-        )}
+                );
+              })}
+            </div>
+          );
+        })()}
       </div>
     );
   };
 
   const currentZone = state.zones.find(z => z.id === activeZone);
   const currentZoneIdx = state.zones.findIndex(z => z.id === activeZone);
+  const selectedEditorTable = selectedTable ? state.tables.find(table => table.id === selectedTable) || null : null;
+  const comboSaveFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (comboSaveFeedbackTimeoutRef.current) {
+        clearTimeout(comboSaveFeedbackTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    setEditorNameDraft(selectedEditorTable?.name || '');
+  }, [selectedEditorTable?.id, selectedEditorTable?.name]);
+
+  useEffect(() => {
+    setComboSaveFeedback('idle');
+  }, [comboDraftTableIds, comboError]);
+
+  const handleCommitEditorName = useCallback(() => {
+    if (!selectedEditorTable) return;
+    const nextName = editorNameDraft.trim();
+    if (!nextName || nextName === selectedEditorTable.name) {
+      setEditorNameDraft(selectedEditorTable.name);
+      return;
+    }
+    updateTableField(selectedEditorTable.id, 'name', nextName);
+  }, [editorNameDraft, selectedEditorTable, updateTableField]);
+
+  const saveCombinationDraft = useCallback(() => {
+    setComboError('');
+    setComboSaveFeedback('idle');
+    if (comboDraftTableIds.length < 2) return;
+    const selectedTables = zoneTables.filter(table => comboDraftTableIds.includes(table.id));
+    const conflict = state.tableCombinations.find(combination =>
+      combination.zoneId === activeZone &&
+      combination.tableIds.some(id => comboDraftTableIds.includes(id))
+    );
+    if (conflict) {
+      setComboError('Mindestens ein Tisch ist bereits in einer Kombination.');
+      return;
+    }
+    const nextCombination: TableCombination = {
+      id: `combo-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      zoneId: activeZone,
+      name: selectedTables
+        .map(table => getTableLabelNumber(table))
+        .sort((a, b) => Number(a) - Number(b))
+        .join('/'),
+      tableIds: comboDraftTableIds,
+      minPartySize: selectedTables.reduce((sum, table) => sum + (table.minPartySize || 1), 0),
+      maxPartySize: selectedTables.reduce((sum, table) => sum + (table.maxPartySize || table.seats || 1), 0),
+      active: true,
+    };
+    const updated = [...state.tableCombinations, nextCombination];
+    saveTableCombinationsUpdate(updated);
+    setFocusedCombinationId(nextCombination.id);
+    setFocusedCombinationTableId(null);
+    setComboDraftTableIds(nextCombination.tableIds);
+    setComboSaveFeedback('saved');
+    if (comboSaveFeedbackTimeoutRef.current) {
+      clearTimeout(comboSaveFeedbackTimeoutRef.current);
+    }
+    comboSaveFeedbackTimeoutRef.current = setTimeout(() => {
+      setComboSaveFeedback('idle');
+    }, 1600);
+  }, [activeZone, comboDraftTableIds, saveTableCombinationsUpdate, state.tableCombinations, zoneTables]);
+
+  const deleteCombination = useCallback((combinationId: string) => {
+    const updated = state.tableCombinations.filter(combination => combination.id !== combinationId);
+    saveTableCombinationsUpdate(updated);
+    setFocusedCombinationId(current => (current === combinationId ? null : current));
+  }, [saveTableCombinationsUpdate, state.tableCombinations]);
+
+  const updateCombinationField = useCallback((combinationId: string, field: 'minPartySize' | 'maxPartySize', value: number) => {
+    const updated = state.tableCombinations.map(combination => (
+      combination.id === combinationId
+        ? { ...combination, [field]: value }
+        : combination
+    ));
+    saveTableCombinationsUpdate(updated);
+  }, [saveTableCombinationsUpdate, state.tableCombinations]);
+
+  const handleCanvasViewportMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!editMode || editorMode === 'combos' || editorTool !== 'move' || e.target !== e.currentTarget) return;
+    canvasPanRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      startTranslate: translate,
+    };
+  }, [editMode, editorMode, editorTool, translate]);
+
+  const startEditorResize = useCallback((clientX: number, clientY: number) => {
+    resizeRef.current = {
+      zoneId: activeZone,
+      startX: clientX,
+      startY: clientY,
+      startWidth: editorCanvasSize.width,
+      startHeight: editorCanvasSize.height,
+      minWidth: editorMinimumCanvasSize.width,
+      minHeight: editorMinimumCanvasSize.height,
+    };
+  }, [activeZone, editorCanvasSize.height, editorCanvasSize.width, editorMinimumCanvasSize.height, editorMinimumCanvasSize.width]);
+
+  useEffect(() => {
+    if (!editMode || editorMode === 'combos' || editorTool !== 'move') return;
+    const handleMouseMove = (event: MouseEvent) => {
+      if (!canvasPanRef.current || dragRef.current) return;
+      const dx = event.clientX - canvasPanRef.current.startX;
+      const dy = event.clientY - canvasPanRef.current.startY;
+      setTranslate({
+        x: canvasPanRef.current.startTranslate.x + dx,
+        y: canvasPanRef.current.startTranslate.y + dy,
+      });
+    };
+    const handleMouseUp = () => {
+      canvasPanRef.current = null;
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [editMode, editorMode, editorTool]);
+
+  useEffect(() => {
+    if (!editMode) return;
+
+    const applyResize = (clientX: number, clientY: number) => {
+      const currentResize = resizeRef.current;
+      if (!currentResize) return;
+      const nextWidth = Math.max(currentResize.minWidth, currentResize.startWidth + (clientX - currentResize.startX));
+      const nextHeight = Math.max(currentResize.minHeight, currentResize.startHeight + (clientY - currentResize.startY));
+      const clamped = {
+        width: Math.max(currentResize.minWidth, snapCanvasSize(nextWidth)),
+        height: Math.max(currentResize.minHeight, snapCanvasSize(nextHeight)),
+      };
+      setEditorCanvasSizeByZone(prev => {
+        const existing = prev[currentResize.zoneId];
+        if (existing && existing.width === clamped.width && existing.height === clamped.height) {
+          return prev;
+        }
+        return { ...prev, [currentResize.zoneId]: clamped };
+      });
+    };
+
+    const handleMouseMove = (event: MouseEvent) => {
+      if (!resizeRef.current) return;
+      applyResize(event.clientX, event.clientY);
+    };
+    const handleMouseUp = () => {
+      resizeRef.current = null;
+    };
+    const handleTouchMove = (event: TouchEvent) => {
+      if (!resizeRef.current) return;
+      event.preventDefault();
+      const touch = event.touches[0];
+      if (!touch) return;
+      applyResize(touch.clientX, touch.clientY);
+    };
+    const handleTouchEnd = () => {
+      resizeRef.current = null;
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [editMode]);
+
+  const handleEditorCanvasClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!editMode || e.target !== e.currentTarget) return;
+    if (editorMode === 'combos') {
+      setFocusedCombinationId(null);
+      setFocusedCombinationTableId(null);
+      setComboDraftTableIds([]);
+      return;
+    }
+    if (placementVariant) {
+      const snapped = getEditorStagePointFromClient(e.clientX, e.clientY);
+      if (!snapped) return;
+      handleAddTable(snapped, placementVariant);
+      return;
+    }
+    setSelectedTable(null);
+  }, [editMode, editorMode, getEditorStagePointFromClient, handleAddTable, placementVariant]);
+
+  const placeVariantAtClientPoint = useCallback((clientX: number, clientY: number, variantId: TableVariant) => {
+    const snapped = getEditorStagePointFromClient(clientX, clientY);
+    if (!snapped) return;
+    handleAddTable(snapped, variantId);
+  }, [getEditorStagePointFromClient, handleAddTable]);
+
+  const handleEditorCanvasDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    if (!editMode) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  }, [editMode]);
+
+  const handleEditorCanvasDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    if (!editMode) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const variantId = e.dataTransfer.getData('application/x-vilo-table-variant') as TableVariant || draggedVariant;
+    if (!variantId) return;
+    placeVariantAtClientPoint(e.clientX, e.clientY, variantId);
+    setDraggedVariant(null);
+    setPlacementVariant(variantId);
+  }, [draggedVariant, editMode, placeVariantAtClientPoint]);
 
   // Notify parent of initial zone on mount
   useEffect(() => {
@@ -1661,10 +3292,20 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     clearPersistedInspector();
   }, [clearPersistedInspector, openReservationInspector, openTableManagementInspector, reservations, state.tables]);
 
+  useEffect(() => {
+    if (!sidebarSortMenuOpen) return;
+    const handleDocumentClick = () => setSidebarSortMenuOpen(null);
+    document.addEventListener('click', handleDocumentClick);
+    return () => document.removeEventListener('click', handleDocumentClick);
+  }, [sidebarSortMenuOpen]);
+
   // OpenTable sidebar render - 1:1 match with Reservations card design
   const renderSidebarCard = (r: SidebarPlacedItem, _showDuration: boolean) => {
     const sourceColor = SOURCE_COLORS[r.source] || '#8888aa';
     const SourceIcon = SOURCE_ICONS[r.source] || IconUsers;
+    const confirmationStatus = r.confirmationStatus ?? 'confirmed';
+    const ConfirmationIcon = confirmationStatus === 'pending' ? IconClock : IconCheck;
+    const confirmationColor = confirmationStatus === 'pending' ? '#f8b84e' : '#ecfdf5';
 
     const assignedTableId = r.tableId || (r.__isSessionItem ? r.__sessionTableId : undefined);
     const assignedTable = assignedTableId ? state.tables.find(t => t.id === assignedTableId) : null;
@@ -1683,6 +3324,13 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     const isJustAdded = !r.__isSessionItem && justAddedReservationId === r.id;
     const isPressed = pressedReservationId === r.id;
     const detailLabel = sessionForCard?.guestName?.trim() || r.guestName;
+    const walkInServiceStatus = sessionForCard?.serviceStatus;
+    const walkInServiceIconState =
+      r.__isSessionItem && walkInServiceStatus && !['teilweise_platziert', 'platziert'].includes(walkInServiceStatus)
+        ? 'served'
+        : 'waiting';
+    const WalkInServiceIcon = walkInServiceIconState === 'served' ? IconUserCheck : IconClock;
+    const walkInServiceColor = walkInServiceIconState === 'served' ? '#ecfdf5' : '#f8b84e';
 
     return (
       <div key={r.id} style={{ marginBottom: '1px', padding: '0 4px' }}>
@@ -1702,7 +3350,42 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
           }}
           onClick={() => handleSidebarCardClick(r)}
         >
-          <div className="shrink-0 flex flex-col items-center justify-center gap-[2px]" style={{ background: sourceColor, width: '26px' }}>
+          <div className="shrink-0 flex flex-col items-center justify-center gap-[3px]" style={{ background: sourceColor, width: '26px' }}>
+            {!r.__isSessionItem ? (
+              <button
+                type="button"
+                className={
+                  'flex h-[10px] w-[10px] items-center justify-center rounded-full transition-transform ' +
+                  (confirmationStatus === 'pending' ? 'hover:scale-110 cursor-pointer' : 'cursor-default')
+                }
+                style={{
+                  background: confirmationStatus === 'pending' ? 'rgba(31, 22, 56, 0.28)' : 'rgba(255, 255, 255, 0.16)',
+                  boxShadow: confirmationStatus === 'pending'
+                    ? '0 0 0 1px rgba(248,184,78,0.25)'
+                    : '0 0 0 1px rgba(255,255,255,0.12)',
+                }}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (confirmationStatus === 'pending') openReservationInspector(r);
+                }}
+                aria-label={confirmationStatus === 'pending' ? 'Reservierung offen, Kommunikation öffnen' : 'Reservierung bestätigt'}
+              >
+                <ConfirmationIcon size={8} color={confirmationColor} stroke={2.25} />
+              </button>
+            ) : (
+              <div
+                className="flex h-[10px] w-[10px] items-center justify-center rounded-full"
+                style={{
+                  background: walkInServiceIconState === 'served' ? 'rgba(20, 66, 49, 0.32)' : 'rgba(31, 22, 56, 0.28)',
+                  boxShadow: walkInServiceIconState === 'served'
+                    ? '0 0 0 1px rgba(34,197,94,0.18)'
+                    : '0 0 0 1px rgba(248,184,78,0.22)',
+                }}
+                aria-label={walkInServiceIconState === 'served' ? 'Serviert' : 'Wartet auf Service'}
+              >
+                <WalkInServiceIcon size={8} color={walkInServiceColor} stroke={2.25} />
+              </div>
+            )}
             <span className="text-white font-bold text-[10px] leading-none">{r.partySize}</span>
           </div>
 
@@ -1717,8 +3400,16 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
                   <>
                     <span className="text-[#6f7695]">·</span>
                     <span className="text-[#8f97b3] font-medium">
-                    {assignedTable.name}
+                      {assignedTable.name}
                     </span>
+                    {r.__isSessionItem && state.currentUser?.name && (
+                      <>
+                        <span className="text-[#6f7695]">·</span>
+                        <span className="text-[#8f97b3] font-medium">
+                          {state.currentUser.name}
+                        </span>
+                      </>
+                    )}
                   </>
                 )}
               </div>
@@ -1750,11 +3441,28 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
 
             <div className="shrink-0">
               {r.__isSessionItem ? (
-                <div className="flex h-[38px] min-w-[64px] items-center justify-center bg-[#9333ea] px-2" style={{ borderRadius: 0 }}>
+                <button
+                  type="button"
+                  className="flex h-[38px] min-w-[64px] items-center justify-center bg-[#9333ea] px-2 transition-all hover:brightness-110 active:scale-[0.98]"
+                  style={{ borderRadius: 0 }}
+                  onMouseDown={event => event.stopPropagation()}
+                  onTouchStart={event => event.stopPropagation()}
+                  onClick={event => {
+                    event.stopPropagation();
+                    if (assignedTable) {
+                      handleTableClick(assignedTable);
+                      return;
+                    }
+                    if (r.__sessionTableId) {
+                      dispatch({ type: 'SET_ACTIVE_TABLE', tableId: r.__sessionTableId });
+                    }
+                  }}
+                  aria-label={`POS fuer ${detailLabel} oeffnen`}
+                >
                   <span className="text-[11px] font-bold leading-none text-white">
                     {sessionTotal.toFixed(2)} €
                   </span>
-                </div>
+                </button>
               ) : assignedTable ? (
                 <div className="flex h-[38px] min-w-[38px] items-center justify-center bg-[#9333ea] px-2" style={{ borderRadius: 0 }}>
                   <span className="text-[14px] font-bold leading-none text-white">
@@ -2008,6 +3716,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
   };
 
   const renderSeatInspector = () => {
+    if (!seatAssignmentEnabled) return null;
     if (!seatInspector || !seatInspectorTable || !seatInspectorSession) return null;
 
     const maxAssignableSeat = Math.max(0, seatInspectorSession.guestCount || 0);
@@ -2117,14 +3826,16 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
 
   const renderRightPanel = () => {
     if (!selectedReservation) return null;
+    const isMobileViewport = typeof window !== 'undefined' && window.innerWidth < 768;
+    const floorInspectorWidth = isMobileViewport && !showSidebar ? 'calc(100vw - 68px)' : 320;
     if (showGuestProfileView && guestProfileGuest) {
       return (
         <div
           className="relative flex flex-col h-full overflow-hidden"
           style={{
-            width: showSidebar ? 260 : 'calc(100vw - 68px)',
-            minWidth: showSidebar ? 260 : 'calc(100vw - 68px)',
-            maxWidth: showSidebar ? 260 : 'calc(100vw - 68px)',
+            width: floorInspectorWidth,
+            minWidth: floorInspectorWidth,
+            maxWidth: floorInspectorWidth,
             background: '#1f1e33',
             borderLeft: '1px solid var(--vilo-border-subtle)',
           }}
@@ -2158,9 +3869,12 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
         : guestForInspector;
     const tableNames = (() => {
       const ids = r.tableIds && r.tableIds.length > 0 ? r.tableIds : (r.tableId ? [r.tableId] : []);
-      return ids.map(id => state.tables.find(t => t.id === id)?.name || '').filter(Boolean).join(', ');
+      return ids.map(id => {
+        const table = state.tables.find(t => t.id === id);
+        return table ? getTableDisplayLabel(table) : '';
+      }).filter(Boolean).join(', ');
     })();
-    const tableName = tableNames || 'Kein Tisch';
+    const tableName = tableNames || 'Kein Platz';
     const currentConfig = STATUS_CONFIG.find(s => s.value === r.status) || STATUS_CONFIG[0];
     const hasPhone = !!(r.guestPhone || guestProfileGuest?.phone);
     const rawPhone = (r.guestPhone || guestProfileGuest?.phone || '').replace(/\s/g, '');
@@ -2173,14 +3887,34 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     const inspectorNotes = inspectorGuest?.notes.filter(note => note.category === activeNoteTab) || [];
     const isSeatedGroup = ['seated', 'partially_seated', 'appetizer', 'entree', 'dessert', 'cleared', 'check_dropped', 'paid', 'bussing_needed'].includes(r.status);
     const statusOptions = getStatusOptions(r.status);
+    const sectionLabelClass = 'mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8f97b3]';
+    const textInputClass = 'w-full bg-vilo-card px-4 py-3 text-[13px] text-white outline-none placeholder:text-vilo-text-muted';
+    const getPickerButtonClass = (active: boolean) => (
+      'flex min-h-[48px] items-center justify-center px-3 text-[13px] font-semibold transition-colors ' +
+      (active
+        ? 'bg-[#8b5cf6] text-white'
+        : 'bg-vilo-card text-vilo-text-soft hover:bg-vilo-elevated')
+    );
+    const applyPartySize = (partySize: number) => {
+      const updated = reservations.map(res => res.id === r.id ? { ...res, partySize } : res);
+      setReservations(updated);
+      saveStorage({ ...loadStorage(), reservations: updated } as never);
+      setShowPartySizeOverlay(false);
+    };
+    const applyDuration = (duration: number) => {
+      const updated = reservations.map(res => res.id === r.id ? { ...res, duration } : res);
+      setReservations(updated);
+      saveStorage({ ...loadStorage(), reservations: updated } as never);
+      setShowDurationOverlay(false);
+    };
 
     return (
       <div
-        className="flex flex-col h-full overflow-y-auto"
+        className="relative flex flex-col h-full overflow-y-auto"
         style={{
-          width: showSidebar ? 260 : 'calc(100vw - 68px)',
-          minWidth: showSidebar ? 260 : 'calc(100vw - 68px)',
-          maxWidth: showSidebar ? 260 : 'calc(100vw - 68px)',
+          width: floorInspectorWidth,
+          minWidth: floorInspectorWidth,
+          maxWidth: floorInspectorWidth,
           background: '#1f1e33',
           borderLeft: '1px solid var(--vilo-border-subtle)',
         }}
@@ -2259,23 +3993,25 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
 
               <div className="grid grid-cols-3 gap-2">
                 <div
-                  className="px-3 py-2 flex items-center justify-center"
-                  style={{ background: '#2b2944', borderRadius: 0 }}
+                  className="border border-vilo-border-strong bg-vilo-card px-3 py-3 flex items-center justify-center"
+                  style={{ borderRadius: 0 }}
                 >
                   <span className="text-[#eef1fb] text-[12px] font-semibold">{r.time}</span>
                 </div>
-                <div
-                  className="px-3 py-2 flex items-center justify-center"
-                  style={{ background: '#2b2944', borderRadius: 0 }}
+                <button
+                  onClick={() => setShowPartySizeOverlay(true)}
+                  className="border border-vilo-border-strong bg-vilo-card px-3 py-3 flex items-center justify-center text-left transition-colors hover:bg-vilo-surface active:bg-vilo-elevated"
+                  style={{ borderRadius: 0 }}
                 >
                   <span className="text-[#eef1fb] text-[12px] font-semibold">{r.partySize} P.</span>
-                </div>
-                <div
-                  className="px-3 py-2 flex items-center justify-center"
-                  style={{ background: '#2b2944', borderRadius: 0 }}
+                </button>
+                <button
+                  onClick={() => setShowDurationOverlay(true)}
+                  className="border border-vilo-border-strong bg-vilo-card px-3 py-3 flex items-center justify-center text-left transition-colors hover:bg-vilo-surface active:bg-vilo-elevated"
+                  style={{ borderRadius: 0 }}
                 >
                   <span className="text-[#eef1fb] text-[12px] font-semibold">{Math.floor(r.duration / 60) > 0 ? `${Math.floor(r.duration / 60)}h ${r.duration % 60}m` : `${r.duration}m`}</span>
-                </div>
+                </button>
               </div>
             </>
           )}
@@ -2298,7 +4034,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
                   <div className="text-[#8f97b3] text-[11px]">{isSeatedGroup ? 'Zugewiesen' : 'Vorgeschlagen'}</div>
                 )}
                 {!r.tableId && (!r.tableIds || r.tableIds.length === 0) && (
-                  <div className="text-[#c4b5fd] text-[11px]">Kein Tisch zugewiesen</div>
+                  <div className="text-[#c4b5fd] text-[11px]">Kein Platz zugewiesen</div>
                 )}
               </div>
               <IconChevronRight className="w-4 h-4 text-[#8f97b3] shrink-0" />
@@ -2529,6 +4265,65 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
             </button>
           )}
         </div>
+
+        {showPartySizeOverlay && (
+          <div className="absolute inset-0 z-30 flex flex-col justify-end bg-black/20" onClick={() => setShowPartySizeOverlay(false)}>
+            <div className="border-t border-[#2a2a42] bg-[#1f1d33] px-4 py-4" onClick={e => e.stopPropagation()}>
+              <p className={sectionLabelClass}>Anzahl Gäste</p>
+              <div className="grid grid-cols-4 gap-2">
+                {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
+                  <button key={n} onClick={() => applyPartySize(n)} className={getPickerButtonClass(r.partySize === n)}>
+                    {n}
+                  </button>
+                ))}
+              </div>
+              <input
+                type="number"
+                min={1}
+                placeholder="Andere Anzahl..."
+                className={`${textInputClass} mt-2`}
+                value={r.partySize > 8 ? r.partySize : ''}
+                onChange={e => {
+                  const val = parseInt(e.target.value);
+                  if (val > 0) {
+                    const updated = reservations.map(res => res.id === r.id ? { ...res, partySize: val } : res);
+                    setReservations(updated);
+                    saveStorage({ ...loadStorage(), reservations: updated } as never);
+                  }
+                }}
+                onBlur={e => {
+                  const val = parseInt(e.target.value);
+                  if (val > 0) {
+                    applyPartySize(val);
+                  } else {
+                    setShowPartySizeOverlay(false);
+                  }
+                }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    const val = parseInt((e.target as HTMLInputElement).value);
+                    if (val > 0) applyPartySize(val);
+                  }
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {showDurationOverlay && (
+          <div className="absolute inset-0 z-30 flex flex-col justify-end bg-black/20" onClick={() => setShowDurationOverlay(false)}>
+            <div className="border-t border-[#2a2a42] bg-[#1f1d33] px-4 py-4" onClick={e => e.stopPropagation()}>
+              <p className={sectionLabelClass}>Dauer</p>
+              <div className="grid grid-cols-3 gap-2">
+                {[60, 90, 120, 150, 180].map(duration => (
+                  <button key={duration} onClick={() => applyDuration(duration)} className={getPickerButtonClass(r.duration === duration)}>
+                    {duration}m
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -2600,7 +4395,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
               </button>
             ))}
           </div>
-          <div className="shrink-0 border-t px-2 py-3 space-y-2" style={{ borderColor: '#2a2a42' }}>
+          <div className="shrink-0 px-2 py-3 space-y-2">
             <button
               onClick={() => {
                 openReservationCreateFromSidebar();
@@ -2665,26 +4460,49 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
         </div>
         <div className="flex items-center gap-1 shrink-0">
           {!collapsed && (
-            <div className="relative flex h-[24px] w-[24px] items-center justify-center text-[#aeb5cc]">
-              <IconAdjustmentsHorizontal className="w-3.5 h-3.5 pointer-events-none" />
-              <select
-                value={sidebarSortBy[sectionKey]}
-                onChange={e => setSidebarSortBy(prev => ({ ...prev, [sectionKey]: e.target.value as SidebarSortKey }))}
-                className="absolute inset-0 opacity-0 cursor-pointer"
+            <div className="relative">
+              <button
+                type="button"
+                className="flex h-[24px] w-[24px] items-center justify-center rounded-md text-[#aeb5cc] transition-colors hover:bg-[#26263d] hover:text-white"
+                onClick={event => {
+                  event.stopPropagation();
+                  setSidebarSortMenuOpen(current => current === sectionKey ? null : sectionKey);
+                }}
                 aria-label={`${label} sortieren`}
               >
-                <option value="reservation_time">Reservierungszeit</option>
-                <option value="arrival_time">Ankunftszeit</option>
-                <option value="name">Name</option>
-                <option value="party_size">Personenzahl</option>
-                <option value="table">Tisch</option>
-                <option value="created_at">Erstelltes Datum</option>
-                <option value="payment_status">Kreditkartenstatus</option>
-              </select>
+                <IconAdjustmentsHorizontal className="w-3.5 h-3.5 pointer-events-none" />
+              </button>
+              {sidebarSortMenuOpen === sectionKey && (
+                <div
+                  className="absolute right-0 top-[28px] z-30 min-w-[168px] overflow-hidden rounded-lg border bg-[#1f1d33] shadow-[0_16px_48px_rgba(9,8,20,0.45)]"
+                  style={{ borderColor: '#2a2a42' }}
+                  onClick={event => event.stopPropagation()}
+                >
+                  {sidebarSortOptions.map(option => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      className="flex w-full items-center justify-between px-3 py-2 text-left text-[12px] text-[#d7d3e8] transition-colors hover:bg-[#2a2944]"
+                      onClick={() => {
+                        setSidebarSortBy(prev => ({ ...prev, [sectionKey]: option.value }));
+                        setSidebarSortMenuOpen(null);
+                      }}
+                    >
+                      <span>{option.label}</span>
+                      {sidebarSortBy[sectionKey] === option.value && <IconCheck className="h-3.5 w-3.5 text-[#a855f7]" />}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
           <button
-            onClick={onToggle}
+            type="button"
+            onClick={event => {
+              event.stopPropagation();
+              setSidebarSortMenuOpen(null);
+              onToggle();
+            }}
             className="flex h-[24px] w-[24px] shrink-0 items-center justify-center text-[#d7dae2]"
           >
             {collapsed ? <IconChevronUp className="w-4 h-4" /> : <IconChevronDown className="w-4 h-4" />}
@@ -2730,12 +4548,12 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
         <div className="flex-1 overflow-y-auto overflow-x-hidden">
         {/* Reservations section */}
           <div className="border-b" style={{ borderColor: '#2a2a42' }}>
-            {renderSidebarHeader('Reservierungen', sidebarResParties, sidebarResCovers, sidebarResCollapsed, () => setSidebarResCollapsed(!sidebarResCollapsed), 'reservations')}
-            {!sidebarResCollapsed && (
+            {renderSidebarHeader('Reservierungen', sidebarResParties, sidebarResCovers, resolvedSidebarResCollapsed, () => {
+              if (sidebarReservationsEmpty) return;
+              setSidebarResCollapsed(!sidebarResCollapsed);
+            }, 'reservations')}
+            {!resolvedSidebarResCollapsed && (
               <div>
-                {sidebarReservations.length === 0 && (
-                  <div className="px-3 py-2 text-[11px] text-[#666688]">Keine Reservierungen</div>
-                )}
                 {sidebarReservations.map(r => renderSidebarCard(r, false))}
               </div>
             )}
@@ -2743,12 +4561,12 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
 
           {/* Seated section */}
           <div className="border-b" style={{ borderColor: '#2a2a42' }}>
-            {renderSidebarHeader('Platziert', sidebarSeatedParties, sidebarSeatedCovers, sidebarSeatedCollapsed, () => setSidebarSeatedCollapsed(!sidebarSeatedCollapsed), 'seated')}
-            {!sidebarSeatedCollapsed && (
+            {renderSidebarHeader('Platziert', sidebarSeatedParties, sidebarSeatedCovers, resolvedSidebarSeatedCollapsed, () => {
+              if (sidebarSeatedEmpty) return;
+              setSidebarSeatedCollapsed(!sidebarSeatedCollapsed);
+            }, 'seated')}
+            {!resolvedSidebarSeatedCollapsed && (
               <div>
-                {sidebarSeated.length === 0 && (
-                  <div className="px-3 py-2 text-[11px] text-[#666688]">Keine platzierten Gaeste</div>
-                )}
                 {sidebarSeated.map(r => renderSidebarCard(r, true))}
               </div>
             )}
@@ -2756,12 +4574,12 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
 
           {/* Waitlist section */}
           <div className="border-b" style={{ borderColor: '#2a2a42' }}>
-            {renderSidebarHeader('Warteliste', sidebarWaitlistParties, sidebarWaitlistCovers, sidebarWaitlistCollapsed, () => setSidebarWaitlistCollapsed(!sidebarWaitlistCollapsed), 'waitlist')}
-            {!sidebarWaitlistCollapsed && (
+            {renderSidebarHeader('Warteliste', sidebarWaitlistParties, sidebarWaitlistCovers, resolvedSidebarWaitlistCollapsed, () => {
+              if (sidebarWaitlistEmpty) return;
+              setSidebarWaitlistCollapsed(!sidebarWaitlistCollapsed);
+            }, 'waitlist')}
+            {!resolvedSidebarWaitlistCollapsed && (
               <div>
-                {sidebarWaitlist.length === 0 && (
-                  <div className="px-3 py-2 text-[11px] text-[#666688]">Keine Warteliste</div>
-                )}
                 {sidebarWaitlist.map(entry => renderWaitlistCard(entry))}
               </div>
             )}
@@ -2790,7 +4608,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
           )}
         </div>
 
-        <div className="shrink-0 border-t p-3 space-y-2" style={{ background: '#1d1c31', borderColor: '#40395f' }}>
+        <div className="shrink-0 p-3 space-y-2" style={{ background: '#1d1c31' }}>
           <button
             onClick={() => {
               openReservationCreateFromSidebar();
@@ -2816,58 +4634,602 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     );
   };
 
-  return (
-    <div className="h-full flex flex-col" style={{ background: '#1a1a2e' }}>
+  const renderEditorWorkspace = () => {
+    const renderShapePreview = (variant: TableVariantDefinition) => {
+      const previewSvg = buildTableSvg(variant.id, 0.72);
+      const isActive = placementVariant === variant.id;
+      return (
+        <button
+          key={variant.id}
+          type="button"
+          draggable
+          onDragStart={e => {
+            e.dataTransfer.setData('application/x-vilo-table-variant', variant.id);
+            e.dataTransfer.effectAllowed = 'copy';
+            setDraggedVariant(variant.id);
+            setNewTableVariant(variant.id);
+            setPlacementVariant(variant.id);
+            setSelectedTable(null);
+          }}
+          onDragEnd={() => setDraggedVariant(null)}
+          onClick={() => {
+            setNewTableVariant(variant.id);
+            setPlacementVariant(variant.id);
+            setSelectedTable(null);
+          }}
+          className={`group flex flex-col items-center justify-center gap-2 rounded-lg border px-2 py-3 transition-colors ${
+            isActive
+              ? 'border-[#9b7cff] bg-transparent text-white'
+              : 'border-transparent bg-transparent text-vilo-text-soft hover:border-vilo-border-subtle/70 hover:bg-[#211f35]'
+          }`}
+        >
+          <svg width={previewSvg.svgW} height={previewSvg.svgH} viewBox={`0 0 ${previewSvg.svgW} ${previewSvg.svgH}`} className="opacity-95">
+            {previewSvg.seatRects.map((seatRect, index) => (
+              renderRectSvg(seatRect, isActive ? '#dcd3ff' : '#303751', `${variant.id}-preview-seat-${index}`, '#58607d', 1)
+            ))}
+            {previewSvg.body.kind === 'circle' ? (
+              <circle cx={previewSvg.body.cx} cy={previewSvg.body.cy} r={previewSvg.body.r} fill={isActive ? '#8b5cf6' : '#5a5677'} />
+            ) : (
+              renderRectSvg(previewSvg.body, isActive ? '#8b5cf6' : '#5a5677', `${variant.id}-preview-body`)
+            )}
+          </svg>
+        </button>
+      );
+    };
 
-      {editMode && (
-        <div className="px-4 py-2 flex items-center gap-2 flex-wrap relative" style={{ background: '#1a1a2e' }}>
-          <button onClick={handleAddTable}
-            className="flex items-center gap-1.5 bg-[#7bb7ef] text-white rounded-lg px-3 py-1.5 text-xs font-medium hover:bg-[#7bb7ef] transition-colors">
-            <IconPlus className="w-3.5 h-3.5" /> Tisch
-          </button>
-          <button onClick={() => setShowShapePicker(!showShapePicker)}
-            className="flex items-center gap-1.5 bg-vilo-elevated text-vilo-text-soft rounded-lg px-3 py-1.5 text-xs font-medium hover:bg-[#3a365c] transition-colors">
-            Form: {SHAPE_OPTIONS.find(s => s.value === (selectedTable ? (state.tables.find(t => t.id === selectedTable)?.shape || 'rect') : newTableShape))?.label}
-          </button>
-          {selectedTable && (
-            <button onClick={handleDeleteTable}
-              className="flex items-center gap-1.5 bg-red-900/50 text-red-300 rounded-lg px-3 py-1.5 text-xs font-medium hover:bg-red-800/50 transition-colors">
-              <IconTrash className="w-3.5 h-3.5" /> Loeschen
+    const renderZoneOverview = () => (
+      <div className="space-y-4">
+        <div className="rounded-xl border border-vilo-border-subtle bg-vilo-card p-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8f97b3]">Aktiver Bereich</p>
+          <p className="mt-2 text-[22px] font-bold text-white">{currentZone?.name || 'Raumplan'}</p>
+          <p className="mt-1 text-sm text-vilo-text-secondary">{zoneTables.length} Tische auf der Bühne</p>
+        </div>
+        <div className="rounded-xl border border-vilo-border-subtle bg-vilo-card p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8f97b3]">Bereiche</p>
+            <span className="text-xs text-vilo-text-muted">{state.zones.length}</span>
+          </div>
+          <div className="space-y-2">
+            {state.zones.map(zone => {
+              const count = state.tables.filter(table => table.zone === zone.id).length;
+              const active = zone.id === activeZone;
+              return (
+                <button
+                  key={zone.id}
+                  type="button"
+                  onClick={() => switchZone(zone.id)}
+                  className={`flex w-full items-center justify-between rounded-lg border px-3 py-3 text-left transition-colors ${
+                    active
+                      ? 'border-[#9b7cff] bg-[#2f2949] text-white'
+                      : 'border-vilo-border-subtle bg-[#232139] text-vilo-text-soft hover:bg-[#2b2742]'
+                  }`}
+                >
+                  <span className="font-medium">{zone.name}</span>
+                  <span className="text-xs opacity-80">{count} Tische</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+
+    const renderCombinationInspector = () => {
+      const focusedCombination = focusedCombinationId
+        ? zoneCombinations.find(combination => combination.id === focusedCombinationId) || null
+        : null;
+      const focusedTable = focusedCombinationTableId
+        ? state.tables.find(table => table.id === focusedCombinationTableId) || null
+        : null;
+      const relatedCombinations = focusedTable
+        ? zoneCombinations.filter(combination => combination.tableIds.includes(focusedTable.id))
+        : zoneCombinations;
+
+      return (
+        <div className="space-y-3">
+          <div className="rounded-2xl border border-vilo-border-subtle bg-vilo-card p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8f97b3]">Tischkombinationen</p>
+              <p className="mt-2 text-[20px] font-bold leading-tight text-white">
+                {focusedTable ? `Kombinationen mit ${getTableDisplayLabel(focusedTable)}` : 'Kombinationen im Bereich'}
+              </p>
+            </div>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="rounded-full border border-vilo-border-subtle bg-[#232139] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#d2c8f6]">
+                {comboDraftTableIds.length > 1
+                  ? `${comboDraftTableIds.length} Tische ausgewählt`
+                  : 'Auswahl starten'}
+              </span>
+              <span className="text-xs text-vilo-text-secondary">
+                {comboDraftTableIds.length > 1 ? 'Bereit zum Speichern' : 'Mehrere Tische per Klick auswählen'}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={saveCombinationDraft}
+              disabled={comboDraftTableIds.length < 2}
+              className={`mt-3 w-full rounded-lg border px-3 py-2.5 text-sm font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.16)] transition-colors disabled:cursor-not-allowed disabled:opacity-35 ${
+                comboSaveFeedback === 'saved'
+                  ? 'border-[#a78bfa] bg-[#6d50d8]'
+                  : 'border-[#9b7cff] bg-[#8b5cf6]'
+              }`}
+            >
+              {comboSaveFeedback === 'saved' ? 'Gespeichert' : 'Hinzufügen'}
             </button>
+            {comboError && <p className="mt-3 text-xs font-medium text-[#f0bfd7]">{comboError}</p>}
+          </div>
+
+          {focusedCombination && (
+            <div className="space-y-3 rounded-2xl border border-vilo-border-subtle bg-vilo-card p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8f97b3]">Ausgewählte Kombination</p>
+                  <p className="mt-2 text-[18px] font-bold text-white">{focusedCombination.name}</p>
+                </div>
+                <span className="shrink-0 rounded-full border border-vilo-border-subtle bg-[#232139] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#d2c8f6]">
+                  {focusedCombination.tableIds.length} Tische
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <label className="block">
+                  <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8f97b3]">Min.</span>
+                  <input
+                    type="number"
+                    min={1}
+                    value={focusedCombination.minPartySize}
+                    onChange={e => updateCombinationField(focusedCombination.id, 'minPartySize', Math.max(1, Number(e.target.value) || 1))}
+                    className="w-full rounded-xl border border-vilo-border-subtle bg-[#232139] px-3 py-2.5 text-white outline-none focus:border-[#8b5cf6]"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8f97b3]">Max.</span>
+                  <input
+                    type="number"
+                    min={focusedCombination.minPartySize}
+                    value={focusedCombination.maxPartySize}
+                    onChange={e => updateCombinationField(focusedCombination.id, 'maxPartySize', Math.max(focusedCombination.minPartySize, Number(e.target.value) || focusedCombination.minPartySize))}
+                    className="w-full rounded-xl border border-vilo-border-subtle bg-[#232139] px-3 py-2.5 text-white outline-none focus:border-[#8b5cf6]"
+                  />
+                </label>
+              </div>
+              <button
+                type="button"
+                onClick={() => deleteCombination(focusedCombination.id)}
+                className="w-full rounded-xl border border-[#6f3d66] bg-[#352338] px-4 py-2.5 text-sm font-semibold text-[#f0bfd7] transition-colors hover:bg-[#412943]"
+              >
+                Kombination löschen
+              </button>
+            </div>
           )}
-          <span className="text-vilo-text-muted text-[10px] ml-auto">Drag zum Verschieben</span>
-          {showShapePicker && (
-            <div className="absolute top-full left-16 z-50 bg-vilo-surface rounded-xl border border-vilo-border-subtle p-2 shadow-2xl mt-1">
-              {SHAPE_OPTIONS.map(opt => (
-                <button key={opt.value} onClick={() => handleChangeShape(opt.value)}
-                  className={'w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ' +
-                    ((selectedTable ? state.tables.find(t => t.id === selectedTable)?.shape === opt.value : newTableShape === opt.value)
-                      ? 'bg-[#7bb7ef] text-white' : 'text-vilo-text-soft hover:bg-vilo-elevated')}>
-                  {opt.label}
+
+          <div className="rounded-2xl border border-vilo-border-subtle bg-vilo-card p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8f97b3]">Alle Kombinationen</p>
+              <span className="rounded-full border border-vilo-border-subtle bg-[#232139] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#d2c8f6]">
+                {relatedCombinations.length}
+              </span>
+            </div>
+            <div className="space-y-2">
+              {relatedCombinations.length === 0 ? (
+                <div className="rounded-xl border border-vilo-border-subtle bg-[#232139] px-3 py-3 text-sm leading-relaxed text-vilo-text-secondary">
+                  {focusedTable ? 'Dieser Tisch ist keiner Kombination zugeordnet.' : 'Noch keine Kombinationen gespeichert.'}
+                </div>
+              ) : relatedCombinations.map(combination => (
+                <button
+                  key={combination.id}
+                  type="button"
+                  onClick={() => {
+                    setFocusedCombinationId(combination.id);
+                    setFocusedCombinationTableId(null);
+                    setComboDraftTableIds(combination.tableIds);
+                  }}
+                  className={`flex w-full items-center justify-between rounded-xl border px-3 py-3 text-left transition-colors ${
+                    focusedCombinationId === combination.id
+                      ? 'border-[#9b7cff] bg-[#2b2944] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]'
+                      : 'border-vilo-border-subtle bg-[#232139] text-vilo-text-soft hover:bg-[#2b2944]'
+                  }`}
+                >
+                  <div>
+                    <p className="text-sm font-semibold">{combination.name}</p>
+                    <p className="mt-1 text-xs text-vilo-text-secondary">{combination.tableIds.length} Tische · {combination.minPartySize}-{combination.maxPartySize} Gäste</p>
+                  </div>
+                  <IconChevronRight className="h-4 w-4 text-[#8f97b3]" />
                 </button>
               ))}
             </div>
-          )}
+          </div>
         </div>
-      )}
+      );
+    };
 
+    const renderSelectedTableInspector = () => {
+      if (editorMode === 'combos') return renderCombinationInspector();
+      if (!selectedEditorTable) return renderZoneOverview();
+      const selectedVariant = getTableVariantConfig(selectedEditorTable);
+      const selectedPlacementType = inferPlacementType(selectedEditorTable);
+      const selectedKindLabel = getTableKindLabel(selectedEditorTable);
+      const minPartySize = selectedEditorTable.minPartySize || selectedVariant.defaultMinPartySize;
+      const maxPartySize = selectedEditorTable.maxPartySize || selectedVariant.defaultMaxPartySize;
+      const rotationLabel = `${getTableRotation(selectedEditorTable)}°`;
+      return (
+        <div className="space-y-4">
+          <div className="rounded-xl border border-vilo-border-subtle bg-vilo-card p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8f97b3]">{selectedKindLabel}</p>
+            <p className="mt-2 text-[22px] font-bold text-white">{getTableDisplayLabel(selectedEditorTable)}</p>
+            <p className="mt-1 text-sm text-vilo-text-secondary">{selectedVariant.label} · {selectedVariant.seats} Sitze</p>
+            <p className="mt-1 text-xs font-medium text-[#b9addc]">Rotation: {rotationLabel}</p>
+          </div>
+
+          <div className="rounded-xl border border-vilo-border-subtle bg-vilo-card p-4">
+            <div className="space-y-4">
+              <label className="block">
+                <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8f97b3]">Tischnummer</span>
+                <input
+                  value={editorNameDraft}
+                  onChange={e => setEditorNameDraft(e.target.value)}
+                  onBlur={handleCommitEditorName}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      (e.currentTarget as HTMLInputElement).blur();
+                    }
+                  }}
+                  className="w-full rounded-lg border border-vilo-border-subtle bg-[#232139] px-3 py-3 text-white outline-none focus:border-[#8b5cf6]"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8f97b3]">Bereich</span>
+                <select
+                  value={selectedEditorTable.zone}
+                  onChange={e => {
+                    updateTableField(selectedEditorTable.id, 'zone', e.target.value);
+                    switchZone(e.target.value);
+                  }}
+                  className="w-full rounded-lg border border-vilo-border-subtle bg-[#232139] px-3 py-3 text-white outline-none focus:border-[#8b5cf6]"
+                >
+                  {state.zones.map(zone => (
+                    <option key={zone.id} value={zone.id}>{zone.name}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8f97b3]">Platztyp</span>
+                <select
+                  value={selectedPlacementType}
+                  onChange={e => {
+                    const nextPlacementType = e.target.value as TablePlacementType;
+                    if (nextPlacementType === selectedPlacementType) return;
+                    if (nextPlacementType === 'bar_seat') {
+                      const barVariant = TABLE_VARIANT_MAP[BAR_SEAT_VARIANT];
+                      const updatedTables = state.tables.map(table => (
+                        table.id === selectedEditorTable.id
+                          ? {
+                              ...table,
+                              placementType: 'bar_seat' as const,
+                              variant: barVariant.id,
+                              shape: barVariant.shape,
+                              seats: barVariant.seats,
+                              minPartySize: barVariant.defaultMinPartySize,
+                              maxPartySize: barVariant.defaultMaxPartySize,
+                              name: table.name.startsWith('Barplatz') ? table.name : `Barplatz ${getTableLabelNumber(table)}`,
+                            }
+                          : table
+                      ));
+                      commitLayoutUpdate(updatedTables, state.tables);
+                      setEditorNameDraft(`Barplatz ${getTableLabelNumber(selectedEditorTable)}`);
+                      return;
+                    }
+
+                    const fallbackVariant = TABLE_VARIANT_MAP[DEFAULT_TABLE_VARIANT];
+                    const updatedTables = state.tables.map(table => (
+                      table.id === selectedEditorTable.id
+                        ? {
+                            ...table,
+                            placementType: 'table' as const,
+                            variant: inferTableVariant(table) === BAR_SEAT_VARIANT ? fallbackVariant.id : table.variant,
+                            shape: inferTableVariant(table) === BAR_SEAT_VARIANT ? fallbackVariant.shape : table.shape,
+                            seats: inferTableVariant(table) === BAR_SEAT_VARIANT ? fallbackVariant.seats : table.seats,
+                            minPartySize: inferTableVariant(table) === BAR_SEAT_VARIANT ? fallbackVariant.defaultMinPartySize : table.minPartySize,
+                            maxPartySize: inferTableVariant(table) === BAR_SEAT_VARIANT ? fallbackVariant.defaultMaxPartySize : table.maxPartySize,
+                            name: table.name.startsWith('Barplatz') ? `Tisch ${getTableLabelNumber(table)}` : table.name,
+                          }
+                        : table
+                    ));
+                    commitLayoutUpdate(updatedTables, state.tables);
+                    if (selectedEditorTable.name.startsWith('Barplatz')) {
+                      setEditorNameDraft(`Tisch ${getTableLabelNumber(selectedEditorTable)}`);
+                    }
+                  }}
+                  className="w-full rounded-lg border border-vilo-border-subtle bg-[#232139] px-3 py-3 text-white outline-none focus:border-[#8b5cf6]"
+                >
+                  <option value="table">Tisch</option>
+                  <option value="bar_seat">Bar-Sitz</option>
+                </select>
+              </label>
+
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block">
+                  <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8f97b3]">Min. Größe</span>
+                  <input
+                    type="number"
+                    min={1}
+                    value={minPartySize}
+                    onChange={e => updateTableField(selectedEditorTable.id, 'minPartySize', Math.max(1, Number(e.target.value) || 1))}
+                    className="w-full rounded-lg border border-vilo-border-subtle bg-[#232139] px-3 py-3 text-white outline-none focus:border-[#8b5cf6]"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8f97b3]">Max. Größe</span>
+                  <input
+                    type="number"
+                    min={minPartySize}
+                    value={maxPartySize}
+                    onChange={e => updateTableField(selectedEditorTable.id, 'maxPartySize', Math.max(minPartySize, Number(e.target.value) || minPartySize))}
+                    className="w-full rounded-lg border border-vilo-border-subtle bg-[#232139] px-3 py-3 text-white outline-none focus:border-[#8b5cf6]"
+                  />
+                </label>
+              </div>
+
+              <label className="block">
+                <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8f97b3]">Variante</span>
+                <select
+                  value={selectedVariant.id}
+                  onChange={e => handleChangeVariant(e.target.value as TableVariant)}
+                  className="w-full rounded-lg border border-vilo-border-subtle bg-[#232139] px-3 py-3 text-white outline-none focus:border-[#8b5cf6]"
+                >
+                  {TABLE_VARIANTS.map(option => (
+                    <option key={option.id} value={option.id}>{option.label}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={duplicateSelectedTable}
+              className="rounded-xl border border-vilo-border-subtle bg-[#2b2944] px-4 py-3 text-sm font-semibold text-[#d8c7ff] transition-colors hover:bg-[#342f52]"
+            >
+              Kopieren
+            </button>
+            <button
+              type="button"
+              onClick={handleDeleteTable}
+              className="rounded-xl border border-[#6f3d66] bg-[#352338] px-4 py-3 text-sm font-semibold text-[#f0bfd7] transition-colors hover:bg-[#412943]"
+            >
+              Löschen
+            </button>
+          </div>
+        </div>
+      );
+    };
+
+    return (
+      <div className="grid h-full min-h-0 w-full min-w-0 grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)_280px] xl:grid-cols-[224px_minmax(0,1fr)_288px] 2xl:grid-cols-[228px_minmax(0,1fr)_296px]">
+        <aside className="shrink-0 border-b border-r-0 border-vilo-border-subtle bg-[#1d1e31] lg:border-b-0 lg:border-r">
+          <div className="border-b border-vilo-border-subtle px-3 py-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8f97b3]">Bearbeiten</p>
+            <div className="mt-2 rounded-xl border border-vilo-border-subtle bg-[#232139] p-1">
+              <div className="grid grid-cols-2 gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditorMode('layout');
+                    setComboError('');
+                    setComboDraftTableIds([]);
+                  }}
+                  className={`rounded-lg px-3 py-2 text-[13px] font-semibold transition-colors ${editorMode === 'layout' ? 'bg-[#8b5cf6] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]' : 'text-vilo-text-soft hover:bg-[#2d2945]'}`}
+                >
+                  Layout
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditorMode('combos');
+                    setSelectedTable(null);
+                    setPlacementVariant(null);
+                  }}
+                  className={`rounded-lg px-3 py-2 text-[13px] font-semibold transition-colors ${editorMode === 'combos' ? 'bg-[#8b5cf6] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]' : 'text-vilo-text-soft hover:bg-[#2d2945]'}`}
+                >
+                  Kombis
+                </button>
+              </div>
+            </div>
+            <div className="mt-2">
+              <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.16em] text-[#8f97b3]">
+                Bereich
+              </label>
+              <select
+                value={activeZone}
+                onChange={e => switchZone(e.target.value)}
+                className="w-full rounded-xl border border-vilo-border-subtle bg-[#232139] px-3 py-2.5 text-[15px] font-medium text-white outline-none focus:border-[#8b5cf6]"
+              >
+                {state.zones.map(zone => (
+                  <option key={zone.id} value={zone.id}>{zone.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="px-3 py-3">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8f97b3]">Elemente</p>
+              {editorMode === 'layout' && placementVariant && (
+                <button
+                  type="button"
+                  onClick={() => setPlacementVariant(null)}
+                  className="text-xs font-medium text-[#d8c7ff] hover:text-white"
+                >
+                  Auswahl
+                </button>
+              )}
+            </div>
+            {editorMode === 'layout' ? (
+              <div className="grid grid-cols-3 gap-1.5">
+                {EDITOR_TABLE_VARIANTS.map(option => renderShapePreview(option))}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-vilo-border-subtle bg-vilo-card px-3 py-2.5 text-[13px] text-vilo-text-secondary">
+                Tische per Klick auswählen. Bar-Sitze sind im Kombinationsmodus gesperrt.
+              </div>
+            )}
+          </div>
+        </aside>
+
+        <section className="flex min-h-0 min-w-0 flex-1 flex-col border-b border-vilo-border-subtle lg:border-b-0 lg:border-r">
+          <div className="flex flex-wrap items-center gap-2 border-b border-vilo-border-subtle bg-[#1d1e31] px-4 py-3">
+            <button onClick={() => setScale(prev => Math.max(0.6, prev - 0.1))} className="rounded-lg border border-vilo-border-subtle bg-vilo-card px-3 py-2 text-sm font-medium text-vilo-text-soft hover:bg-[#332d4e]">
+              -
+            </button>
+            <button onClick={() => setScale(prev => Math.min(2.4, prev + 0.1))} className="rounded-lg border border-vilo-border-subtle bg-vilo-card px-3 py-2 text-sm font-medium text-vilo-text-soft hover:bg-[#332d4e]">
+              +
+            </button>
+            <button onClick={() => { setScale(1); setTranslate({ x: 0, y: 0 }); }} className="rounded-lg border border-vilo-border-subtle bg-vilo-card px-3 py-2 text-sm font-medium text-vilo-text-soft hover:bg-[#332d4e]">
+              Fit
+            </button>
+            <button
+              onClick={() => { setEditorTool('select'); setPlacementVariant(null); }}
+              disabled={editorMode === 'combos'}
+              className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${editorTool === 'select' ? 'border-[#9b7cff] bg-[#8b5cf6] text-white' : 'border-vilo-border-subtle bg-vilo-card text-vilo-text-soft hover:bg-[#332d4e]'} disabled:cursor-not-allowed disabled:opacity-35`}
+            >
+              Auswahl
+            </button>
+            <button
+              onClick={() => { setEditorTool('move'); }}
+              disabled={editorMode === 'combos'}
+              className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${editorTool === 'move' ? 'border-[#9b7cff] bg-[#8b5cf6] text-white' : 'border-vilo-border-subtle bg-vilo-card text-vilo-text-soft hover:bg-[#332d4e]'} disabled:cursor-not-allowed disabled:opacity-35`}
+            >
+              Bewegen
+            </button>
+            <button
+              onClick={handleUndoLayout}
+              disabled={layoutUndoStack.length === 0}
+              className="rounded-lg border border-vilo-border-subtle bg-vilo-card px-3 py-2 text-sm font-medium text-vilo-text-soft transition-colors hover:bg-[#332d4e] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Undo
+            </button>
+            <button
+              onClick={handleRedoLayout}
+              disabled={layoutRedoStack.length === 0}
+              className="rounded-lg border border-vilo-border-subtle bg-vilo-card px-3 py-2 text-sm font-medium text-vilo-text-soft transition-colors hover:bg-[#332d4e] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Redo
+            </button>
+            <button
+              onClick={() => {
+                setEditMode(false);
+                setEditorMode('layout');
+                setSelectedTable(null);
+                setPlacementVariant(null);
+                setComboDraftTableIds([]);
+                setFocusedCombinationId(null);
+                setFocusedCombinationTableId(null);
+                setEditorTool('move');
+              }}
+              className="rounded-lg border border-[#9b7cff] bg-[#8b5cf6] px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#7c3aed]"
+            >
+              Fertig
+            </button>
+            <div className="ml-auto text-xs text-vilo-text-muted">
+              {editorMode === 'combos'
+                ? `${zoneCombinations.length} Kombinationen im Bereich`
+                : placementVariant
+                  ? `Klicke auf die Bühne, um ${TABLE_VARIANT_MAP[placementVariant]?.label || 'Element'} zu platzieren`
+                  : `${zoneTables.length} Tische im Bereich`}
+            </div>
+          </div>
+
+          <div
+            className="relative min-h-0 flex-1 overflow-hidden bg-[#18192b]"
+          >
+            <div className="absolute inset-0 overflow-auto p-4 md:p-6">
+              <div
+                ref={editorFrameRef}
+                className="relative overflow-hidden rounded-2xl border border-vilo-border-subtle bg-[#1f2035]"
+                style={{
+                  width: editorCanvasSize.width,
+                  height: editorCanvasSize.height,
+                }}
+              >
+                <div
+                  className="pointer-events-none absolute inset-0"
+                  style={{
+                    backgroundImage: 'none',
+                  }}
+                />
+                <div className="pointer-events-none absolute inset-0 border border-white/[0.03]" />
+                <div
+                  ref={editorStageRef}
+                  className="absolute inset-0"
+                  onClick={handleEditorCanvasClick}
+                  onDragOver={handleEditorCanvasDragOver}
+                  onDrop={handleEditorCanvasDrop}
+                  onMouseDown={handleCanvasViewportMouseDown}
+                  style={{
+                    width: editorCanvasSize.width,
+                    height: editorCanvasSize.height,
+                    transform: `translate(${translate.x}px, ${translate.y}px) scale(${scale})`,
+                    transformOrigin: '0 0',
+                  }}
+                >
+                  {zoneTables.map(table => renderTableShape(table))}
+                </div>
+                <button
+                  type="button"
+                  onMouseDown={event => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    startEditorResize(event.clientX, event.clientY);
+                  }}
+                  onTouchStart={event => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const touch = event.touches[0];
+                    if (!touch) return;
+                    startEditorResize(touch.clientX, touch.clientY);
+                  }}
+                  className="absolute bottom-0 right-0 z-20 h-5 w-5 translate-x-1/2 translate-y-1/2 border border-vilo-border-subtle bg-[#31324a] shadow-[0_0_0_1px_rgba(255,255,255,0.03)]"
+                  aria-label="Bühne skalieren"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <aside className="shrink-0 overflow-y-auto border-t border-vilo-border-subtle bg-[#1d1e31] p-3 lg:border-t-0 lg:p-4">
+          {renderSelectedTableInspector()}
+        </aside>
+      </div>
+    );
+  };
+
+  return (
+    <div className="h-full flex flex-col" style={{ background: '#1a1a2e' }}>
       <div className="flex-1 flex overflow-hidden min-w-0">
+        {editMode ? (
+          renderEditorWorkspace()
+        ) : (
+          <>
         {/* OpenTable-style sidebar */}
         {renderSidebar()}
 
         {/* Stage stays visible; reservation details open as right inspector */}
         <div ref={canvasRef} className={`${isMobileViewport && (showReservationCreatePanel || showWaitlist) ? 'hidden' : 'flex-1'} overflow-hidden relative`}
-          style={{ background: '#1a1a2e', touchAction: scale > 1 || editMode ? 'none' : 'auto' }}
+          style={{ background: '#1a1a2e', touchAction: editMode ? 'none' : 'none' }}
           onClick={() => {
+            if (suppressLiveStageClickRef.current) {
+              suppressLiveStageClickRef.current = false;
+              return;
+            }
             if (editMode) {
               setSelectedTable(null);
-              setShowShapePicker(false);
               return;
             }
             if (isMobileViewport) {
               setShowSidebar(false);
             }
-            if (selectedReservationId || showWaitlist || showReservationCreatePanel || resDetailId || seatInspector) {
+            if (selectedReservationId || showWaitlist || showReservationCreatePanel || resDetailId || seatInspector || tableManagementId) {
               closeGuestPanel();
               setShowWaitlist(false);
               setShowReservationCreatePanel(false);
@@ -2875,19 +5237,233 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
               setTableManagementId(null);
             }
           }}>
+          {!editMode && (
+            <div className="absolute right-4 top-4 z-20 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={event => {
+                  event.stopPropagation();
+                  setLiveScaleFactor(prev => Math.max(0.75, +(prev - 0.1).toFixed(2)));
+                }}
+                className="rounded-lg border border-vilo-border-subtle bg-vilo-card px-3 py-2 text-[13px] font-semibold text-vilo-text-soft shadow-[0_10px_30px_rgba(2,6,23,0.16)] transition-colors hover:bg-[#332d4e]"
+                aria-label="Bühne verkleinern"
+              >
+                -
+              </button>
+              <button
+                type="button"
+                onClick={event => {
+                  event.stopPropagation();
+                  setLiveScaleFactor(prev => Math.min(2.4, +(prev + 0.1).toFixed(2)));
+                }}
+                className="rounded-lg border border-vilo-border-subtle bg-vilo-card px-3 py-2 text-[13px] font-semibold text-vilo-text-soft shadow-[0_10px_30px_rgba(2,6,23,0.16)] transition-colors hover:bg-[#332d4e]"
+                aria-label="Bühne vergrößern"
+              >
+                +
+              </button>
+              <button
+                type="button"
+                onClick={event => {
+                  event.stopPropagation();
+                  resetLiveViewport();
+                }}
+                className="rounded-lg border border-vilo-border-subtle bg-vilo-card px-3 py-2 text-[12px] font-semibold text-vilo-text-soft shadow-[0_10px_30px_rgba(2,6,23,0.16)] transition-colors hover:bg-[#332d4e]"
+                aria-label="Bühne einpassen"
+              >
+                Fit
+              </button>
+            </div>
+          )}
           <div style={{
-            transform: 'scale(' + scale + ') translate(' + (translate.x / scale) + 'px, ' + (translate.y / scale) + 'px)',
-            transformOrigin: 'center center', width: '100%', height: '100%', position: 'relative',
-            transition: pinchRef.current.isPinching ? 'none' : 'transform 0.1s ease-out',
-          }}>
+            transform: `translate(${effectiveLiveViewport.translate.x}px, ${effectiveLiveViewport.translate.y}px) scale(${effectiveLiveViewport.scale})`,
+            transformOrigin: '0 0',
+            width: '100%',
+            height: '100%',
+            position: 'relative',
+            transition: 'transform 0.18s ease-out',
+            cursor: editMode ? 'default' : (livePanRef.current ? 'grabbing' : 'grab'),
+          }}
+          onMouseDown={handleLiveCanvasMouseDown}>
             {zoneTables.map(table => renderTableShape(table))}
+            {activeCombinationOverlays.map(overlay => (
+              <div key={`combo-overlay-${overlay.ownerTableId}`} className="absolute pointer-events-none" style={{ inset: 0 }}>
+                <svg className="absolute inset-0 h-full w-full overflow-visible" style={{ pointerEvents: 'none' }}>
+                  {overlay.routeSegments.map((segment, index) => (
+                    <line
+                      key={`${overlay.ownerTableId}-segment-${index}`}
+                      x1={segment.x1}
+                      y1={segment.y1}
+                      x2={segment.x2}
+                      y2={segment.y2}
+                      stroke="rgba(139,92,246,0.76)"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeDasharray="8 6"
+                      filter="drop-shadow(0 0 10px rgba(139,92,246,0.18))"
+                    >
+                      <animate
+                        attributeName="stroke-dashoffset"
+                        from="14"
+                        to="0"
+                        dur="1.4s"
+                        repeatCount="indefinite"
+                      />
+                    </line>
+                  ))}
+                </svg>
+                {overlay.kind === 'shared' && overlay.sharedBadge && (
+                  <div
+                    className="absolute flex flex-col items-center gap-1"
+                    style={{
+                      left: overlay.sharedBadge.left,
+                      top: overlay.sharedBadge.top,
+                      width: overlay.sharedBadge.width,
+                      pointerEvents: 'auto',
+                      zIndex: 40,
+                    }}
+                  >
+                    {overlay.badges.map(badge => {
+                      const badgeSize = estimateBadgeSize(badge.label, badge.subLabel);
+                      return (
+                        <div
+                          key={`${overlay.ownerTableId}-${badge.label}`}
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: badge.subLabel ? 4 : 0,
+                            width: badgeSize.width,
+                          }}
+                        >
+                          <div
+                            className={badge.interactive && !editMode ? 'cursor-pointer transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgba(139,92,246,0.28)] active:scale-[0.98]' : ''}
+                            onClick={badge.interactive && !editMode ? event => {
+                              event.stopPropagation();
+                              const ownerTable = zoneTables.find(table => table.id === overlay.ownerTableId);
+                              if (ownerTable) handleTableClick(ownerTable);
+                            } : undefined}
+                            title={badge.interactive && !editMode ? 'POS öffnen' : undefined}
+                            style={{
+                              background: 'rgba(15,23,42,0.82)',
+                              border: badge.border,
+                              borderRadius: 8,
+                              minWidth: 0,
+                              width: badgeSize.width,
+                              height: 20,
+                              padding: '3px 10px',
+                              textAlign: 'center',
+                              boxShadow: badge.interactive
+                                ? '0 8px 24px rgba(76,29,149,0.22)'
+                                : '0 8px 22px rgba(2,6,23,0.25)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <div
+                              style={{
+                                color: badge.color,
+                                fontSize: 10,
+                                fontWeight: 700,
+                                lineHeight: '12px',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              {badge.label}
+                            </div>
+                          </div>
+                          {badge.subLabel && (
+                            <div
+                              style={{
+                                background: 'rgba(15,23,42,0.82)',
+                                border: '1px solid rgba(125,211,252,0.2)',
+                                borderRadius: 8,
+                                minWidth: 0,
+                                width: badgeSize.width,
+                                height: 18,
+                                padding: '2px 10px',
+                                textAlign: 'center',
+                                boxShadow: '0 8px 22px rgba(2,6,23,0.2)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
+                            >
+                              <div
+                                style={{
+                                  color: '#eef1fb',
+                                  fontSize: 9,
+                                  fontWeight: 700,
+                                  lineHeight: '11px',
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                {badge.subLabel}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
 
           {/* Zone selector - OpenTable style bottom-right */}
-          {!editMode && (
-            <div className="absolute bottom-4 right-4 z-10 flex items-center gap-2">
+      {!editMode && (
+        <div
+          className="absolute right-4 z-10 flex items-center gap-2"
+          style={{ bottom: 'calc(0.6rem + env(safe-area-inset-bottom, 0px))' }}
+        >
               <button
-                onClick={() => { setEditMode(!editMode); setSelectedTable(null); setShowShapePicker(false); }}
+                type="button"
+                onClick={() => setShowFloorStatusBadges(prev => !prev)}
+                className={'px-3 py-2.5 rounded-lg text-[14px] font-medium transition-colors flex items-center justify-center ' +
+                  (showFloorStatusBadges ? 'bg-[#8b5cf6] text-white' : 'bg-vilo-surface text-[#c4b5fd] hover:bg-vilo-elevated')}
+                aria-label={showFloorStatusBadges ? 'POS-Status auf dem Floor ausblenden' : 'POS-Status auf dem Floor einblenden'}
+                title={showFloorStatusBadges ? 'POS-Status ausblenden' : 'POS-Status einblenden'}
+              >
+                <IconAlignLeft className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowFloorServerBadges(prev => !prev)}
+                className={'px-3 py-2.5 rounded-lg text-[14px] font-medium transition-colors flex items-center justify-center ' +
+                  (showFloorServerBadges ? 'bg-[#8b5cf6] text-white' : 'bg-vilo-surface text-[#c4b5fd] hover:bg-vilo-elevated')}
+                aria-label={showFloorServerBadges ? 'Bediener auf dem Floor ausblenden' : 'Bediener auf dem Floor einblenden'}
+                title={showFloorServerBadges ? 'Bediener ausblenden' : 'Bediener einblenden'}
+              >
+                <IconUserCheck className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowFloorMoneyBadges(prev => !prev)}
+                className={'px-3 py-2.5 rounded-lg text-[14px] font-medium transition-colors flex items-center justify-center ' +
+                  (showFloorMoneyBadges ? 'bg-[#8b5cf6] text-white' : 'bg-vilo-surface text-[#c4b5fd] hover:bg-vilo-elevated')}
+                aria-label={showFloorMoneyBadges ? 'Geld auf dem Floor ausblenden' : 'Geld auf dem Floor einblenden'}
+                title={showFloorMoneyBadges ? 'Geld ausblenden' : 'Geld einblenden'}
+              >
+                <IconCashBanknoteFilled className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowFloorTimeBadges(prev => !prev)}
+                className={'px-3 py-2.5 rounded-lg text-[14px] font-medium transition-colors flex items-center justify-center ' +
+                  (showFloorTimeBadges ? 'bg-[#8b5cf6] text-white' : 'bg-vilo-surface text-[#c4b5fd] hover:bg-vilo-elevated')}
+                aria-label={showFloorTimeBadges ? 'Zeiten auf dem Floor ausblenden' : 'Zeiten auf dem Floor einblenden'}
+                title={showFloorTimeBadges ? 'Zeiten ausblenden' : 'Zeiten einblenden'}
+              >
+                <IconClock className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => {
+                  setEditMode(!editMode);
+                  setSelectedTable(null);
+                  setPlacementVariant(null);
+                  setEditorTool('move');
+                }}
                 className={'px-3 py-2.5 rounded-lg text-[14px] font-medium transition-colors flex items-center gap-1.5 ' +
                   (editMode ? 'bg-[#8b5cf6] text-white' : 'bg-vilo-surface text-[#c4b5fd] hover:bg-vilo-elevated')}>
                 {editMode ? <><IconCheck className="w-4 h-4" />Fertig</> : <><IconEdit className="w-4 h-4" />Edit</>}
@@ -2947,21 +5523,31 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
             <TableManagement
               table={managedTable}
               onClose={() => {
+                setMoveSelection(null);
                 setTableManagementId(null);
                 setPendingWaitlistPlacement(null);
                 clearPersistedInspector();
               }}
               onOpenTableDetail={(tableId) => {
+                setMoveSelection(null);
                 setTableManagementId(null);
                 setPendingWaitlistPlacement(null);
                 clearPersistedInspector();
                 dispatch({ type: 'SET_ACTIVE_TABLE', tableId });
               }}
               onReserve={() => {
+                setMoveSelection(null);
                 setTableManagementId(null);
                 clearPersistedInspector();
                 setShowReservations(true);
               }}
+              onStartMoveSelection={(fromTableId) => {
+                setMoveSelection({ fromTableId });
+              }}
+              onCancelMoveSelection={() => {
+                setMoveSelection(null);
+              }}
+              isMoveSelectionActive={moveSelection?.fromTableId === managedTable.id}
               allTables={state.tables}
               isSidebarExpanded={showSidebar}
               initialSubView={pendingWaitlistPlacement && managedTable.status === 'free' ? 'walkin_count' : 'main'}
@@ -2984,129 +5570,21 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
           );
         })()}
 
-        {seatInspector && !showReservationCreatePanel && !showWaitlist && !editMode && renderSeatInspector()}
+        {seatAssignmentEnabled && seatInspector && !showReservationCreatePanel && !showWaitlist && !editMode && renderSeatInspector()}
         {selectedReservation && !showGuestProfileView && !showReservationCreatePanel && !showWaitlist && !editMode && renderRightPanel()}
+          </>
+        )}
       </div>
-
-      {showPartySizeOverlay && selectedReservation && (() => {
-        const r = selectedReservation;
-        const zoneTabs = state.zones.slice(0, 3);
-        const currentZoneId = r.zone && zoneTabs.some(zone => zone.id === r.zone) ? r.zone : zoneTabs[0]?.id;
-        const partySizes = Array.from({ length: 20 }, (_, idx) => idx + 1);
-        const applyPartySize = (partySize: number) => {
-          const updated = reservations.map(res => res.id === r.id ? { ...res, partySize } : res);
-          setReservations(updated);
-          saveStorage({ ...loadStorage(), reservations: updated } as never);
-          setShowPartySizeOverlay(false);
-        };
-
-        return (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center" style={{ background: 'rgba(12,11,24,0.72)' }}>
-            <div className="w-[760px] max-w-[92vw] max-h-[88vh] overflow-hidden" style={{ background: '#1f1e33', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <div className="flex items-center justify-between px-8 py-6 border-b border-vilo-border-subtle">
-                <h2 className="text-[#eef1fb] text-[22px] font-bold">Personenzahl ändern</h2>
-                <button onClick={() => setShowPartySizeOverlay(false)} className="text-[#a9b5cb] hover:text-white transition-colors">
-                  <IconX className="w-7 h-7" />
-                </button>
-              </div>
-
-              <div className="px-8 pt-5">
-                <div className="grid grid-cols-3 gap-6">
-                  {zoneTabs.map(zone => (
-                    <div key={zone.id} className="pb-3 border-b-2 text-center"
-                      style={{ borderColor: currentZoneId === zone.id ? '#8b5cf6' : 'rgba(255,255,255,0.08)' }}>
-                      <span className={'text-[15px] font-medium ' + (currentZoneId === zone.id ? 'text-[#d8c7ff]' : 'text-[#8f97b3]')}>
-                        {zone.name}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="px-8 py-6">
-                <div className="max-h-[420px] overflow-y-auto border border-vilo-border-subtle">
-                  {partySizes.map(size => (
-                    <button
-                      key={size}
-                      onClick={() => applyPartySize(size)}
-                      className={'w-full px-8 py-5 text-left text-[18px] border-b border-vilo-border-subtle transition-colors last:border-b-0 ' +
-                        (r.partySize === size ? 'bg-[#2b2944] text-[#d8c7ff] font-semibold' : 'text-[#eef1fb] hover:bg-vilo-card')}
-                    >
-                      {size} Gäste
-                    </button>
-                  ))}
-                </div>
-                <input
-                  type="number"
-                  min={1}
-                  placeholder="Personenzahl eingeben"
-                  className="w-full mt-5 px-5 py-4 bg-[#161526] text-[#eef1fb] text-[17px] border border-vilo-border-subtle focus:border-[#8b5cf6] focus:outline-none placeholder:text-[#8f97b3]"
-                  onKeyDown={(e) => {
-                    if (e.key !== 'Enter') return;
-                    const value = Number((e.target as HTMLInputElement).value);
-                    if (!Number.isFinite(value) || value < 1) return;
-                    applyPartySize(value);
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        );
-      })()}
-
-      {showDurationOverlay && selectedReservation && (() => {
-        const r = selectedReservation;
-        const durationOptions = Array.from({ length: 19 }, (_, idx) => 30 + idx * 15);
-        const formatDuration = (minutes: number) => {
-          const hours = Math.floor(minutes / 60);
-          const mins = minutes % 60;
-          if (hours > 0 && mins > 0) return `${hours} Std. ${mins}m`;
-          if (hours > 0) return `${hours} Std.`;
-          return `${mins}m`;
-        };
-        const applyDuration = (duration: number) => {
-          const updated = reservations.map(res => res.id === r.id ? { ...res, duration } : res);
-          setReservations(updated);
-          saveStorage({ ...loadStorage(), reservations: updated } as never);
-          setShowDurationOverlay(false);
-        };
-
-        return (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center" style={{ background: 'rgba(12,11,24,0.72)' }}>
-            <div className="w-[520px] max-w-[92vw] max-h-[88vh] overflow-hidden" style={{ background: '#1f1e33', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <div className="flex items-center justify-between px-8 py-6 border-b border-vilo-border-subtle">
-                <h2 className="text-[#eef1fb] text-[22px] font-bold">Dauer ändern</h2>
-                <button onClick={() => setShowDurationOverlay(false)} className="text-[#a9b5cb] hover:text-white transition-colors">
-                  <IconX className="w-7 h-7" />
-                </button>
-              </div>
-
-              <div className="px-8 py-6">
-                <div className="max-h-[520px] overflow-y-auto border border-vilo-border-subtle">
-                  {durationOptions.map(option => (
-                    <button
-                      key={option}
-                      onClick={() => applyDuration(option)}
-                      className={'w-full px-8 py-5 text-left text-[18px] border-b border-vilo-border-subtle transition-colors last:border-b-0 flex items-center justify-between ' +
-                        (r.duration === option ? 'bg-[#2b2944] text-[#d8c7ff] font-semibold' : 'text-[#eef1fb] hover:bg-vilo-card')}
-                    >
-                      <span>{formatDuration(option)}</span>
-                      {r.duration === option && <IconCheck className="w-5 h-5 text-[#c4b5fd]" />}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
 
       {/* OpenTable Seat Overlay - Full-screen floor plan for table assignment */}
       {showSeatOverlay && selectedReservation && (() => {
         const r = selectedReservation;
         const overlayZoneTables = state.tables.filter(t => t.zone === seatOverlayZone);
         const assignedIds = r.tableIds && r.tableIds.length > 0 ? r.tableIds : (r.tableId ? [r.tableId] : []);
-        const assignedNames = assignedIds.map(id => state.tables.find(t => t.id === id)?.name || '').filter(Boolean).join(', ');
+        const assignedNames = assignedIds.map(id => {
+          const table = state.tables.find(t => t.id === id);
+          return table ? getTableDisplayLabel(table) : '';
+        }).filter(Boolean).join(', ');
         const handleOverlayTableClick = (tableId: string) => {
           const currentIds = r.tableIds && r.tableIds.length > 0 ? [...r.tableIds] : (r.tableId ? [r.tableId] : []);
           let newIds: string[];
@@ -3162,13 +5640,13 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
                   </div>
                 ) : (
                   <div className="mb-3 px-3 py-3 border border-dashed border-[#7f5bb0]">
-                    <p className="text-[#bfa8ee] text-[13px]">Tisch auf dem Plan anklicken</p>
+                    <p className="text-[#bfa8ee] text-[13px]">Platz auf dem Plan anklicken</p>
                   </div>
                 )}
                 {/* Seat now button */}
                 <button onClick={handleSeatNow}
                   className="w-full py-3 font-semibold text-[14px] flex items-center justify-center gap-2 transition-colors bg-[#8b5cf6] text-white hover:bg-[#7c3aed] mb-4">
-                  {seatOverlayTab === 'seat' ? 'Jetzt platzieren' : 'Tisch vorschlagen'}
+                  {seatOverlayTab === 'seat' ? 'Jetzt platzieren' : 'Platz vorschlagen'}
                 </button>
                 {/* Seating Preferences */}
                 <div className="flex items-center gap-2 text-[13px] px-3 py-3 bg-vilo-card">
@@ -3195,9 +5673,9 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
               <div className="flex-1 overflow-hidden relative" style={{ background: '#1a1a2e' }}>
                 <div style={{ width: '100%', height: '100%', position: 'relative' }}>
                   {overlayZoneTables.map(table => {
-                    const shape = table.shape || 'rect';
-                    const sizeKey = shape === 'barstool' ? 'barstool' : shape;
-                    const size = SHAPE_SIZES[sizeKey] || SHAPE_SIZES.rect;
+                    const variant = getTableVariantConfig(table);
+                    const shape = variant.shape;
+                    const size = getTableSize(table);
                     const isAssigned = assignedIds.includes(table.id);
                     const tableRes = tableReservationMap[table.id];
                     const isOccupiedByOther = tableRes && tableRes.id !== r.id;
@@ -3236,7 +5714,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
                         {isAvail && !isAssigned && (
                           <IconPlus className="w-3.5 h-3.5 text-white/60 mb-0.5" />
                         )}
-                        <span className="text-[12px] font-bold">{table.name}</span>
+                        <span className="text-[12px] font-bold">{getTableDisplayLabel(table)}</span>
                         {isAssigned && (
                           <span className="text-[9px] font-semibold mt-0.5 px-1.5 py-0.5 rounded" style={{ background: '#38bdf8', color: '#fff' }}>
                             {r.time}

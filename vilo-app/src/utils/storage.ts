@@ -1,4 +1,4 @@
-import { ViloStorage, OwnerAccount, Restaurant, Zone, Table, MenuItem, Staff, OnboardingStep, Reservation, Guest, GuestNote, GuestTag, GuestVisit, WaitlistEntry } from '../types';
+import { ViloStorage, OwnerAccount, Restaurant, Zone, Table, TableCombination, MenuItem, Staff, OnboardingStep, Reservation, Guest, GuestNote, GuestTag, GuestVisit, WaitlistEntry } from '../types';
 import { supabaseRegister, supabaseGetRestaurant, supabaseSaveConfig } from './supabase';
 
 const STORAGE_KEY = 'vilo_data';
@@ -8,6 +8,7 @@ const defaultStorage: ViloStorage = {
   restaurant: null,
   zones: [],
   tables: [],
+  tableCombinations: [],
   menu: [],
   staff: [],
   onboardingStep: 0,
@@ -47,11 +48,28 @@ export function generateRestaurantCode(): string {
 }
 
 export async function hashPassword(password: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  const subtle = globalThis.crypto?.subtle;
+
+  if (subtle) {
+    try {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(password);
+      const hashBuffer = await subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    } catch (error) {
+      console.warn('[VILO] WebCrypto hashing failed, using fallback hash:', error);
+    }
+  }
+
+  // Fallback for insecure contexts like local iPad testing over LAN HTTP,
+  // where Web Crypto's subtle API may be unavailable.
+  let hash = 2166136261;
+  for (let i = 0; i < password.length; i++) {
+    hash ^= password.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `fallback_${(hash >>> 0).toString(16).padStart(8, '0')}`;
 }
 
 // Check if a restaurant exists in storage
@@ -91,6 +109,10 @@ export function saveTables(tables: Table[]): void {
   saveStorage({ tables });
 }
 
+export function saveTableCombinations(tableCombinations: TableCombination[]): void {
+  saveStorage({ tableCombinations });
+}
+
 // Save menu
 export function saveMenu(menu: MenuItem[]): void {
   saveStorage({ menu });
@@ -117,6 +139,7 @@ export async function findRestaurantByCode(code: string): Promise<ViloStorage | 
         restaurant: data.restaurant as Restaurant,
         zones: data.zones as Zone[],
         tables: data.tables as Table[],
+        tableCombinations: (data as unknown as ViloStorage).tableCombinations || [],
         menu: data.menu as MenuItem[],
         staff: data.staff as Staff[],
         onboardingStep: (data.onboardingStep || 0) as OnboardingStep,

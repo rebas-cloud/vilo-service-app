@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { IconLogout } from '@tabler/icons-react';
 
 import { useApp } from '../context/AppContext';
-import viloLogo from '../assets/VILO.svg';
+import { BrandWordmark } from './BrandWordmark';
 
 interface LoginPageProps {
   onLogout?: () => void;
@@ -39,11 +39,11 @@ export function LoginPage({ onLogout }: LoginPageProps) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#151b31', paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: '#1a1a2e', paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
       {/* Logo */}
       <div className="mb-8 text-center">
         <div className="flex items-center justify-center">
-          <img src={viloLogo} alt="VILO" className="h-10 w-auto" />
+          <BrandWordmark className="text-[3.5rem]" />
         </div>
       </div>
 

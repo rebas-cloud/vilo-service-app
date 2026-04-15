@@ -23,6 +23,7 @@ export interface ViloStorage {
   restaurant: Restaurant | null;
   zones: Zone[];
   tables: Table[];
+  tableCombinations: TableCombination[];
   menu: MenuItem[];
   staff: Staff[];
   onboardingStep: OnboardingStep;
@@ -35,6 +36,24 @@ export interface Zone {
 }
 
 export type TableShape = 'round' | 'square' | 'rect' | 'diamond' | 'rect_v' | 'barstool';
+export type TableRotation = 0 | 45 | 90 | 135 | 180 | 225 | 270 | 315;
+export type TablePlacementType = 'table' | 'bar_seat';
+export type TableVariant =
+  | 'round-2'
+  | 'rect-2-v-narrow'
+  | 'rect-2-v-wide'
+  | 'round-2-alt'
+  | 'square-4'
+  | 'square-4-wide'
+  | 'round-4'
+  | 'rect-6-h'
+  | 'rect-8-h'
+  | 'round-6'
+  | 'round-8'
+  | 'rect-10-h'
+  | 'round-10'
+  | 'barstool-1'
+  | 'diamond-4';
 
 export interface Table {
   id: string;
@@ -48,10 +67,25 @@ export interface Table {
   cells?: { x: number; y: number }[]; // multi-cell tables (L-shape, U-shape etc.)
   rounded?: boolean; // rounded corners toggle
   shape?: TableShape;
+  variant?: TableVariant;
   seats?: number;
+  minPartySize?: number;
+  maxPartySize?: number;
   // Legacy free-position fields (kept for compat)
   x?: number;
   y?: number;
+  rotation?: TableRotation;
+  placementType?: TablePlacementType;
+}
+
+export interface TableCombination {
+  id: string;
+  zoneId: string;
+  name: string;
+  tableIds: string[];
+  minPartySize: number;
+  maxPartySize: number;
+  active?: boolean;
 }
 
 export type MenuCategory = 'drinks' | 'starters' | 'mains' | 'desserts';
@@ -107,6 +141,7 @@ export interface Reservation {
   guestName: string;
   guestPhone?: string;
   guestEmail?: string;
+  confirmationStatus?: 'pending' | 'confirmed';
   partySize: number;
   date: string; // YYYY-MM-DD
   time: string; // HH:MM
@@ -178,11 +213,15 @@ export interface Guest {
 export interface TableSession {
   id: string;
   tableId: string;
+  combinedTableIds?: string[];
   orders: OrderItem[];
   notes: string[];
   startTime: number;
+  servedById?: string;
+  servedByName?: string;
   guestName?: string;
   guestCount?: number;
+  plannedDuration?: number;
   guestSource?: GuestSource;
   serviceStatus?: TableServiceStatus;
   seatAssignments?: SeatAssignment[];

@@ -282,14 +282,6 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
     table.status === 'billing'
       ? '#f59e0b'
       : currentServiceStatusInfo?.color || '#8b5cf6';
-  const tableStatusLabel =
-    table.status === 'billing'
-      ? 'Rechnung'
-      : table.status === 'occupied'
-        ? 'Besetzt'
-        : table.status === 'blocked'
-          ? 'Blockiert'
-          : 'Frei';
   const quantityByMenuItem = session.orders.reduce<Record<string, number>>((acc, order) => {
     acc[order.menuItemId] = (acc[order.menuItemId] || 0) + order.quantity;
     return acc;
@@ -487,16 +479,6 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
                 boxShadow: `inset 4px 0 0 ${accentAccordionColor}`,
               }}
             >
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <span
-                  className="inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white"
-                  style={{ background: table.status === 'billing' ? '#f59e0b' : '#334155' }}
-                >
-                  {tableStatusLabel}
-                </span>
-                <span className="text-[11px] font-medium text-white/70">Tisch {table.name.replace(/^Tisch\s*/i, '')}</span>
-              </div>
-
               <button
                 onClick={() => setShowStatusPicker(!showStatusPicker)}
                 className="flex w-full items-center justify-between gap-3"
@@ -680,26 +662,26 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
           <div className="border-t border-vilo-border-subtle bg-[#171827]">
             <div className="px-2 pt-[3px] pb-2">
               <div className="mt-2 mb-2 flex items-center gap-2">
-                <span className="inline-flex h-8 items-center rounded-xl border border-vilo-border-subtle bg-vilo-card px-3 text-[11px] font-bold uppercase tracking-[0.16em] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+                <span className="inline-flex h-8 items-center rounded-lg border border-vilo-border-subtle bg-vilo-card px-3 text-[11px] font-bold uppercase tracking-[0.16em] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
                   Hier
                 </span>
-                <span className="inline-flex h-8 items-center rounded-xl border border-vilo-border-subtle bg-vilo-card px-3 text-[11px] font-semibold text-vilo-text-soft shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+                <span className="inline-flex h-8 items-center rounded-lg border border-vilo-border-subtle bg-vilo-card px-3 text-[11px] font-semibold text-vilo-text-soft shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
                   {activePositionCount} offen
                 </span>
               </div>
-              <div className={ordersByState.ordered.length > 0 ? 'relative min-h-[44px] pr-[176px]' : ''}>
+              <div className={ordersByState.ordered.length > 0 ? 'grid min-h-[44px] grid-cols-[minmax(0,1fr)_156px] gap-2' : ''}>
                 {ordersByState.ordered.length > 0 && (
                   <button
                     onClick={handleSendOrders}
-                    className="flex h-full min-h-[44px] w-full min-w-0 items-center justify-center gap-1.5 rounded-xl border border-[#b66cff]/40 bg-[#a855f7] px-3 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#9333ea]"
+                    className="flex h-full min-h-[44px] w-full min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-[#b66cff]/35 bg-[#a855f7] px-3 py-2.5 text-[12px] font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-colors hover:bg-[#9333ea]"
                   >
                     <IconChefHat className="h-4 w-4" />
-                    An Service senden
+                    Senden
                   </button>
                 )}
                 <button
                   onClick={handleOpenCheckout}
-                  className={`${ordersByState.ordered.length > 0 ? 'absolute right-0 top-0 w-[168px]' : 'w-full'} min-h-[44px] min-w-0 rounded-xl border border-vilo-border-strong bg-[#302c4b] px-3 py-2 text-left text-white shadow-[0_10px_24px_rgba(0,0,0,0.22),inset_0_1px_0_rgba(255,255,255,0.04)] transition-colors hover:bg-[#353154]`}
+                  className={`${ordersByState.ordered.length > 0 ? 'w-[156px]' : 'w-full'} min-h-[44px] min-w-0 rounded-lg border border-vilo-border-strong bg-[#302c4b] px-3 py-2 text-left text-white shadow-[0_10px_24px_rgba(0,0,0,0.22),inset_0_1px_0_rgba(255,255,255,0.04)] transition-colors hover:bg-[#353154]`}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0">

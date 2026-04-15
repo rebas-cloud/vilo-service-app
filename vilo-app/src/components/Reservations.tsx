@@ -450,6 +450,7 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
         guestName: formData.guestName.trim(),
         guestPhone: formData.guestPhone.trim() || undefined,
         guestEmail: formData.guestEmail.trim() || undefined,
+        confirmationStatus: 'pending',
         partySize: formData.partySize,
         date: formData.date,
         time: formData.time,

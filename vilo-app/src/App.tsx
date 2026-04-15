@@ -1,5 +1,5 @@
 import { useCallback, useState, useRef, useEffect, lazy, Suspense } from 'react';
-import { IconAlertTriangle, IconChartBar, IconCalendar, IconChefHat, IconChevronLeft, IconChevronRight, IconEye, IconLayoutGrid, IconLogout, IconMenu2, IconSettings, IconSparkles, IconX } from '@tabler/icons-react';
+import { IconAlertTriangle, IconChartBar, IconCalendar, IconChefHat, IconChevronDown, IconChevronLeft, IconChevronRight, IconClipboardList, IconEye, IconLayoutGrid, IconLogout, IconMap2, IconMenu2, IconSearch, IconSettings, IconSparkles, IconX } from '@tabler/icons-react';
 
 import './App.css';
 import { AppProvider, useApp } from './context/AppContext';
@@ -13,11 +13,11 @@ import { WelcomePage } from './components/WelcomePage';
 import { RegistrationPage } from './components/RegistrationPage';
 import { WaiterLoginPage } from './components/WaiterLoginPage';
 import { LoginPage } from './components/LoginPage';
+import { BrandWordmark } from './components/BrandWordmark';
 import { FloorPlan } from './components/FloorPlan';
 import { TableDetail } from './components/TableDetail';
 import { VoiceIndicator } from './components/VoiceIndicator';
 import { BillingModal } from './components/BillingModal';
-import viloLogo from './assets/VILO.svg';
 
 // Lazy-loaded components (code-splitting)
 const Dashboard = lazy(() => import('./components/Dashboard').then(m => ({ default: m.Dashboard })));
@@ -28,7 +28,7 @@ const ReservationList = lazy(() => import('./components/ReservationList').then(m
 const Timeline = lazy(() => import('./components/Timeline').then(m => ({ default: m.Timeline })));
 const ProblemReservations = lazy(() => import('./components/ProblemReservations').then(m => ({ default: m.ProblemReservations })));
 
-import { Restaurant, Zone, Table, MenuItem, Staff, ViloStorage } from './types';
+import { Restaurant, Zone, Table, MenuItem, Staff, TableCombination, ViloStorage } from './types';
 import { restaurant as demoRestaurantData, zones as demoZones, tables as demoTables, menu as demoMenu, staff as demoStaff } from './data/mockData';
 
 type AppScreen = 'welcome' | 'register' | 'onboarding' | 'waiter-login' | 'pos';
@@ -43,6 +43,9 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
   const [showKitchenBar, setShowKitchenBar] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedShift, setSelectedShift] = useState<'Mittag' | 'Abend'>('Abend');
+  const [showShiftPicker, setShowShiftPicker] = useState(false);
+  const [activePosHeaderTool, setActivePosHeaderTool] = useState<'search' | 'receipts' | 'orders' | 'map'>('receipts');
   const [voiceToastVisible, setVoiceToastVisible] = useState(false);
   const voiceToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isHomeSection = ['statistiken', 'uebersicht', 'probleme'].includes(subTab);
@@ -150,11 +153,182 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
     return <LoginPage onLogout={onLogout} />;
   }
 
+  const getDateHeader = () => {
+    const d = selectedDate;
+    const days = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+    const months = ['Jan', 'Feb', 'März', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+    return `${days[d.getDay()]}. ${d.getDate()}. ${months[d.getMonth()]}`;
+  };
+
+  const changeDate = (offset: number) => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() + offset);
+    setSelectedDate(newDate);
+  };
+
+  const posHeaderActions = [
+    { key: 'search' as const, Icon: IconSearch, label: 'Suche' },
+    { key: 'receipts' as const, Icon: IconCalendar, label: 'Belege' },
+    { key: 'orders' as const, Icon: IconClipboardList, label: 'Bestellungen' },
+    { key: 'map' as const, Icon: IconMap2, label: 'Karte' },
+  ];
+
+  const renderDatePickerModal = () => (
+    showDatePicker ? (
+      <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-8" onClick={() => setShowDatePicker(false)}>
+        <div className="absolute inset-0 bg-black/55 backdrop-blur-[2px]" />
+        <div className="relative w-full max-w-xl overflow-hidden rounded-[28px] border border-vilo-border-subtle bg-vilo-surface shadow-2xl animate-fade-in" onClick={e => e.stopPropagation()}>
+          <div className="flex items-center justify-between border-b border-vilo-border-subtle px-6 py-5 shrink-0">
+            <div className="flex items-center gap-2">
+              <h2 className="text-[18px] font-bold text-white">Datum</h2>
+            </div>
+            <button
+              onClick={() => setShowDatePicker(false)}
+              className="ml-3 p-1 text-vilo-text-secondary hover:text-vilo-text-primary transition-colors shrink-0"
+            >
+              <IconX className="w-6 h-6" />
+            </button>
+          </div>
+          <div className="px-6 py-6">
+            <div className="rounded-[24px] border border-vilo-border-subtle bg-vilo-card p-5">
+              <input
+                type="date"
+                value={selectedDate.toISOString().split('T')[0]}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    const [y, m, d] = e.target.value.split('-').map(Number);
+                    setSelectedDate(new Date(y, m - 1, d));
+                  }
+                }}
+                className="w-full rounded-xl border border-vilo-border-subtle bg-vilo-elevated px-4 py-4 text-center text-[16px] font-semibold text-white outline-none transition-colors focus:border-[#8b5cf6]"
+                style={{ colorScheme: 'dark' }}
+              />
+            </div>
+            <div className="mt-5 flex gap-3">
+              <button
+                onClick={() => { setSelectedDate(new Date()); setShowDatePicker(false); }}
+                className="flex-1 rounded-lg border border-vilo-border-subtle bg-[#3a3656] px-4 py-3 text-sm font-semibold text-[#d8c7ff] transition-colors hover:text-white"
+              >
+                Heute
+              </button>
+              <button
+                onClick={() => setShowDatePicker(false)}
+                className="flex-1 rounded-lg border border-vilo-border-subtle bg-vilo-elevated px-4 py-3 text-sm font-semibold text-vilo-text-secondary transition-colors hover:text-white"
+              >
+                Schließen
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    ) : null
+  );
+
+  const renderPosHeader = (showLogo: boolean = true) => (
+    <header
+      className="relative grid grid-cols-[auto_1fr_auto] items-center gap-3 border-b border-vilo-border-subtle px-3 py-2"
+      style={{ background: '#1a1a2e', paddingTop: 'max(0.625rem, env(safe-area-inset-top))' }}
+    >
+      <div className="flex min-w-0 items-center">
+        {showLogo && (
+          <div className="flex items-center shrink-0">
+            <BrandWordmark className="text-[1.9rem]" />
+          </div>
+        )}
+      </div>
+
+      <div className="flex min-w-0 items-center justify-center">
+        <div className="flex min-w-0 items-center gap-1.5 overflow-x-auto hide-scrollbar">
+          <button
+            onClick={() => changeDate(-1)}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-vilo-border-subtle bg-[#27233c] text-vilo-text-secondary transition-colors hover:bg-[#312d48] hover:text-white"
+          >
+            <IconChevronLeft className="h-4 w-4" />
+          </button>
+
+          <button
+            onClick={() => {
+              setShowShiftPicker(false);
+              setShowDatePicker(true);
+            }}
+            className="flex h-8 shrink-0 items-center rounded-lg border border-vilo-border-subtle bg-[#27233c] px-3 text-white transition-colors hover:bg-[#312d48]"
+          >
+            <span className="truncate text-[12px] font-semibold leading-none">{getDateHeader()}</span>
+          </button>
+
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center">
+            <span className="h-3.5 w-3.5 rounded-full bg-[#49d36d]" />
+          </div>
+
+          <div className="relative shrink-0">
+            <button
+              onClick={() => setShowShiftPicker(prev => !prev)}
+              className="flex h-8 min-w-[124px] items-center justify-between rounded-lg border border-vilo-border-subtle bg-[#27233c] px-3 text-white transition-colors hover:bg-[#312d48]"
+            >
+              <span className="truncate text-[12px] font-semibold leading-none">{selectedShift}</span>
+              <IconChevronDown className={`ml-2 h-4 w-4 text-vilo-text-secondary transition-transform ${showShiftPicker ? 'rotate-180' : ''}`} />
+            </button>
+
+            {showShiftPicker && (
+              <>
+                <button className="fixed inset-0 z-40 cursor-default" onClick={() => setShowShiftPicker(false)} aria-label="Schichtauswahl schließen" />
+                <div className="absolute right-0 top-[calc(100%+0.5rem)] z-50 min-w-full overflow-hidden rounded-lg border border-vilo-border-subtle bg-vilo-surface shadow-2xl">
+                  {(['Mittag', 'Abend'] as const).map(shift => (
+                    <button
+                      key={shift}
+                      onClick={() => {
+                        setSelectedShift(shift);
+                        setShowShiftPicker(false);
+                      }}
+                      className={`flex w-full items-center justify-between px-3 py-2.5 text-left text-sm transition-colors ${
+                        selectedShift === shift
+                          ? 'bg-[#2b2b44] text-white'
+                          : 'text-vilo-text-secondary hover:bg-vilo-elevated hover:text-white'
+                      }`}
+                    >
+                      <span>{shift}</span>
+                      {selectedShift === shift && <span className="text-[#8b5cf6]">●</span>}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          <button
+            onClick={() => changeDate(1)}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-vilo-border-subtle bg-[#27233c] text-vilo-text-secondary transition-colors hover:bg-[#312d48] hover:text-white"
+          >
+            <IconChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      <div className="flex min-w-0 items-center justify-end gap-1.5">
+        {posHeaderActions.map(({ key, Icon, label }) => (
+          <button
+            key={key}
+            onClick={() => setActivePosHeaderTool(key)}
+            aria-label={label}
+            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-colors ${
+              activePosHeaderTool === key
+                ? 'border-vilo-border-subtle bg-[#3a3656] text-[#d8c7ff]'
+                : 'border-vilo-border-subtle bg-[#27233c] text-vilo-text-secondary hover:bg-[#312d48] hover:text-white'
+            }`}
+          >
+            <Icon className="h-4 w-4" />
+          </button>
+        ))}
+      </div>
+    </header>
+  );
+
   // Active table view
   if (state.activeTableId) {
     return (
       <div className="flex flex-col h-screen-safe bg-[#1a1a2e]">
-        <div className="flex-1 overflow-hidden" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+        {renderPosHeader(false)}
+        <div className="flex-1 overflow-hidden">
           <TableDetail
             onBack={() => dispatch({ type: 'CLEAR_ACTIVE_TABLE' })}
             voiceIndicator={
@@ -173,23 +347,11 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
             }
           />
         </div>
+        {renderDatePickerModal()}
         {state.showBilling && <BillingModal />}
       </div>
     );
   }
-
-  const getDateHeader = () => {
-    const d = selectedDate;
-    const days = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
-    const months = ['Jan', 'Feb', 'März', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
-    return `${days[d.getDay()]}. ${d.getDate()}. ${months[d.getMonth()]}`;
-  };
-
-  const changeDate = (offset: number) => {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(newDate.getDate() + offset);
-    setSelectedDate(newDate);
-  };
 
   // Map subTab to content (lazy-loaded tabs wrapped in Suspense)
   const lazyFallback = (
@@ -230,80 +392,10 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
       {/* Top Header */}
       {subTab !== 'reservierungen' && (
         <>
-          <header className="flex items-center justify-between gap-3 border-b border-vilo-border-subtle px-3 py-2" style={{ background: '#1a1a2e', paddingTop: 'max(0.625rem, env(safe-area-inset-top))' }}>
-            {/* Left: logo */}
-            <div className="flex items-center">
-              <img src={viloLogo} alt="Vilo" className="h-4 w-auto flex-shrink-0" />
-            </div>
-
-            <div className="min-w-0 flex items-center justify-end gap-1.5 overflow-x-auto">
-              <button
-                onClick={() => changeDate(-1)}
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-vilo-border-subtle bg-vilo-elevated text-vilo-text-secondary transition-colors hover:text-white"
-              >
-                <IconChevronLeft className="h-3.5 w-3.5" />
-              </button>
-              <button
-                onClick={() => setShowDatePicker(true)}
-                className="flex h-7 shrink-0 items-center rounded-md border border-vilo-border-subtle bg-vilo-elevated px-2.5 text-white transition-colors hover:bg-[#2b2b44]"
-              >
-                <span className="truncate text-[12px] font-semibold leading-none">{getDateHeader()}</span>
-              </button>
-              <button
-                onClick={() => changeDate(1)}
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-vilo-border-subtle bg-vilo-elevated text-vilo-text-secondary transition-colors hover:text-white"
-              >
-                <IconChevronRight className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          </header>
+          {renderPosHeader(true)}
 
           {/* Date Picker Modal */}
-          {showDatePicker && (
-            <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setShowDatePicker(false)}>
-              <div className="absolute inset-0 bg-black/50" />
-              <div className="relative w-full max-w-sm bg-vilo-surface rounded-t-2xl p-4 pb-8 animate-fade-in" onClick={e => e.stopPropagation()}>
-                <div className="mx-[-1rem] mt-[-1rem] mb-4 flex items-center justify-between border-b border-vilo-border-subtle px-5 py-4 shrink-0">
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-[16px] font-bold text-white">Datum</h2>
-                  </div>
-                  <button
-                    onClick={() => setShowDatePicker(false)}
-                    className="ml-3 p-1 text-vilo-text-secondary hover:text-vilo-text-primary transition-colors shrink-0"
-                  >
-                    <IconX className="w-5 h-5" />
-                  </button>
-                </div>
-                <input
-                  type="date"
-                  value={selectedDate.toISOString().split('T')[0]}
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      const [y, m, d] = e.target.value.split('-').map(Number);
-                      setSelectedDate(new Date(y, m - 1, d));
-                      setShowDatePicker(false);
-                    }
-                  }}
-                  className="w-full bg-vilo-elevated text-white rounded-xl px-4 py-3 text-center text-lg border border-[#555] focus:border-[#7bb7ef] outline-none"
-                  style={{ colorScheme: 'dark' }}
-                />
-                <div className="flex gap-2 mt-3">
-                  <button
-                    onClick={() => { setSelectedDate(new Date()); setShowDatePicker(false); }}
-                    className="flex-1 py-2.5 rounded-xl bg-[#7bb7ef]/20 text-[#7bb7ef] text-sm font-medium"
-                  >
-                    Heute
-                  </button>
-                  <button
-                    onClick={() => setShowDatePicker(false)}
-                    className="flex-1 py-2.5 rounded-xl bg-vilo-elevated text-vilo-text-secondary text-sm font-medium"
-                  >
-                    Abbrechen
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          {renderDatePickerModal()}
 
         </>
       )}
@@ -342,8 +434,11 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
           </div>
         )}
 
-        {/* Main Content Area - pb-14 for bottom nav */}
-        <div className="flex-1 overflow-hidden pb-14">
+        {/* Main Content Area - reserve enough space for bottom nav on iPad/mobile */}
+        <div
+          className="flex-1 overflow-hidden"
+          style={{ paddingBottom: 'calc(3.5rem + env(safe-area-inset-bottom, 0px))' }}
+        >
         {getSubTabContent()}
 
         {/* Voice feedback toast - stays visible for 4 seconds after command */}
@@ -384,6 +479,7 @@ function POSContent({ onLogout }: { onLogout: () => void }) {
                 restaurant: data.restaurant,
                 zones: data.zones,
                 tables: data.tables,
+                tableCombinations: state.tableCombinations,
                 menu: data.menu,
                 staff: data.staff,
               });
@@ -551,6 +647,7 @@ function App() {
     restaurant: Restaurant;
     zones: Zone[];
     tables: Table[];
+    tableCombinations: TableCombination[];
     menu: MenuItem[];
     staff: Staff[];
   } | null>(() => {
@@ -559,6 +656,7 @@ function App() {
         restaurant: storage.restaurant,
         zones: storage.zones,
         tables: storage.tables,
+        tableCombinations: storage.tableCombinations || [],
         menu: storage.menu,
         staff: storage.staff,
       };
@@ -571,12 +669,28 @@ function App() {
     const restaurantName = name + 's Restaurant';
     const passwordHash = await hashPassword(password);
 
-    try {
-      // Register via backend API
-      const { restaurant, owner } = await registerViaApi(name, email, passwordHash, restaurantName, code);
+    const persistAndContinue = (owner: {
+      id: string;
+      name: string;
+      email: string;
+      passwordHash: string;
+      restaurantId: string;
+    }, restaurant: Restaurant) => {
       saveStorage({ owner, restaurant, onboardingStep: 0, setupComplete: false });
       setRestaurantName(restaurant.name);
       setScreen('onboarding');
+    };
+
+    try {
+      // Register via backend API
+      const { restaurant, owner } = await registerViaApi(name, email, passwordHash, restaurantName, code);
+      persistAndContinue(owner as {
+        id: string;
+        name: string;
+        email: string;
+        passwordHash: string;
+        restaurantId: string;
+      }, restaurant as Restaurant);
     } catch (e) {
       console.warn('[VILO] Backend registration failed, using local:', e);
       // Fallback to local-only registration
@@ -595,9 +709,7 @@ function App() {
         currency: 'EUR',
         taxRate: 19,
       };
-      saveStorage({ owner, restaurant, onboardingStep: 0, setupComplete: false });
-      setRestaurantName(restaurant.name);
-      setScreen('onboarding');
+      persistAndContinue(owner, restaurant);
     }
   };
 
@@ -608,7 +720,7 @@ function App() {
     completeSetup();
     // Save config to backend
     await saveConfigToApi(restaurant.id, data.zones, data.tables, data.menu, data.staff, true, 4);
-    setPosConfig({ restaurant, zones: data.zones, tables: data.tables, menu: data.menu, staff: data.staff });
+    setPosConfig({ restaurant, zones: data.zones, tables: data.tables, tableCombinations: currentStorage.tableCombinations || [], menu: data.menu, staff: data.staff });
     setScreen('pos');
   };
 
@@ -623,13 +735,13 @@ function App() {
       saveStorage({ restaurant: demoR, zones: demoZones, tables: demoTables, menu: demoMenu, staff: demoStaff });
       completeSetup();
       await saveConfigToApi(demoR.id, demoZones, demoTables, demoMenu, demoStaff, true, 4);
-      setPosConfig({ restaurant: demoR, zones: demoZones, tables: demoTables, menu: demoMenu, staff: demoStaff });
+      setPosConfig({ restaurant: demoR, zones: demoZones, tables: demoTables, tableCombinations: [], menu: demoMenu, staff: demoStaff });
     } catch (e) {
       console.warn('[VILO] Backend quickstart failed, using local:', e);
       const restaurant = { ...demoRestaurantData, code };
       saveStorage({ restaurant, zones: demoZones, tables: demoTables, menu: demoMenu, staff: demoStaff });
       completeSetup();
-      setPosConfig({ restaurant, zones: demoZones, tables: demoTables, menu: demoMenu, staff: demoStaff });
+      setPosConfig({ restaurant, zones: demoZones, tables: demoTables, tableCombinations: [], menu: demoMenu, staff: demoStaff });
     }
     setScreen('pos');
   };
@@ -640,6 +752,7 @@ function App() {
       restaurant: restaurantData.restaurant,
       zones: restaurantData.zones,
       tables: restaurantData.tables,
+      tableCombinations: restaurantData.tableCombinations || [],
       menu: restaurantData.menu,
       staff: restaurantData.staff,
     });

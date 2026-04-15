@@ -6,6 +6,15 @@ import { useApp } from '../context/AppContext';
 import { loadReservations, addReservation, findGuestByPhone, addGuest, loadGuests } from '../utils/storage';
 import { ActionButton, StatGrid, SurfaceCard } from './ui';
 
+const isBarSeat = (table: Pick<Table, 'placementType' | 'variant' | 'shape'>): boolean =>
+  table.placementType === 'bar_seat' || table.variant === 'barstool-1' || table.shape === 'barstool';
+
+const getTableLabelNumber = (name: string): string =>
+  name.replace(/^(Tisch|Barplatz|Bar-Sitz|Bar|[A-Za-z])\s*/i, '').trim() || name;
+
+const getTableDisplayLabel = (table: Pick<Table, 'name' | 'placementType' | 'variant' | 'shape'>): string =>
+  isBarSeat(table) ? `Barplatz ${getTableLabelNumber(table.name)}` : table.name;
+
 // Service status info for display
 const SERVICE_STATUS_INFO: Record<string, { label: string; color: string }> = {
   teilweise_platziert: { label: 'Teilw. platziert', color: '#a78bfa' },
@@ -35,6 +44,9 @@ interface TableManagementProps {
   onClose: () => void;
   onOpenTableDetail: (tableId: string) => void;
   onReserve: (tableId: string) => void;
+  onStartMoveSelection?: (fromTableId: string) => void;
+  onCancelMoveSelection?: () => void;
+  isMoveSelectionActive?: boolean;
   allTables: Table[];
   isSidebarExpanded?: boolean;
   inline?: boolean;
@@ -61,6 +73,9 @@ export function TableManagement({
   onClose,
   onOpenTableDetail,
   onReserve: _onReserve,
+  onStartMoveSelection,
+  onCancelMoveSelection,
+  isMoveSelectionActive = false,
   allTables,
   isSidebarExpanded = true,
   inline = false,
@@ -71,8 +86,11 @@ export function TableManagement({
 }: TableManagementProps) {
   void _onReserve; // kept for interface compatibility
   const { state, dispatch } = useApp();
+  const isMobileViewport = typeof window !== 'undefined' && window.innerWidth < 768;
   const [timelineExpanded, setTimelineExpanded] = useState(false);
   const [showMoreOptions, setShowMoreOptions] = useState(false);
+  const [showSessionGuestCountOverlay, setShowSessionGuestCountOverlay] = useState(false);
+  const [showSessionDurationOverlay, setShowSessionDurationOverlay] = useState(false);
   const [subView, setSubView] = useState<SubView>(initialSubView);
   const [walkinGuestName, setWalkinGuestName] = useState(initialWalkInGuestName);
   const [walkinGuestCount, setWalkinGuestCount] = useState(initialWalkInGuestCount);
@@ -98,6 +116,8 @@ export function TableManagement({
   useEffect(() => {
     setTimelineExpanded(false);
     setShowMoreOptions(false);
+    setShowSessionGuestCountOverlay(false);
+    setShowSessionDurationOverlay(false);
     setSubView(initialSubView);
     setWalkinGuestName(initialWalkInGuestName);
     setWalkinGuestCount(initialWalkInGuestCount);
@@ -153,6 +173,7 @@ export function TableManagement({
     const todayStr2 = getTodayStr();
     const newRes: Reservation = {
       id: generateId(), guestName: resFormData.guestName.trim(), guestPhone: resFormData.guestPhone.trim() || undefined,
+      confirmationStatus: 'pending',
       partySize: resFormData.partySize, date: todayStr2, time: resFormData.time, duration: resFormData.duration,
       tableId: table.id, notes: resFormData.notes.trim() || undefined, status: 'confirmed', source: resFormData.source, createdAt: Date.now(),
     };
@@ -168,10 +189,17 @@ export function TableManagement({
     setResMatchedGuest(null);
   };
 
-  const session = state.sessions[table.id];
-  const isOccupied = table.status === 'occupied' || table.status === 'billing';
+  const sessionOwnerTableId = useMemo(() => {
+    if (state.sessions[table.id]) return table.id;
+    const owner = Object.values(state.sessions).find(activeSession => activeSession.combinedTableIds?.includes(table.id));
+    return owner?.tableId || table.id;
+  }, [state.sessions, table.id]);
+  const session = state.sessions[sessionOwnerTableId];
+  const isOccupied = table.status === 'occupied' || table.status === 'billing' || Boolean(session);
   const isBlocked = table.status === 'blocked';
   const isFree = table.status === 'free';
+  const currentTableLabel = getTableDisplayLabel(table);
+  const currentTableKindLabel = isBarSeat(table) ? 'Barplatz' : 'Tisch';
 
   // Load reservations
   useEffect(() => {
@@ -199,6 +227,8 @@ export function TableManagement({
       seatedStatuses.includes(r.status)
     ) || null;
   }, [reservations, todayStr, table.id]);
+  const activeGuestCount = seatedReservation?.partySize || session?.guestCount || 2;
+  const activePlannedDuration = session?.plannedDuration || seatedReservation?.duration || 90;
 
   // Get seated duration from reservation time
   const getSeatedDuration = (r: Reservation): string => {
@@ -264,17 +294,25 @@ export function TableManagement({
     return Math.floor(mins / 60) + 'Std. ' + (mins % 60) + 'Min.';
   };
 
+  const formatDurationShort = (minutes: number) => {
+    const safeMinutes = Math.max(15, minutes || 0);
+    const hours = Math.floor(safeMinutes / 60);
+    const mins = safeMinutes % 60;
+    if (hours > 0) return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+    return `${safeMinutes}m`;
+  };
+
   // Current hour for timeline
   const currentHour = new Date().getHours();
 
-  const panelShellClass = 'vilo-no-motion pointer-events-auto h-full overflow-y-auto border-l border-[#2a2a42] bg-[#1f1d33] shadow-2xl';
+  const panelShellClass = 'vilo-no-motion pointer-events-auto relative h-full overflow-y-auto border-l border-[#2a2a42] bg-[#1f1d33] shadow-2xl';
   const panelHeaderClass = 'flex h-[61px] items-center justify-between border-b border-[#2a2a42] px-4';
   const panelSectionClass = 'border-b border-[#2c2947] px-4 py-3';
-  const inlinePanelWidth = isSidebarExpanded ? 260 : 'calc(100vw - 68px)';
+  const inlinePanelWidth = isMobileViewport && !isSidebarExpanded ? 'calc(100vw - 68px)' : 320;
   const panelShellStyle = {
-    width: inline ? (isSidebarExpanded ? 320 : inlinePanelWidth) : 320,
-    minWidth: inline ? (isSidebarExpanded ? 320 : inlinePanelWidth) : 320,
-    maxWidth: inline ? (isSidebarExpanded ? '36vw' : inlinePanelWidth) : 320,
+    width: inline ? inlinePanelWidth : 320,
+    minWidth: inline ? inlinePanelWidth : 320,
+    maxWidth: inline ? inlinePanelWidth : 320,
     marginLeft: 'auto',
     flexShrink: 0,
   } as const;
@@ -328,6 +366,7 @@ export function TableManagement({
   const secondaryActionClass = 'w-full flex min-h-[52px] items-center justify-start gap-2.5 px-4 py-3 rounded-none bg-vilo-card text-left text-[#d7d3ea] font-semibold text-[12px] whitespace-nowrap hover:bg-[#312e52] active:bg-vilo-elevated transition-colors';
   const dangerActionClass = 'w-full flex min-h-[52px] items-center justify-start gap-2.5 px-4 py-3 rounded-none bg-[#d946ef] text-left text-white font-semibold text-[12px] whitespace-nowrap hover:bg-[#c026d3] transition-colors';
   const orangeActionClass = 'w-full flex min-h-[52px] items-center justify-start gap-2.5 px-4 py-3 rounded-none bg-[#ff7a18] text-left text-white font-semibold text-[12px] whitespace-nowrap hover:bg-[#ea6b0f] transition-colors';
+  const interactiveStatClass = 'w-full border border-vilo-border-strong bg-vilo-card px-3 py-3 text-left transition-colors hover:bg-vilo-surface active:bg-vilo-elevated';
 
   // Timeline hours (show from current-2 to current+8)
   const timelineHours = useMemo(() => {
@@ -348,6 +387,81 @@ export function TableManagement({
     onClose();
   };
 
+  const applySessionGuestCount = (guestCount: number) => {
+    if (!session) return;
+    dispatch({ type: 'SET_GUEST_COUNT', tableId: sessionOwnerTableId, guestCount });
+    setShowSessionGuestCountOverlay(false);
+  };
+
+  const applySessionDuration = (duration: number) => {
+    if (!session) return;
+    dispatch({ type: 'SET_SESSION_DURATION', tableId: sessionOwnerTableId, duration });
+    setShowSessionDurationOverlay(false);
+  };
+
+  const renderSessionFieldOverlays = () => {
+    if (!isOccupied || !session) return null;
+
+    return (
+      <>
+        {showSessionGuestCountOverlay && (
+          <div className="absolute inset-0 z-30 flex flex-col justify-end bg-black/20" onClick={() => setShowSessionGuestCountOverlay(false)}>
+            <div className="border-t border-[#2a2a42] bg-[#1f1d33] px-4 py-4" onClick={e => e.stopPropagation()}>
+              <p className={sectionLabelClass}>Anzahl Gäste</p>
+              <div className="grid grid-cols-4 gap-2">
+                {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
+                  <button key={n} onClick={() => applySessionGuestCount(n)} className={getPickerButtonClass(activeGuestCount === n)}>
+                    {n}
+                  </button>
+                ))}
+              </div>
+              <input
+                type="number"
+                min={1}
+                placeholder="Andere Anzahl..."
+                className={`${textInputClass} mt-2`}
+                value={activeGuestCount > 8 ? activeGuestCount : ''}
+                onChange={e => {
+                  const val = parseInt(e.target.value);
+                  if (val > 0) dispatch({ type: 'SET_GUEST_COUNT', tableId: sessionOwnerTableId, guestCount: val });
+                }}
+                onBlur={e => {
+                  const val = parseInt(e.target.value);
+                  if (val > 0) {
+                    applySessionGuestCount(val);
+                  } else {
+                    setShowSessionGuestCountOverlay(false);
+                  }
+                }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    const val = parseInt((e.target as HTMLInputElement).value);
+                    if (val > 0) applySessionGuestCount(val);
+                  }
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {showSessionDurationOverlay && (
+          <div className="absolute inset-0 z-30 flex flex-col justify-end bg-black/20" onClick={() => setShowSessionDurationOverlay(false)}>
+            <div className="border-t border-[#2a2a42] bg-[#1f1d33] px-4 py-4" onClick={e => e.stopPropagation()}>
+              <p className={sectionLabelClass}>Dauer</p>
+              <div className="grid grid-cols-3 gap-2">
+                {[60, 90, 120, 150, 180].map(duration => (
+                  <button key={duration} onClick={() => applySessionDuration(duration)} className={getPickerButtonClass(activePlannedDuration === duration)}>
+                    {duration}m
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  };
+
   const handleUndoPlacement = () => {
     // Free the table and remove session
     dispatch({ type: 'CLOSE_TABLE', tableId: table.id });
@@ -359,11 +473,6 @@ export function TableManagement({
     dispatch({ type: 'CLOSE_TABLE', tableId: table.id });
     // Now seat new walk-in
     setSubView('walkin_count');
-  };
-
-  const handleMoveToTable = (toTableId: string) => {
-    dispatch({ type: 'MOVE_TABLE_SESSION', fromTableId: table.id, toTableId });
-    onClose();
   };
 
   const handleBlockTable = () => {
@@ -508,11 +617,11 @@ export function TableManagement({
 
           <div className={subviewContentClass}>
             <SurfaceCard className="px-4 py-4">
-              <div className="text-[13px] font-semibold text-white">{table.name}</div>
+              <div className="text-[13px] font-semibold text-white">{currentTableLabel}</div>
               <div className="mt-0.5 text-[11px] text-vilo-text-muted">
                 {hasConflict && conflictReservation
                   ? `${conflictReservation.time} bereits reserviert`
-                  : 'Freier Tisch für spontane Gäste'}
+                  : `Freier ${currentTableKindLabel.toLowerCase()} für spontane Gäste`}
               </div>
             </SurfaceCard>
 
@@ -559,7 +668,7 @@ export function TableManagement({
               <SurfaceCard variant="alt" className="px-4 py-4">
                 <div className="text-[13px] font-semibold text-white">Konflikt mit Reservierung</div>
                 <div className="mt-0.5 text-[11px] text-[#c7b8ff]">
-                  {table.name} ist um {conflictReservation.time} anderen Gästen zugewiesen
+                  {currentTableLabel} ist um {conflictReservation.time} anderen Gästen zugewiesen
                 </div>
               </SurfaceCard>
             )}
@@ -586,7 +695,7 @@ export function TableManagement({
             {reserveStep === 'guests' && (
               <div className={subviewContentClass}>
                 <SurfaceCard className="px-4 py-4">
-                  <div className="text-[13px] font-semibold text-white">{table.name}</div>
+                  <div className="text-[13px] font-semibold text-white">{currentTableLabel}</div>
                   <div className="mt-0.5 text-[11px] text-vilo-text-muted">Schritt 1 von 2 · Reservierung vorbereiten</div>
                 </SurfaceCard>
 
@@ -649,7 +758,7 @@ export function TableManagement({
               <div className={subviewContentClass}>
                 <SurfaceCard className="px-4 py-4">
                   <div className="text-[13px] font-semibold text-white">Gastdetails</div>
-                  <div className="mt-0.5 text-[11px] text-vilo-text-muted">Schritt 2 von 2 · {table.name}</div>
+                  <div className="mt-0.5 text-[11px] text-vilo-text-muted">Schritt 2 von 2 · {currentTableLabel}</div>
                 </SurfaceCard>
 
                 <StatGrid items={[
@@ -770,43 +879,42 @@ export function TableManagement({
   if (subView === 'move_picker') {
     return renderPanelFrame(
       <>
-          {renderSubviewHeader('Tisch wählen', () => setSubView('main'))}
+          {renderSubviewHeader('Platz wählen', () => {
+            onCancelMoveSelection?.();
+            setSubView('main');
+          })}
 
           <div className={subviewContentClass}>
             <SurfaceCard className="px-4 py-4">
               <div className="text-[13px] font-semibold text-white">Gast umsetzen</div>
               <div className="mt-0.5 text-[11px] text-vilo-text-muted">
-                {freeTables.length === 0 ? 'Keine freien Tische verfügbar' : `${freeTables.length} freie Tische verfügbar`}
+                {freeTables.length === 0 ? 'Keine freien Plätze verfügbar' : `${freeTables.length} freie Plätze verfügbar`}
               </div>
             </SurfaceCard>
 
-            {freeTables.length === 0 ? (
-              <SurfaceCard className="px-4 py-4 text-center text-[12px] text-vilo-text-muted">
-                Keine freien Tische verfügbar
-              </SurfaceCard>
-            ) : (
-              <div className="space-y-2">
-                {freeTables.map(t => (
-                  <SurfaceCard
-                    key={t.id}
-                    as="button"
-                    onClick={() => handleMoveToTable(t.id)}
-                    className="w-full px-4 py-4 text-left"
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-[13px] font-semibold text-white">{t.name}</p>
-                        <p className="mt-0.5 text-[11px] text-vilo-text-muted">{t.seats || 4} Plätze</p>
-                      </div>
-                      <IconArrowsRightLeft className="w-4 h-4 text-[#a9a4ca]" />
-                    </div>
-                  </SurfaceCard>
-                ))}
+            <SurfaceCard className="px-4 py-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="text-[13px] font-semibold text-white">
+                    {freeTables.length === 0
+                      ? 'Keine freien Plätze verfügbar'
+                      : 'Wähle jetzt direkt einen freien Platz im Floor'}
+                  </div>
+                  <div className="mt-0.5 text-[11px] text-vilo-text-muted">
+                    {freeTables.length === 0
+                      ? 'Belegte oder gesperrte Plätze sind nicht auswählbar.'
+                      : `${freeTables.length} freie ${freeTables.length === 1 ? 'Option' : 'Optionen'} markiert`}
+                  </div>
+                </div>
+                <IconArrowsRightLeft className={'mt-0.5 h-4 w-4 shrink-0 ' + (isMoveSelectionActive ? 'text-[#c9b6ff]' : 'text-[#7d789c]')} />
               </div>
-            )}
+            </SurfaceCard>
 
-            <ActionButton variant="secondary" className="text-[#d7d3ea]" onClick={() => setSubView('main')}>
-              Zurück
+            <ActionButton variant="secondary" className="text-[#d7d3ea]" onClick={() => {
+              onCancelMoveSelection?.();
+              setSubView('main');
+            }}>
+              Abbrechen
             </ActionButton>
           </div>
       </>
@@ -831,9 +939,9 @@ export function TableManagement({
         {/* Header */}
         <div className={panelHeaderClass}>
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8f97b3]">
-              Tisch {table.name.replace(/^[A-Za-z]+\s*/, '') || table.name}
-            </p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8f97b3]">
+            {currentTableKindLabel} {getTableLabelNumber(table.name)}
+          </p>
           </div>
           <button onClick={onClose} className="p-1 text-vilo-text-secondary hover:text-vilo-text-primary"><IconX className="w-6 h-6" /></button>
         </div>
@@ -847,6 +955,35 @@ export function TableManagement({
 
         {/* Timeline */}
         <div className={panelSectionClass + ' !px-0 !py-0'}>{timelineExpanded ? renderExpandedTimeline() : renderCompactTimeline()}</div>
+
+        {isOccupied && session && (
+          <div className={panelSectionClass}>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSessionDurationOverlay(false);
+                  setShowSessionGuestCountOverlay(true);
+                }}
+                className={interactiveStatClass}
+              >
+                <div className="text-[17px] font-bold text-white">{activeGuestCount} P.</div>
+                <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-vilo-text-muted">Gäste</div>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSessionGuestCountOverlay(false);
+                  setShowSessionDurationOverlay(true);
+                }}
+                className={interactiveStatClass}
+              >
+                <div className="text-[17px] font-bold text-white">{formatDurationShort(activePlannedDuration)}</div>
+                <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-vilo-text-muted">Dauer</div>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Current Guest Info (if occupied) */}
         {isOccupied && session && (
@@ -862,9 +999,6 @@ export function TableManagement({
                 <p className="text-[11px] text-vilo-text-secondary">{seatedReservation ? getSeatedDuration(seatedReservation) : getElapsedStr()}</p>
               </div>
               <div className="flex items-center gap-2 text-vilo-text-soft">
-                <span className="text-[13px] font-semibold whitespace-nowrap">
-                  {(seatedReservation ? seatedReservation.partySize : (session.guestCount || '?'))} Personen
-                </span>
                 <IconChevronRight className="h-4 w-4 shrink-0 text-[#a9a4ca]" />
               </div>
             </button>
@@ -919,7 +1053,10 @@ export function TableManagement({
               ) : (
                 <>
                   {/* Umsetzen */}
-                  <button onClick={() => setSubView('move_picker')}
+                  <button onClick={() => {
+                    onStartMoveSelection?.(table.id);
+                    setSubView('move_picker');
+                  }}
                     className={secondaryActionClass}>
                     <IconArrowsRightLeft className="w-5 h-5 text-[#cfc5ff]" />
                     Umsetzen
@@ -936,7 +1073,7 @@ export function TableManagement({
                   <button onClick={handleBlockTable}
                     className={secondaryActionClass}>
                     <IconBan className="w-5 h-5 text-[#cfc5ff]" />
-                    Tisch sperren
+                    {currentTableKindLabel} sperren
                   </button>
 
                   <button onClick={() => setShowMoreOptions(false)}
@@ -955,7 +1092,7 @@ export function TableManagement({
               <div className="flex items-center gap-2 py-1">
                 <IconAlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
                 <p className="text-[12px] font-semibold text-red-500">
-                  {table.name} ist anderen Gästen zugewiesen
+                  {currentTableLabel} ist anderen Gästen zugewiesen
                 </p>
               </div>
 
@@ -975,7 +1112,7 @@ export function TableManagement({
               <button onClick={handleBlockTable}
                 className={secondaryActionClass}>
                 <IconBan className="w-5 h-5 text-[#cfc5ff]" />
-                Tisch sperren
+                {currentTableKindLabel} sperren
               </button>
             </>
           )}
@@ -994,7 +1131,7 @@ export function TableManagement({
               <button onClick={handleBlockTable}
                 className={secondaryActionClass}>
                 <IconBan className="w-5 h-5 text-[#cfc5ff]" />
-                Tisch sperren
+                {currentTableKindLabel} sperren
               </button>
             </>
           )}
@@ -1004,7 +1141,7 @@ export function TableManagement({
             <>
               <div className="flex items-center gap-2 py-1">
                 <IconBan className="w-4.5 h-4.5 text-red-400" />
-                <p className="text-[12px] font-semibold text-red-400">Tisch ist gesperrt</p>
+                <p className="text-[12px] font-semibold text-red-400">{currentTableKindLabel} ist gesperrt</p>
               </div>
 
               <button onClick={handleUnblockTable}
@@ -1020,7 +1157,7 @@ export function TableManagement({
               <button onClick={handleCloseTable}
                 className={secondaryActionClass}>
                 <IconCircleCheck className="w-5 h-5 text-[#cfc5ff]" />
-                Tisch freigeben
+                {currentTableKindLabel} freigeben
               </button>
 
               <button onClick={() => setSubView('walkin_count')}
@@ -1032,7 +1169,7 @@ export function TableManagement({
               <button onClick={handleBlockTable}
                 className={secondaryActionClass}>
                 <IconBan className="w-5 h-5 text-[#cfc5ff]" />
-                Tisch sperren
+                {currentTableKindLabel} sperren
               </button>
             </>
           )}
@@ -1049,7 +1186,7 @@ export function TableManagement({
               <button onClick={handleBlockTable}
                 className={secondaryActionClass}>
                 <IconBan className="w-5 h-5 text-[#cfc5ff]" />
-                Tisch sperren
+                {currentTableKindLabel} sperren
               </button>
             </>
           )}
@@ -1070,6 +1207,7 @@ export function TableManagement({
         )}
 
         <div className="h-6" />
+        {renderSessionFieldOverlays()}
     </>
   );
 }

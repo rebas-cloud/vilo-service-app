@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { IconArrowLeft, IconEye, IconEyeOff, IconLoader2 } from '@tabler/icons-react';
 
-import viloLogo from '../assets/VILO.svg';
+import { BrandWordmark } from './BrandWordmark';
 
 interface RegistrationPageProps {
   onBack: () => void;
@@ -43,7 +43,7 @@ export function RegistrationPage({ onBack, onRegister }: RegistrationPageProps) 
 
   return (
     <div
-      className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 flex flex-col"
+      className="min-h-screen bg-[#1a1a2e] flex flex-col"
       style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       {/* Header */}
@@ -57,7 +57,7 @@ export function RegistrationPage({ onBack, onRegister }: RegistrationPageProps) 
       <div className="flex-1 flex flex-col items-center justify-center px-6 pb-8">
         {/* Logo */}
         <div className="mb-8 text-center">
-          <img src={viloLogo} alt="Vilo" className="mx-auto mb-2 h-10 w-auto" />
+          <BrandWordmark className="mx-auto mb-2 text-[3.4rem]" />
           <p className="text-vilo-text-secondary text-sm">Erstelle dein Owner-Konto</p>
         </div>
 
@@ -70,7 +70,7 @@ export function RegistrationPage({ onBack, onRegister }: RegistrationPageProps) 
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="z.B. Marco Rossi"
-              className={`w-full px-4 py-3 rounded-xl bg-vilo-elevated/80 text-white placeholder-[#888] border transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 ${
+              className={`w-full px-4 py-3 rounded-xl bg-[#2a2842] text-white placeholder-[#8f8aa8] border transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 ${
                 errors.name ? 'border-red-500' : 'border-vilo-border-strong'
               }`}
               autoFocus
@@ -86,7 +86,7 @@ export function RegistrationPage({ onBack, onRegister }: RegistrationPageProps) 
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder="marco@restaurant.de"
-              className={`w-full px-4 py-3 rounded-xl bg-vilo-elevated/80 text-white placeholder-[#888] border transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 ${
+              className={`w-full px-4 py-3 rounded-xl bg-[#2a2842] text-white placeholder-[#8f8aa8] border transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 ${
                 errors.email ? 'border-red-500' : 'border-vilo-border-strong'
               }`}
             />
@@ -102,7 +102,7 @@ export function RegistrationPage({ onBack, onRegister }: RegistrationPageProps) 
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="Mindestens 6 Zeichen"
-                className={`w-full px-4 py-3 pr-12 rounded-xl bg-vilo-elevated/80 text-white placeholder-[#888] border transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 ${
+                className={`w-full px-4 py-3 pr-12 rounded-xl bg-[#2a2842] text-white placeholder-[#8f8aa8] border transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 ${
                   errors.password ? 'border-red-500' : 'border-vilo-border-strong'
                 }`}
               />
@@ -121,7 +121,7 @@ export function RegistrationPage({ onBack, onRegister }: RegistrationPageProps) 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3.5 rounded-xl bg-[#7bb7ef] hover:bg-[#7bb7ef] active:bg-violet-700 text-white font-semibold text-lg transition-colors mt-6 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full py-3.5 rounded-xl bg-[#8b5cf6] hover:bg-[#7c3aed] active:bg-[#6d28d9] text-white font-semibold text-lg transition-colors mt-6 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_16px_40px_rgba(139,92,246,0.24)]"
           >
             {isLoading ? <><IconLoader2 className="w-5 h-5 animate-spin" /> Wird erstellt...</> : 'Weiter'}
           </button>

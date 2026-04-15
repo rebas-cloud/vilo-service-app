@@ -23,9 +23,14 @@ export function useSync() {
   const { state, dispatch, restaurantId } = useApp();
   const channelRef = useRef<RealtimeChannel | null>(null);
   const prevStateRef = useRef<AppState | null>(null);
+  const latestConfigRef = useRef({ tableCombinations: state.tableCombinations });
   const isRemoteUpdate = useRef(false);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const canSyncRef = useRef(false);
+
+  useEffect(() => {
+    latestConfigRef.current = { tableCombinations: state.tableCombinations };
+  }, [state.tableCombinations]);
 
   // Subscribe to Supabase Realtime on mount
   useEffect(() => {
@@ -77,6 +82,9 @@ export function useSync() {
               type: 'SYNC_CONFIG',
               zones: (row.zones_json as unknown[]) || [],
               tables: (row.tables_json as unknown[]) || [],
+              tableCombinations: Array.isArray((row as Record<string, unknown>).table_combinations_json)
+                ? ((row as Record<string, unknown>).table_combinations_json as unknown[])
+                : latestConfigRef.current.tableCombinations,
               menu: (row.menu_json as unknown[]) || [],
               staff: (row.staff_json as unknown[]) || [],
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -140,22 +148,23 @@ export function useSync() {
 
   // Also push config changes (zones, tables, menu, staff) automatically
   const configDebounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const prevConfigRef = useRef<{ zones: unknown; tables: unknown; menu: unknown; staff: unknown } | null>(null);
+  const prevConfigRef = useRef<{ zones: unknown; tables: unknown; tableCombinations: unknown; menu: unknown; staff: unknown } | null>(null);
 
   useEffect(() => {
     if (isRemoteUpdate.current) {
-      prevConfigRef.current = { zones: state.zones, tables: state.tables, menu: state.menu, staff: state.staff };
+      prevConfigRef.current = { zones: state.zones, tables: state.tables, tableCombinations: state.tableCombinations, menu: state.menu, staff: state.staff };
       return;
     }
 
     const prev = prevConfigRef.current;
-    prevConfigRef.current = { zones: state.zones, tables: state.tables, menu: state.menu, staff: state.staff };
+    prevConfigRef.current = { zones: state.zones, tables: state.tables, tableCombinations: state.tableCombinations, menu: state.menu, staff: state.staff };
 
     if (!prev) return;
 
     const configChanged =
       prev.zones !== state.zones ||
       prev.tables !== state.tables ||
+      prev.tableCombinations !== state.tableCombinations ||
       prev.menu !== state.menu ||
       prev.staff !== state.staff;
 
@@ -169,9 +178,10 @@ export function useSync() {
         restaurant_id: restaurantId,
         zones: state.zones,
         tables: state.tables,
+        tableCombinations: state.tableCombinations,
         menu: state.menu,
         staff: state.staff,
       }).catch(err => console.warn('[VILO SYNC] Failed to push config:', err));
     }, 500);
-  }, [state.zones, state.tables, state.menu, state.staff, restaurantId]);
+  }, [state.zones, state.tables, state.tableCombinations, state.menu, state.staff, restaurantId]);
 }

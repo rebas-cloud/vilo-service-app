@@ -29,8 +29,8 @@ function getElapsed(timestamp: number): string {
 function getWaitColor(minutes: number): string {
   if (minutes <= 10) return '#c4b5fd';
   if (minutes <= 20) return '#a78bfa';
-  if (minutes <= 30) return '#d8b4fe';
-  return '#f0abfc';
+  if (minutes <= 30) return '#8b5cf6';
+  return '#c4b5fd';
 }
 
 const inspectorInputClass = 'w-full px-3 py-3 text-[15px] text-white outline-none bg-vilo-card placeholder:text-vilo-text-muted border border-transparent focus:border-[#8b5cf6]';
@@ -513,7 +513,7 @@ export function WaitlistPanel({ onClose, onSeatGuest, tables, embedded = false, 
           <div className="flex items-center gap-3">
             <h2 className="text-xl font-bold text-white">Warteliste</h2>
             {activeEntries.length > 0 && (
-              <span className="px-2 py-0.5 text-xs font-bold text-white" style={{ background: '#d946ef' }}>
+              <span className="px-2 py-0.5 text-xs font-bold text-white" style={{ background: '#8b5cf6' }}>
                 {activeEntries.length}
               </span>
             )}
@@ -560,12 +560,12 @@ export function WaitlistPanel({ onClose, onSeatGuest, tables, embedded = false, 
                 const waitColor = getWaitColor(elapsed);
 
                 return (
-                  <div key={entry.id} className={'border-b border-vilo-border-subtle ' + (isOverdue ? 'bg-[#32153a]' : '')}>
+                  <div key={entry.id} className={'border-b border-vilo-border-subtle ' + (isOverdue ? 'bg-[#2b2344]' : '')}>
                     <button className="w-full px-4 py-3 flex items-center gap-3 text-left"
                       onClick={() => setExpandedId(isExpanded ? null : entry.id)}>
                       {/* Position */}
                       <div className="w-9 h-9 flex items-center justify-center shrink-0 text-sm font-bold text-white"
-                        style={{ background: entry.status === 'notified' ? '#d946ef' : '#8b5cf6' }}>
+                        style={{ background: entry.status === 'notified' ? '#7c3aed' : '#8b5cf6' }}>
                         {idx + 1}
                       </div>
 
@@ -574,10 +574,10 @@ export function WaitlistPanel({ onClose, onSeatGuest, tables, embedded = false, 
                         <div className="flex items-center gap-2">
                           <p className="font-bold text-white text-[15px] truncate">{entry.guestName}</p>
                           {entry.status === 'notified' && (
-                            <span className="px-1.5 py-0.5 text-[10px] font-bold bg-[#5b216f] text-[#f5d0fe]">BENACHRICHTIGT</span>
+                            <span className="px-1.5 py-0.5 text-[10px] font-bold bg-[#31224d] text-[#d8c7ff]">BENACHRICHTIGT</span>
                           )}
                           {isOverdue && (
-                            <span className="px-1.5 py-0.5 text-[10px] font-bold bg-[#4a1733] text-[#f9a8d4]">UEBERFAELLIG</span>
+                            <span className="px-1.5 py-0.5 text-[10px] font-bold bg-[#3a365c] text-[#e9ddff]">UEBERFAELLIG</span>
                           )}
                         </div>
                         <div className="flex items-center gap-2 mt-0.5">
@@ -646,13 +646,13 @@ export function WaitlistPanel({ onClose, onSeatGuest, tables, embedded = false, 
 
                           {/* No Show */}
                           <button onClick={() => handleNoShow(entry.id)}
-                            className="flex items-center gap-1 py-2 px-3 bg-[#2b2944] text-[#f5d0fe] text-sm hover:bg-[#353253]">
+                            className="flex items-center gap-1 py-2 px-3 bg-[#2b2944] text-[#d8c7ff] text-sm hover:bg-[#353253]">
                             <IconAlertTriangle className="w-3.5 h-3.5" /> No-Show
                           </button>
 
                           {/* Cancel */}
                           <button onClick={() => handleCancel(entry.id)}
-                            className="flex items-center gap-1 py-2 px-3 bg-[#2b2944] text-[#f5d0fe] text-sm hover:bg-[#353253]">
+                            className="flex items-center gap-1 py-2 px-3 bg-[#2b2944] text-[#d8c7ff] text-sm hover:bg-[#353253]">
                             <IconCircleX className="w-3.5 h-3.5" /> Stornieren
                           </button>
                         </div>
@@ -693,7 +693,7 @@ export function WaitlistPanel({ onClose, onSeatGuest, tables, embedded = false, 
               setShowAddForm(true);
             }}
             className="w-full py-3 text-[14px] font-semibold text-white transition-colors hover:brightness-110"
-            style={{ background: '#d946ef' }}
+            style={{ background: '#8b5cf6' }}
           >
             Warteliste hinzufügen
           </button>

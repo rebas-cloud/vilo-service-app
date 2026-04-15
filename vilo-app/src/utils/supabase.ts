@@ -123,6 +123,7 @@ export async function supabaseGetRestaurant(code: string): Promise<Record<string
     },
     zones: config?.zones_json || [],
     tables: config?.tables_json || [],
+    tableCombinations: config?.table_combinations_json || [],
     menu: config?.menu_json || [],
     staff: config?.staff_json || [],
     setupComplete: config?.setup_complete || false,
@@ -149,23 +150,39 @@ export async function supabaseSaveConfig(data: {
   restaurant_id: string;
   zones: unknown[];
   tables: unknown[];
+  tableCombinations?: unknown[];
   menu: unknown[];
   staff: unknown[];
   setup_complete?: boolean;
   onboarding_step?: number;
 }): Promise<void> {
-  const { error } = await supabase.from('restaurant_data').upsert(
-    {
-      restaurant_id: data.restaurant_id,
-      zones_json: data.zones,
-      tables_json: data.tables,
-      menu_json: data.menu,
-      staff_json: data.staff,
-      setup_complete: data.setup_complete ?? false,
-      onboarding_step: data.onboarding_step ?? 0,
-    },
-    { onConflict: 'restaurant_id' }
-  );
+  const payload: Record<string, unknown> = {
+    restaurant_id: data.restaurant_id,
+    zones_json: data.zones,
+    tables_json: data.tables,
+    menu_json: data.menu,
+    staff_json: data.staff,
+    setup_complete: data.setup_complete ?? false,
+    onboarding_step: data.onboarding_step ?? 0,
+  };
+
+  if (data.tableCombinations !== undefined) {
+    payload.table_combinations_json = data.tableCombinations;
+  }
+
+  let { error } = await supabase
+    .from('restaurant_data')
+    .upsert(payload, { onConflict: 'restaurant_id' });
+
+  // Backward compatibility for databases that do not yet have table_combinations_json.
+  if (error && data.tableCombinations !== undefined) {
+    delete payload.table_combinations_json;
+    const retry = await supabase
+      .from('restaurant_data')
+      .upsert(payload, { onConflict: 'restaurant_id' });
+    error = retry.error;
+  }
+
   if (error) throw new Error(error.message);
 }
 

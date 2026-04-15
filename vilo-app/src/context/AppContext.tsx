@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useCallback } from 'react';
-import { Table, OrderItem, TableSession, Intent, VoiceState, CommandHistoryItem, UndoableAction, Staff, MenuItem, Zone, Restaurant, GuestSource, ShiftHistoryRecord, TableServiceStatus, SeatAssignment } from '../types';
+import { Table, TableCombination, OrderItem, TableSession, Intent, VoiceState, CommandHistoryItem, UndoableAction, Staff, MenuItem, Zone, Restaurant, GuestSource, ShiftHistoryRecord, TableServiceStatus, SeatAssignment } from '../types';
 import { feedbackOrderAdded, feedbackOrderSent, feedbackError } from '../utils/feedback';
 
 export interface TipRecord {
@@ -26,6 +26,7 @@ export interface ClosedTableRecord {
 export interface AppState {
   restaurant: Restaurant;
   tables: Table[];
+  tableCombinations: TableCombination[];
   zones: Zone[];
   menu: MenuItem[];
   staff: Staff[];
@@ -69,24 +70,26 @@ export type AppAction =
   | { type: 'PUSH_HISTORY'; command: string; action: UndoableAction }
   | { type: 'ADD_TIP'; tip: TipRecord }
   | { type: 'ADD_CLOSED_REVENUE'; amount: number }
-  | { type: 'UPDATE_CONFIG'; restaurant: Restaurant; zones: Zone[]; tables: Table[]; menu: MenuItem[]; staff: Staff[] }
+  | { type: 'UPDATE_CONFIG'; restaurant: Restaurant; zones: Zone[]; tables: Table[]; tableCombinations: TableCombination[]; menu: MenuItem[]; staff: Staff[] }
   | { type: 'SET_GUEST_SOURCE'; tableId: string; source: GuestSource }
   | { type: 'SET_SERVICE_STATUS'; tableId: string; serviceStatus: TableServiceStatus }
   | { type: 'MOVE_TABLE_SESSION'; fromTableId: string; toTableId: string }
   | { type: 'BLOCK_TABLE'; tableId: string }
   | { type: 'UNBLOCK_TABLE'; tableId: string }
   | { type: 'SET_GUEST_COUNT'; tableId: string; guestCount: number }
+  | { type: 'SET_SESSION_DURATION'; tableId: string; duration: number }
   | { type: 'SET_GUEST_NAME'; tableId: string; guestName: string }
   | { type: 'ASSIGN_SEAT_GUEST'; tableId: string; seatNumber: number; guestId?: string; guestName?: string }
   | { type: 'CLEAR_SEAT_GUEST'; tableId: string; seatNumber: number }
   | { type: 'CLEAR_SHIFT' }
   | { type: 'SYNC_STATE'; sessions: Record<string, TableSession>; closedTables: ClosedTableRecord[]; tipHistory: TipRecord[]; closedTableRevenue: number; shiftStart: number; shiftHistory: ShiftHistoryRecord[] }
-  | { type: 'SYNC_CONFIG'; zones: Zone[]; tables: Table[]; menu: MenuItem[]; staff: Staff[] };
+  | { type: 'SYNC_CONFIG'; zones: Zone[]; tables: Table[]; tableCombinations: TableCombination[]; menu: MenuItem[]; staff: Staff[] };
 
 function createInitialState(config?: {
   restaurant: Restaurant;
   zones: Zone[];
   tables: Table[];
+  tableCombinations?: TableCombination[];
   menu: MenuItem[];
   staff: Staff[];
 }): AppState {
@@ -94,6 +97,7 @@ function createInitialState(config?: {
   return {
     restaurant: config?.restaurant || defaultRestaurant,
     tables: config?.tables || [],
+    tableCombinations: config?.tableCombinations || [],
     zones: config?.zones || [],
     menu: config?.menu || [],
     staff: config?.staff || [],
@@ -116,6 +120,16 @@ function createInitialState(config?: {
 
 function generateId(): string {
   return Math.random().toString(36).substring(2, 9);
+}
+
+function getCombinationByTableId(combinations: TableCombination[], tableId: string): TableCombination | null {
+  return combinations.find(combination => combination.tableIds.includes(tableId)) || null;
+}
+
+function getSessionOwnerTableId(state: AppState, tableId: string): string | null {
+  if (state.sessions[tableId]) return tableId;
+  const owner = Object.values(state.sessions).find(session => session.combinedTableIds?.includes(tableId));
+  return owner?.tableId || null;
 }
 
 const SHIFT_HISTORY_KEY = 'vilo_shift_history';
@@ -178,21 +192,51 @@ function appReducer(state: AppState, action: AppAction): AppState {
       const table = state.tables.find(t => t.id === action.tableId);
       if (!table) return state;
 
+      const existingOwnerId = getSessionOwnerTableId(state, action.tableId);
+      if (existingOwnerId) {
+        const existingSession = state.sessions[existingOwnerId];
+        if (existingSession && !existingSession.servedByName && state.currentUser) {
+          return {
+            ...state,
+            activeTableId: existingOwnerId,
+            showBilling: false,
+            sessions: {
+              ...state.sessions,
+              [existingOwnerId]: {
+                ...existingSession,
+                servedById: state.currentUser.id,
+                servedByName: state.currentUser.name,
+              },
+            },
+          };
+        }
+        return { ...state, activeTableId: existingOwnerId, showBilling: false };
+      }
+
       let newSessions = { ...state.sessions };
       let newTables = state.tables;
 
       if (table.status === 'free') {
         const sessionId = generateId();
+        const combination = getCombinationByTableId(state.tableCombinations, action.tableId);
+        const combinedTableIds = combination
+          ? combination.tableIds.filter(id => id !== action.tableId)
+          : undefined;
         newSessions[action.tableId] = {
           id: sessionId,
           tableId: action.tableId,
+          combinedTableIds,
           orders: [],
           notes: [],
           startTime: Date.now(),
+          servedById: state.currentUser?.id,
+          servedByName: state.currentUser?.name,
           seatAssignments: [],
         };
         newTables = state.tables.map(t =>
-          t.id === action.tableId ? { ...t, status: 'occupied' as const, sessionId } : t
+          t.id === action.tableId || combinedTableIds?.includes(t.id)
+            ? { ...t, status: 'occupied' as const, sessionId }
+            : t
         );
       }
 
@@ -373,25 +417,26 @@ function appReducer(state: AppState, action: AppAction): AppState {
     }
 
     case 'CLOSE_TABLE': {
-      const closingSession = state.sessions[action.tableId];
+      const ownerTableId = getSessionOwnerTableId(state, action.tableId) || action.tableId;
+      const closingSession = state.sessions[ownerTableId];
       const closedRevenue = closingSession
         ? closingSession.orders.reduce((sum, o) => sum + o.price * o.quantity, 0)
         : 0;
-      const closedTable = state.tables.find(t => t.id === action.tableId);
+      const closedTable = state.tables.find(t => t.id === ownerTableId);
 
       // Calculate tips for this table
       const tableTips = state.tipHistory
-        .filter(t => t.tableId === action.tableId)
+        .filter(t => t.tableId === ownerTableId)
         .reduce((sum, t) => sum + t.amount, 0);
 
       // Determine payment method
-      const tableTipRecords = state.tipHistory.filter(t => t.tableId === action.tableId);
+      const tableTipRecords = state.tipHistory.filter(t => t.tableId === ownerTableId);
       const methods = new Set(tableTipRecords.map(t => t.method));
       const paymentMethod: 'card' | 'cash' | 'mixed' = methods.size > 1 ? 'mixed' : (methods.values().next().value || 'cash');
 
       // Create closed table record
       const closedRecord: ClosedTableRecord | null = closingSession && closedTable ? {
-        tableId: action.tableId,
+        tableId: ownerTableId,
         tableName: closedTable.name,
         orders: [...closingSession.orders],
         revenue: closedRevenue,
@@ -404,15 +449,18 @@ function appReducer(state: AppState, action: AppAction): AppState {
       } : null;
 
       const newSessions = { ...state.sessions };
-      delete newSessions[action.tableId];
+      delete newSessions[ownerTableId];
+      const combinedTableIds = closingSession?.combinedTableIds || [];
 
       return {
         ...state,
         tables: state.tables.map(t =>
-          t.id === action.tableId ? { ...t, status: 'free' as const, sessionId: undefined } : t
+          t.id === ownerTableId || combinedTableIds.includes(t.id)
+            ? { ...t, status: 'free' as const, sessionId: undefined }
+            : t
         ),
         sessions: newSessions,
-        activeTableId: state.activeTableId === action.tableId ? null : state.activeTableId,
+        activeTableId: state.activeTableId === ownerTableId ? null : state.activeTableId,
         showBilling: false,
         closedTableRevenue: state.closedTableRevenue + closedRevenue,
         closedTables: closedRecord ? [...state.closedTables, closedRecord] : state.closedTables,
@@ -562,16 +610,35 @@ function appReducer(state: AppState, action: AppAction): AppState {
     }
 
     case 'SET_GUEST_COUNT': {
-      const gcSess = state.sessions[action.tableId];
+      const ownerTableId = getSessionOwnerTableId(state, action.tableId);
+      if (!ownerTableId) return state;
+      const gcSess = state.sessions[ownerTableId];
       if (!gcSess) return state;
       return {
         ...state,
         sessions: {
           ...state.sessions,
-          [action.tableId]: {
+          [ownerTableId]: {
             ...gcSess,
             guestCount: action.guestCount,
             seatAssignments: pruneSeatAssignments(gcSess.seatAssignments, action.guestCount),
+          },
+        },
+      };
+    }
+
+    case 'SET_SESSION_DURATION': {
+      const ownerTableId = getSessionOwnerTableId(state, action.tableId);
+      if (!ownerTableId) return state;
+      const durationSess = state.sessions[ownerTableId];
+      if (!durationSess) return state;
+      return {
+        ...state,
+        sessions: {
+          ...state.sessions,
+          [ownerTableId]: {
+            ...durationSess,
+            plannedDuration: Math.max(15, action.duration),
           },
         },
       };
@@ -750,6 +817,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         zones: action.zones,
         tables: mergedTables,
+        tableCombinations: action.tableCombinations || [],
         menu: action.menu,
         staff: action.staff,
       };
@@ -770,6 +838,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
         restaurant: action.restaurant,
         zones: action.zones,
         tables: updatedTables,
+        tableCombinations: action.tableCombinations,
         menu: action.menu,
         staff: action.staff,
       };
@@ -795,6 +864,7 @@ interface AppProviderProps {
     restaurant: Restaurant;
     zones: Zone[];
     tables: Table[];
+    tableCombinations?: TableCombination[];
     menu: MenuItem[];
     staff: Staff[];
   };

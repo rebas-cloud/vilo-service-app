@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { useApp } from '../context/AppContext';
 import { Reservation, Table } from '../types';
 import { updateReservation, deleteReservation, loadReservations } from '../utils/storage';
-import { SurfaceCard, InfoRow, StatGrid, ActionButton, IconActionPair } from './ui';
+import { SurfaceCard, InfoRow, ActionButton, IconActionPair } from './ui';
 
 interface ReservationDetailProps {
   reservation: Reservation;
@@ -20,6 +20,9 @@ interface ReservationDetailProps {
 export function ReservationDetail({ reservation, allTables, onClose, onUpdated, onEdit, onSeat, inline = false }: ReservationDetailProps) {
   const { state, dispatch } = useApp();
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [showGuestCountOverlay, setShowGuestCountOverlay] = useState(false);
+  const [showDurationOverlay, setShowDurationOverlay] = useState(false);
+  const isMobileViewport = typeof window !== 'undefined' && window.innerWidth < 768;
 
   const r = reservation;
   const assignedIds = r.tableIds && r.tableIds.length > 0 ? r.tableIds : (r.tableId ? [r.tableId] : []);
@@ -90,10 +93,32 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
   const paymentStatus = r.paymentStatus || 'open';
   const guestInitial = (r.guestName || '?').trim().charAt(0).toUpperCase() || '?';
 
-  const formatDuration = (mins: number) => {
+  const formatDurationShort = (mins: number) => {
     const h = Math.floor(mins / 60);
     const m = mins % 60;
-    return h > 0 ? (m > 0 ? `${h}h ${m}min` : `${h}h`) : `${m}min`;
+    return h > 0 ? `${h}h ${m}m` : `${m}m`;
+  };
+
+  const sectionLabelClass = 'mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8f97b3]';
+  const textInputClass = 'w-full bg-vilo-card px-4 py-3 text-[13px] text-white outline-none placeholder:text-vilo-text-muted';
+  const getPickerButtonClass = (active: boolean) => (
+    'flex min-h-[48px] items-center justify-center px-3 text-[13px] font-semibold transition-colors ' +
+    (active
+      ? 'bg-[#8b5cf6] text-white'
+      : 'bg-vilo-card text-vilo-text-soft hover:bg-vilo-elevated')
+  );
+  const interactiveStatClass = 'w-full border border-vilo-border-strong bg-vilo-card px-3 py-3 text-left transition-colors hover:bg-vilo-surface active:bg-vilo-elevated';
+
+  const applyReservationPartySize = (partySize: number) => {
+    const updated = updateReservation(r.id, { partySize });
+    onUpdated(updated);
+    setShowGuestCountOverlay(false);
+  };
+
+  const applyReservationDuration = (duration: number) => {
+    const updated = updateReservation(r.id, { duration });
+    onUpdated(updated);
+    setShowDurationOverlay(false);
   };
 
   const assignedTableNames = assignedIds
@@ -111,10 +136,18 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
     <div
       className={
         inline
-          ? 'vilo-no-motion h-full overflow-y-auto border-l w-[calc(100vw-68px)] sm:w-[320px] sm:max-w-[36vw]'
+          ? 'vilo-no-motion relative h-full overflow-y-auto border-l'
           : 'vilo-no-motion h-full w-[320px] max-w-[92vw] overflow-y-auto shadow-2xl'
       }
-      style={{ background: '#1f1e33', borderLeft: inline ? '1px solid #2a2a42' : undefined }}
+      style={{
+        background: '#1f1e33',
+        borderLeft: inline ? '1px solid #2a2a42' : undefined,
+        width: inline ? (isMobileViewport ? 'calc(100vw - 68px)' : 320) : 320,
+        minWidth: inline ? (isMobileViewport ? 'calc(100vw - 68px)' : 320) : 320,
+        maxWidth: inline ? (isMobileViewport ? 'calc(100vw - 68px)' : 320) : 320,
+        marginLeft: inline ? 'auto' : undefined,
+        flexShrink: 0,
+      }}
       onClick={e => e.stopPropagation()}
     >
         <div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: '#2a2a42' }}>
@@ -153,11 +186,25 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
           </SurfaceCard>
 
           {/* Time / Party / Duration */}
-          <StatGrid items={[
-            { value: r.time },
-            { value: `${r.partySize} P.` },
-            { value: formatDuration(r.duration || 90) },
-          ]} />
+          <div className="grid grid-cols-3 gap-3">
+            <div className={`${interactiveStatClass} cursor-default`}>
+              <div className="text-center text-[13px] font-bold text-white">{r.time}</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowGuestCountOverlay(true)}
+              className={interactiveStatClass}
+            >
+              <div className="text-center text-[13px] font-bold text-white">{r.partySize} P.</div>
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowDurationOverlay(true)}
+              className={interactiveStatClass}
+            >
+              <div className="text-center text-[13px] font-bold text-white">{formatDurationShort(r.duration || 90)}</div>
+            </button>
+          </div>
 
           {/* Table assignment */}
           <SurfaceCard className="px-4 py-4">
@@ -246,6 +293,64 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
             {confirmDelete ? 'Wirklich loeschen?' : 'Loeschen'}
           </ActionButton>
         </div>
+
+        {showGuestCountOverlay && (
+          <div className="absolute inset-0 z-30 flex flex-col justify-end bg-black/20" onClick={() => setShowGuestCountOverlay(false)}>
+            <div className="border-t border-[#2a2a42] bg-[#1f1d33] px-4 py-4" onClick={e => e.stopPropagation()}>
+              <p className={sectionLabelClass}>Anzahl Gäste</p>
+              <div className="grid grid-cols-4 gap-2">
+                {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
+                  <button key={n} onClick={() => applyReservationPartySize(n)} className={getPickerButtonClass(r.partySize === n)}>
+                    {n}
+                  </button>
+                ))}
+              </div>
+              <input
+                type="number"
+                min={1}
+                placeholder="Andere Anzahl..."
+                className={`${textInputClass} mt-2`}
+                value={r.partySize > 8 ? r.partySize : ''}
+                onChange={e => {
+                  const val = parseInt(e.target.value);
+                  if (val > 0) {
+                    const updated = updateReservation(r.id, { partySize: val });
+                    onUpdated(updated);
+                  }
+                }}
+                onBlur={e => {
+                  const val = parseInt(e.target.value);
+                  if (val > 0) {
+                    applyReservationPartySize(val);
+                  } else {
+                    setShowGuestCountOverlay(false);
+                  }
+                }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    const val = parseInt((e.target as HTMLInputElement).value);
+                    if (val > 0) applyReservationPartySize(val);
+                  }
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {showDurationOverlay && (
+          <div className="absolute inset-0 z-30 flex flex-col justify-end bg-black/20" onClick={() => setShowDurationOverlay(false)}>
+            <div className="border-t border-[#2a2a42] bg-[#1f1d33] px-4 py-4" onClick={e => e.stopPropagation()}>
+              <p className={sectionLabelClass}>Dauer</p>
+              <div className="grid grid-cols-3 gap-2">
+                {[60, 90, 120, 150, 180].map(duration => (
+                  <button key={duration} onClick={() => applyReservationDuration(duration)} className={getPickerButtonClass((r.duration || 90) === duration)}>
+                    {duration}m
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
   );
 

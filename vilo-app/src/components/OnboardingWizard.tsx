@@ -165,60 +165,63 @@ export function OnboardingWizard({ initialStep = 0, onComplete, onBack, onQuickS
 
   return (
     <div
-      className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 flex flex-col"
-      style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+      className="min-h-screen flex flex-col"
+      style={{ background: '#1a1a2e', paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       {/* Header */}
       <div className="px-4 pt-4 pb-2">
-        <div className="flex items-center justify-between mb-3">
-          <button onClick={handlePrev} className="p-2 rounded-lg hover:bg-vilo-elevated/50 transition-colors">
-            <IconArrowLeft className="w-5 h-5 text-vilo-text-secondary" />
-          </button>
-          <span className="text-sm text-vilo-text-secondary">Schritt {step + 1} von 4</span>
-          {step === 0 && (
-            <button
-              onClick={onQuickStart}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-400 text-sm font-medium hover:bg-amber-500/30 transition-colors"
-            >
-              <IconBolt className="w-4 h-4" />
-              Schnellstart
+        <div className="mx-auto w-full max-w-[640px]">
+          <div className="flex items-center justify-between mb-3">
+            <button onClick={handlePrev} className="p-2 rounded-lg hover:bg-vilo-elevated/50 transition-colors">
+              <IconArrowLeft className="w-5 h-5 text-vilo-text-secondary" />
             </button>
-          )}
-          {step > 0 && <div className="w-20" />}
-        </div>
+            <span className="text-sm text-vilo-text-secondary">Schritt {step + 1} von 4</span>
+            {step === 0 && (
+              <button
+                onClick={onQuickStart}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-vilo-border-subtle bg-vilo-elevated text-[#d8c7ff] text-sm font-medium hover:bg-[#3a365c] transition-colors"
+              >
+                <IconBolt className="w-4 h-4" />
+                Schnellstart
+              </button>
+            )}
+            {step > 0 && <div className="w-20" />}
+          </div>
 
-        {/* Progress Bar */}
-        <div className="h-1.5 bg-vilo-elevated rounded-full overflow-hidden">
-          <div
-            className="h-full bg-[#7bb7ef] rounded-full transition-all duration-500 ease-out"
-            style={{ width: `${progressPercent}%` }}
-          />
-        </div>
+          {/* Progress Bar */}
+          <div className="h-1.5 bg-vilo-elevated rounded-full overflow-hidden">
+            <div
+              className="h-full bg-[#8b5cf6] rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
 
-        {/* Step Title */}
-        <div className="flex items-center gap-3 mt-4 mb-2">
-          {(() => {
-            const Icon = STEP_ICONS[step];
-            return <Icon className="w-6 h-6 text-[#b1d9ff]" />;
-          })()}
-          <div>
-            <h2 className="text-xl font-bold text-white">{STEP_TITLES[step]}</h2>
-            <p className="text-sm text-vilo-text-secondary">
-              {step === 0 && `${restaurantName} – Grundeinstellungen`}
-              {step === 1 && 'Definiere Bereiche und Tische'}
-              {step === 2 && 'Füge deine Gerichte und Getränke hinzu'}
-              {step === 3 && 'Erstelle Konten für dein Team'}
-            </p>
+          {/* Step Title */}
+          <div className="flex items-center gap-3 mt-4 mb-2">
+            {(() => {
+              const Icon = STEP_ICONS[step];
+              return <Icon className="w-6 h-6 text-[#d8c7ff]" />;
+            })()}
+            <div>
+              <h2 className="text-xl font-bold text-white">{STEP_TITLES[step]}</h2>
+              <p className="text-sm text-vilo-text-secondary">
+                {step === 0 && `${restaurantName} – Grundeinstellungen`}
+                {step === 1 && 'Definiere Bereiche und Tische'}
+                {step === 2 && 'Füge deine Gerichte und Getränke hinzu'}
+                {step === 3 && 'Erstelle Konten für dein Team'}
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-4 pb-4">
+        <div className="mx-auto w-full max-w-[640px]">
         {/* Step 1: Restaurant Profile */}
         {step === 0 && (
           <div className="space-y-4 mt-2">
-            <div className="p-4 rounded-xl bg-vilo-surface/80 border border-vilo-border-subtle">
+            <div className="p-4 rounded-xl bg-[#232139] border border-vilo-border-subtle">
               <div className="text-sm text-vilo-text-secondary mb-1">Restaurant</div>
               <div className="text-lg font-semibold text-white">{restaurantName}</div>
             </div>
@@ -228,7 +231,7 @@ export function OnboardingWizard({ initialStep = 0, onComplete, onBack, onQuickS
               <select
                 value={currency}
                 onChange={e => setCurrency(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-vilo-elevated/80 text-white border border-vilo-border-strong focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full px-4 py-3 rounded-xl bg-[#232139] text-white border border-vilo-border-subtle focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]"
               >
                 <option value="EUR">EUR (Euro)</option>
                 <option value="CHF">CHF (Schweizer Franken)</option>
@@ -243,15 +246,15 @@ export function OnboardingWizard({ initialStep = 0, onComplete, onBack, onQuickS
                 type="number"
                 value={taxRate}
                 onChange={e => setTaxRate(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-vilo-elevated/80 text-white border border-vilo-border-strong focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full px-4 py-3 rounded-xl bg-[#232139] text-white border border-vilo-border-subtle focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]"
                 min="0"
                 max="30"
                 step="0.5"
               />
             </div>
 
-            <div className="p-4 rounded-xl bg-[#7bb7ef]/10 border border-violet-500/20">
-              <p className="text-[#b1d9ff] text-sm">
+            <div className="p-4 rounded-xl bg-[#232139] border border-vilo-border-subtle">
+              <p className="text-[#d8c7ff] text-sm">
                 <strong>Tipp:</strong> Druecke &quot;Schnellstart&quot; oben rechts, um mit Beispieldaten sofort loszulegen.
                 Du kannst alles spaeter aendern.
               </p>
@@ -263,14 +266,14 @@ export function OnboardingWizard({ initialStep = 0, onComplete, onBack, onQuickS
         {step === 1 && (
           <div className="space-y-3 mt-2">
             {zones.map((zone) => (
-              <div key={zone.id} className="p-4 rounded-xl bg-vilo-surface/80 border border-vilo-border-subtle">
+              <div key={zone.id} className="p-4 rounded-xl bg-[#232139] border border-vilo-border-subtle">
                 <div className="flex items-center gap-3">
                   <input
                     type="text"
                     value={zone.name}
                     onChange={e => updateZone(zone.id, 'name', e.target.value)}
                     placeholder="Bereichsname (z.B. Innen, Terrasse)"
-                    className="flex-1 px-3 py-2 rounded-lg bg-vilo-elevated/80 text-white placeholder-[#888] border border-vilo-border-strong focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm"
+                    className="flex-1 px-3 py-2 rounded-lg bg-[#1f2035] text-white placeholder-[#888] border border-vilo-border-subtle focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] text-sm"
                   />
                   <button
                     onClick={() => removeZone(zone.id)}
@@ -302,13 +305,13 @@ export function OnboardingWizard({ initialStep = 0, onComplete, onBack, onQuickS
 
             <button
               onClick={addZone}
-              className="w-full p-3 rounded-xl border-2 border-dashed border-vilo-border-strong text-vilo-text-secondary hover:border-violet-500 hover:text-[#b1d9ff] transition-colors flex items-center justify-center gap-2"
+              className="w-full p-3 rounded-xl border-2 border-dashed border-vilo-border-subtle text-vilo-text-secondary hover:border-[#8b5cf6] hover:text-[#d8c7ff] transition-colors flex items-center justify-center gap-2"
             >
               <IconPlus className="w-4 h-4" />
               Bereich hinzufuegen
             </button>
 
-            <div className="p-3 rounded-xl bg-vilo-surface/50">
+            <div className="p-3 rounded-xl bg-[#232139] border border-vilo-border-subtle">
               <p className="text-vilo-text-secondary text-sm text-center">
                 Gesamt: {zones.reduce((sum, z) => sum + z.tableCount, 0)} Tische in {zones.length} Bereichen
               </p>
@@ -327,8 +330,8 @@ export function OnboardingWizard({ initialStep = 0, onComplete, onBack, onQuickS
                   onClick={() => setActiveCategory(cat)}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
                     activeCategory === cat
-                      ? 'bg-[#7bb7ef] text-white'
-                      : 'bg-vilo-elevated/80 text-vilo-text-secondary hover:text-vilo-text-primary'
+                      ? 'bg-[#8b5cf6] text-white'
+                      : 'bg-[#232139] text-vilo-text-secondary hover:text-vilo-text-primary'
                   }`}
                 >
                   {CATEGORY_LABELS[cat]}
@@ -348,7 +351,7 @@ export function OnboardingWizard({ initialStep = 0, onComplete, onBack, onQuickS
                 value={newItemName}
                 onChange={e => setNewItemName(e.target.value)}
                 placeholder="Name (z.B. Cola klein)"
-                className="flex-1 px-3 py-2.5 rounded-xl bg-vilo-elevated/80 text-white placeholder-[#888] border border-vilo-border-strong focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm"
+                className="flex-1 px-3 py-2.5 rounded-xl bg-[#232139] text-white placeholder-[#888] border border-vilo-border-subtle focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] text-sm"
                 onKeyDown={e => e.key === 'Enter' && addMenuItem()}
               />
               <input
@@ -356,7 +359,7 @@ export function OnboardingWizard({ initialStep = 0, onComplete, onBack, onQuickS
                 value={newItemPrice}
                 onChange={e => setNewItemPrice(e.target.value)}
                 placeholder="Preis"
-                className="w-24 px-3 py-2.5 rounded-xl bg-vilo-elevated/80 text-white placeholder-[#888] border border-vilo-border-strong focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm"
+                className="w-24 px-3 py-2.5 rounded-xl bg-[#232139] text-white placeholder-[#888] border border-vilo-border-subtle focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] text-sm"
                 step="0.10"
                 min="0"
                 onKeyDown={e => e.key === 'Enter' && addMenuItem()}
@@ -364,7 +367,7 @@ export function OnboardingWizard({ initialStep = 0, onComplete, onBack, onQuickS
               <button
                 onClick={addMenuItem}
                 disabled={!newItemName.trim() || !newItemPrice.trim()}
-                className="px-3 py-2.5 rounded-xl bg-[#7bb7ef] text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#7bb7ef] transition-colors"
+                className="px-3 py-2.5 rounded-xl bg-[#8b5cf6] text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#7c3aed] transition-colors"
               >
                 <IconPlus className="w-5 h-5" />
               </button>
@@ -375,10 +378,10 @@ export function OnboardingWizard({ initialStep = 0, onComplete, onBack, onQuickS
               {menuItems
                 .filter(m => m.category === activeCategory)
                 .map(item => (
-                  <div key={item.id} className="flex items-center justify-between p-3 rounded-xl bg-vilo-surface/80 border border-vilo-border-subtle">
+                  <div key={item.id} className="flex items-center justify-between p-3 rounded-xl bg-[#232139] border border-vilo-border-subtle">
                     <div>
                       <span className="text-white text-sm">{item.name}</span>
-                      <span className="text-[#b1d9ff] text-sm ml-2">{parseFloat(item.price).toFixed(2)} EUR</span>
+                      <span className="text-[#d8c7ff] text-sm ml-2">{parseFloat(item.price).toFixed(2)} EUR</span>
                     </div>
                     <button
                       onClick={() => removeMenuItem(item.id)}
@@ -395,7 +398,7 @@ export function OnboardingWizard({ initialStep = 0, onComplete, onBack, onQuickS
               )}
             </div>
 
-            <div className="p-3 rounded-xl bg-vilo-surface/50">
+            <div className="p-3 rounded-xl bg-[#232139] border border-vilo-border-subtle">
               <p className="text-vilo-text-secondary text-sm text-center">
                 Gesamt: {menuItems.length} Positionen
               </p>
@@ -407,14 +410,14 @@ export function OnboardingWizard({ initialStep = 0, onComplete, onBack, onQuickS
         {step === 3 && (
           <div className="space-y-3 mt-2">
             {/* Add Staff Form */}
-            <div className="p-4 rounded-xl bg-vilo-surface/80 border border-vilo-border-subtle space-y-3">
+            <div className="p-4 rounded-xl bg-[#232139] border border-vilo-border-subtle space-y-3">
               <div className="flex gap-2">
                 <input
                   type="text"
                   value={newStaffName}
                   onChange={e => setNewStaffName(e.target.value)}
                   placeholder="Name (z.B. Max)"
-                  className="flex-1 px-3 py-2.5 rounded-xl bg-vilo-elevated/80 text-white placeholder-[#888] border border-vilo-border-strong focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm"
+                  className="flex-1 px-3 py-2.5 rounded-xl bg-[#1f2035] text-white placeholder-[#888] border border-vilo-border-subtle focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] text-sm"
                 />
                 <input
                   type="text"
@@ -424,7 +427,7 @@ export function OnboardingWizard({ initialStep = 0, onComplete, onBack, onQuickS
                     setNewStaffPin(v);
                   }}
                   placeholder="4-stellige PIN"
-                  className="w-32 px-3 py-2.5 rounded-xl bg-vilo-elevated/80 text-white placeholder-[#888] border border-vilo-border-strong focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm text-center tracking-widest"
+                  className="w-32 px-3 py-2.5 rounded-xl bg-[#1f2035] text-white placeholder-[#888] border border-vilo-border-subtle focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] text-sm text-center tracking-widest"
                   inputMode="numeric"
                 />
               </div>
@@ -434,8 +437,8 @@ export function OnboardingWizard({ initialStep = 0, onComplete, onBack, onQuickS
                     onClick={() => setNewStaffRole('waiter')}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                       newStaffRole === 'waiter'
-                        ? 'bg-[#7bb7ef] text-white'
-                        : 'bg-vilo-elevated text-vilo-text-secondary'
+                        ? 'bg-[#8b5cf6] text-white'
+                        : 'bg-[#1f2035] text-vilo-text-secondary'
                     }`}
                   >
                     Kellner
@@ -444,8 +447,8 @@ export function OnboardingWizard({ initialStep = 0, onComplete, onBack, onQuickS
                     onClick={() => setNewStaffRole('manager')}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                       newStaffRole === 'manager'
-                        ? 'bg-[#7bb7ef] text-white'
-                        : 'bg-vilo-elevated text-vilo-text-secondary'
+                        ? 'bg-[#8b5cf6] text-white'
+                        : 'bg-[#1f2035] text-vilo-text-secondary'
                     }`}
                   >
                     Manager
@@ -454,7 +457,7 @@ export function OnboardingWizard({ initialStep = 0, onComplete, onBack, onQuickS
                 <button
                   onClick={addStaffMember}
                   disabled={!newStaffName.trim() || newStaffPin.length !== 4}
-                  className="px-4 py-1.5 rounded-lg bg-[#7bb7ef] text-white text-sm font-medium disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#7bb7ef] transition-colors flex items-center gap-1.5"
+                  className="px-4 py-1.5 rounded-lg bg-[#8b5cf6] text-white text-sm font-medium disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#7c3aed] transition-colors flex items-center gap-1.5"
                 >
                   <IconPlus className="w-4 h-4" />
                   Hinzufuegen
@@ -468,9 +471,9 @@ export function OnboardingWizard({ initialStep = 0, onComplete, onBack, onQuickS
             {/* Staff List */}
             <div className="space-y-2">
               {staffMembers.map(member => (
-                <div key={member.id} className="flex items-center justify-between p-3 rounded-xl bg-vilo-surface/80 border border-vilo-border-subtle">
+                <div key={member.id} className="flex items-center justify-between p-3 rounded-xl bg-[#232139] border border-vilo-border-subtle">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-[#7bb7ef]/30 flex items-center justify-center text-[#b1d9ff] font-semibold text-sm">
+                    <div className="w-9 h-9 rounded-full bg-[#8b5cf6]/25 flex items-center justify-center text-[#d8c7ff] font-semibold text-sm">
                       {member.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
@@ -496,27 +499,30 @@ export function OnboardingWizard({ initialStep = 0, onComplete, onBack, onQuickS
             </div>
           </div>
         )}
+        </div>
       </div>
 
       {/* Bottom Action */}
-      <div className="px-4 pb-4 pt-2 bg-[#1a1a2e]/80 backdrop-blur border-t border-vilo-border-subtle/50">
-        <button
-          onClick={handleNext}
-          disabled={!canProceed()}
-          className="w-full py-3.5 rounded-xl bg-[#7bb7ef] hover:bg-[#7bb7ef] active:bg-violet-700 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold text-lg transition-colors flex items-center justify-center gap-2"
-        >
-          {step < 3 ? (
-            <>
-              Weiter
-              <IconArrowRight className="w-5 h-5" />
-            </>
-          ) : (
-            <>
-              <IconCheck className="w-5 h-5" />
-              Fertig – Restaurant starten
-            </>
-          )}
-        </button>
+      <div className="px-4 pb-4 pt-2 bg-[#1a1a2e]/90 backdrop-blur">
+        <div className="mx-auto w-full max-w-[640px]">
+          <button
+            onClick={handleNext}
+            disabled={!canProceed()}
+            className="w-full py-3.5 rounded-xl bg-[#8b5cf6] hover:bg-[#7c3aed] active:bg-violet-700 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold text-lg transition-colors flex items-center justify-center gap-2"
+          >
+            {step < 3 ? (
+              <>
+                Weiter
+                <IconArrowRight className="w-5 h-5" />
+              </>
+            ) : (
+              <>
+                <IconCheck className="w-5 h-5" />
+                Fertig – Restaurant starten
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );
