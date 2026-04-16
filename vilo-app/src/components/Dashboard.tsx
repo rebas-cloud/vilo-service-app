@@ -198,10 +198,9 @@ const OCCASION_COLORS: Record<string, string> = {
   gratis_extra: '#2dd4bf',
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function UebersichtTab({ occupiedTables: _occupiedTables, freeTables: _freeTables, totalRevenue: _totalRevenue, totalPendingItems: _totalPendingItems }: {
-  occupiedTables: any[];
-  freeTables: any[];
+function UebersichtTab(_props: {
+  occupiedTables: unknown[];
+  freeTables: unknown[];
   totalRevenue: number;
   totalPendingItems: number;
 }) {

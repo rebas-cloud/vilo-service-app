@@ -74,7 +74,7 @@ export function KitchenBarDisplay({ onBack: _onBack }: { onBack: () => void }) {
           osc2.start();
           osc2.stop(audioCtx.currentTime + 0.2);
         }, 180);
-      } catch (_e) { /* audio not available */ }
+      } catch { /* audio not available */ }
 
       if (navigator.vibrate) navigator.vibrate([100, 80, 100]);
     }
@@ -139,7 +139,7 @@ export function KitchenBarDisplay({ onBack: _onBack }: { onBack: () => void }) {
           osc3.stop(audioCtx.currentTime + 0.15);
         }, 120);
       }, 120);
-    } catch (_e) { /* audio not available */ }
+    } catch { /* audio not available */ }
 
     if (navigator.vibrate) navigator.vibrate(100);
   };

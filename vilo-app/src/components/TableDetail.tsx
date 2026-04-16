@@ -58,10 +58,10 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
 
   const table = state.tables.find(t => t.id === state.activeTableId);
   const session = state.activeTableId ? state.sessions[state.activeTableId] : null;
+  // sessionOrders is safe to use before the early return (needed by hooks below)
+  const sessionOrders = session?.orders ?? [];
 
-  if (!table || !session) return null;
-
-  const ordersByState = {
+  const ordersByState = !session ? { ordered: [], sent: [], problem: [], ready: [], served: [] } : {
     ordered: session.orders.filter(o => o.state === 'ordered'),
     sent: session.orders.filter(o => o.state === 'sent_to_kitchen' || o.state === 'sent_to_bar'),
     problem: session.orders.filter(o => o.state === 'problem'),
@@ -69,7 +69,7 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
     served: session.orders.filter(o => o.state === 'served'),
   };
 
-  const total = session.orders.reduce((sum, o) => sum + o.price * o.quantity, 0);
+  const total = sessionOrders.reduce((sum, o) => sum + o.price * o.quantity, 0);
 
   const handleSendOrders = () => {
     dispatch({ type: 'SEND_ORDERS' });
@@ -90,7 +90,7 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
       menuItem.category === 'desserts' ? 'dessert' :
       undefined;
 
-    const existingOrder = session.orders.find(order =>
+    const existingOrder = sessionOrders.find(order =>
       order.menuItemId === menuItem.id &&
       order.state === 'ordered' &&
       order.modifiers.length === 0 &&
@@ -136,7 +136,7 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
       menuItem.category === 'desserts' ? 'dessert' :
       undefined;
 
-    const existingOrder = [...session.orders]
+    const existingOrder = [...sessionOrders]
       .reverse()
       .find(order =>
         order.menuItemId === menuItem.id &&
@@ -272,17 +272,17 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
 
   const menuItemsForCategory = state.menu.filter(item => item.category === menuCategory);
   const guestSourceLabel =
-    session.guestSource === 'walk_in' ? 'Walk-in' :
-    session.guestSource === 'phone' ? 'Telefon' :
-    session.guestSource === 'online' ? 'Online' :
+    session?.guestSource === 'walk_in' ? 'Walk-in' :
+    session?.guestSource === 'phone' ? 'Telefon' :
+    session?.guestSource === 'online' ? 'Online' :
     'Offen';
-  const activePositionCount = session.orders.filter(order => order.state !== 'served').length;
-  const currentServiceStatusInfo = getServiceStatusInfo(session.serviceStatus);
+  const activePositionCount = sessionOrders.filter(order => order.state !== 'served').length;
+  const currentServiceStatusInfo = getServiceStatusInfo(session?.serviceStatus);
   const accentAccordionColor =
-    table.status === 'billing'
+    table?.status === 'billing'
       ? '#f59e0b'
       : currentServiceStatusInfo?.color || '#8b5cf6';
-  const quantityByMenuItem = session.orders.reduce<Record<string, number>>((acc, order) => {
+  const quantityByMenuItem = sessionOrders.reduce<Record<string, number>>((acc, order) => {
     acc[order.menuItemId] = (acc[order.menuItemId] || 0) + order.quantity;
     return acc;
   }, {});
@@ -305,7 +305,7 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
       accent: 'text-sky-300',
       color: '#8b5cf6',
       helper: 'Offene Positionen',
-      orders: session.orders.filter(order => !order.course).sort((a, b) => a.timestamp - b.timestamp),
+      orders: sessionOrders.filter(order => !order.course).sort((a, b) => a.timestamp - b.timestamp),
     },
     {
       id: 'starter',
@@ -313,7 +313,7 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
       accent: 'text-emerald-300',
       color: '#8b5cf6',
       helper: 'Vorspeisen',
-      orders: session.orders.filter(order => order.course === 'starter').sort((a, b) => a.timestamp - b.timestamp),
+      orders: sessionOrders.filter(order => order.course === 'starter').sort((a, b) => a.timestamp - b.timestamp),
     },
     {
       id: 'main',
@@ -321,7 +321,7 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
       accent: 'text-amber-300',
       color: '#8b5cf6',
       helper: 'Hauptgerichte',
-      orders: session.orders.filter(order => order.course === 'main').sort((a, b) => a.timestamp - b.timestamp),
+      orders: sessionOrders.filter(order => order.course === 'main').sort((a, b) => a.timestamp - b.timestamp),
     },
     {
       id: 'dessert',
@@ -329,7 +329,7 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
       accent: 'text-pink-300',
       color: '#a855f7',
       helper: 'Desserts',
-      orders: session.orders.filter(order => order.course === 'dessert').sort((a, b) => a.timestamp - b.timestamp),
+      orders: sessionOrders.filter(order => order.course === 'dessert').sort((a, b) => a.timestamp - b.timestamp),
     },
   ].filter(section => section.orders.length > 0);
   const stickySectionHeight = 58;
@@ -367,6 +367,8 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
       window.removeEventListener('resize', updateStackedSections);
     };
   }, [updateStackedSections]);
+
+  if (!table || !session) return null;
 
   const renderSectionHeader = (section: typeof leftSections[number], stacked = false) => (
     <button

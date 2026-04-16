@@ -99,7 +99,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         return { ...state, activeTableId: existingOwnerId, showBilling: false };
       }
 
-      let newSessions = { ...state.sessions };
+      const newSessions = { ...state.sessions };
       let newTables = state.tables;
 
       if (table.status === 'free') {
