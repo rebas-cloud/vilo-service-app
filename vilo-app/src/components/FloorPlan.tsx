@@ -1,6 +1,8 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { Table, TableCombination, TablePlacementType, TableVariant, Reservation, Guest, GuestNote, ReservationStatus, OccasionLabel, WaitlistEntry } from '../types';
+import { useFloorPlanEditor } from '../hooks/useFloorPlanEditor';
+import { useFloorPlanSidebar, SIDEBAR_SORT_OPTIONS, type SidebarPlacedItem, type SidebarSectionKey } from '../hooks/useFloorPlanSidebar';
 
 import { IconAdjustmentsHorizontal, IconAlertTriangleFilled, IconAlignLeft, IconArmchair, IconBabyCarriage, IconBell, IconBriefcaseFilled, IconCake, IconCashBanknoteFilled, IconCheck, IconChevronDown, IconChevronRight, IconChevronUp, IconCircleCheckFilled, IconCircleX, IconCreditCard, IconClock, IconCoinFilled, IconConfetti, IconEdit, IconGiftFilled, IconGlobeFilled, IconHeartFilled, IconHeartHandshake, IconLayoutSidebarLeftCollapse, IconLayoutSidebarLeftExpand, IconLeaf, IconMail, IconMasksTheater, IconMessage, IconNews, IconPhone, IconPhoneFilled, IconPlant2, IconPlus, IconSchool, IconSparkles, IconStar, IconStarFilled, IconTrash, IconUser, IconUserCheck, IconUserPlus, IconUsers, IconWalk, IconWheelchair, IconX } from '@tabler/icons-react';
 import { saveStorage, loadStorage, loadReservations, loadWaitlist, loadGuests, addGuest, addGuestNote, removeGuestNote, updateWaitlistEntry } from '../utils/storage';
@@ -38,11 +40,6 @@ interface FloorPlanProps {
   initialEditMode?: boolean;
 }
 
-type SidebarPlacedItem = Reservation & {
-  __isSessionItem?: boolean;
-  __sessionTableId?: string;
-};
-
 type SeatInspectorState = {
   tableId: string;
   seatNumber: number;
@@ -65,35 +62,12 @@ type PendingWaitlistPlacementState = {
 export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanProps) {
   const { state, dispatch } = useApp();
   const seatAssignmentEnabled = false;
-  type SidebarSortKey = 'reservation_time' | 'arrival_time' | 'name' | 'party_size' | 'table' | 'created_at' | 'payment_status';
-  type SidebarSectionKey = 'waitlist' | 'reservations' | 'seated' | 'finished' | 'removed';
-  const sidebarSortOptions: { value: SidebarSortKey; label: string }[] = [
-    { value: 'reservation_time', label: 'Reservierungszeit' },
-    { value: 'arrival_time', label: 'Ankunftszeit' },
-    { value: 'name', label: 'Name' },
-    { value: 'party_size', label: 'Personenzahl' },
-    { value: 'table', label: 'Tisch' },
-    { value: 'created_at', label: 'Erstelltes Datum' },
-    { value: 'payment_status', label: 'Kreditkartenstatus' },
-  ];
   const initialViewportRef = useRef<PersistedFloorPlanViewport>(
     loadPersistedFloorPlanViewport(state.zones[0]?.id || ''),
   );
   const [activeZone, setActiveZone] = useState<string>(initialViewportRef.current.activeZone || state.zones[0]?.id || '');
   const [editMode, setEditMode] = useState(initialEditMode);
-  const [editorMode, setEditorMode] = useState<'layout' | 'combos'>('layout');
-  const [selectedTable, setSelectedTable] = useState<string | null>(null);
-  const [editorTool, setEditorTool] = useState<'select' | 'move'>('move');
-  const [placementVariant, setPlacementVariant] = useState<TableVariant | null>(null);
-  const [draggedVariant, setDraggedVariant] = useState<TableVariant | null>(null);
-  const [layoutUndoStack, setLayoutUndoStack] = useState<Table[][]>([]);
-  const [layoutRedoStack, setLayoutRedoStack] = useState<Table[][]>([]);
-  const [editorNameDraft, setEditorNameDraft] = useState('');
-  const [comboDraftTableIds, setComboDraftTableIds] = useState<string[]>([]);
-  const [focusedCombinationId, setFocusedCombinationId] = useState<string | null>(null);
-  const [focusedCombinationTableId, setFocusedCombinationTableId] = useState<string | null>(null);
-  const [comboError, setComboError] = useState('');
-  const [comboSaveFeedback, setComboSaveFeedback] = useState<'idle' | 'saved'>('idle');
+  // Editor state provided by useFloorPlanEditor hook
   const [tableManagementId, setTableManagementId] = useState<string | null>(null);
   const [moveSelection, setMoveSelection] = useState<{ fromTableId: string } | null>(null);
   const [newTableVariant, setNewTableVariant] = useState<TableVariant>(DEFAULT_TABLE_VARIANT);
@@ -3790,7 +3764,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
                   style={{ borderColor: '#2a2a42' }}
                   onClick={event => event.stopPropagation()}
                 >
-                  {sidebarSortOptions.map(option => (
+                  {SIDEBAR_SORT_OPTIONS.map((option: { value: string; label: string }) => (
                     <button
                       key={option.value}
                       type="button"
