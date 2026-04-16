@@ -3,9 +3,10 @@ import { useApp } from '../context/AppContext';
 import { Table, TableCombination, TablePlacementType, TableVariant, Reservation, Guest, GuestNote, ReservationStatus, OccasionLabel, WaitlistEntry } from '../types';
 import { useFloorPlanEditor } from '../hooks/useFloorPlanEditor';
 import { useFloorPlanSidebar, SIDEBAR_SORT_OPTIONS, type SidebarPlacedItem, type SidebarSectionKey } from '../hooks/useFloorPlanSidebar';
+import { useFloorPlanGuestPanel, type SeatQuickActionState } from '../hooks/useFloorPlanGuestPanel';
 
 import { IconAdjustmentsHorizontal, IconAlertTriangleFilled, IconAlignLeft, IconArmchair, IconBabyCarriage, IconBell, IconBriefcaseFilled, IconCake, IconCashBanknoteFilled, IconCheck, IconChevronDown, IconChevronRight, IconChevronUp, IconCircleCheckFilled, IconCircleX, IconCreditCard, IconClock, IconCoinFilled, IconConfetti, IconEdit, IconGiftFilled, IconGlobeFilled, IconHeartFilled, IconHeartHandshake, IconLayoutSidebarLeftCollapse, IconLayoutSidebarLeftExpand, IconLeaf, IconMail, IconMasksTheater, IconMessage, IconNews, IconPhone, IconPhoneFilled, IconPlant2, IconPlus, IconSchool, IconSparkles, IconStar, IconStarFilled, IconTrash, IconUser, IconUserCheck, IconUserPlus, IconUsers, IconWalk, IconWheelchair, IconX } from '@tabler/icons-react';
-import { saveStorage, loadStorage, loadReservations, loadWaitlist, loadGuests, addGuest, addGuestNote, removeGuestNote, updateWaitlistEntry } from '../utils/storage';
+import { saveStorage, loadStorage, loadGuests, addGuest, updateWaitlistEntry } from '../utils/storage';
 import { ReservationPanel } from './Reservations';
 import { TableManagement } from './TableManagement';
 import { WaitlistPanel } from './Waitlist';
@@ -24,11 +25,9 @@ import {
   getRotatedWrapperBounds, setTableCenterAndRotation,
   snapPointToGrid, clampTableToBounds,
   SERVICE_STATUS_SHORT, TABLE_STATUS_META,
-  type PersistedFloorPlanInspector, type PersistedFloorPlanViewport,
-  type PersistedFloorPlanBadges,
-  FLOORPLAN_INSPECTOR_STORAGE_KEY, FLOORPLAN_VIEWPORT_STORAGE_KEY,
-  FLOORPLAN_BADGE_VISIBILITY_STORAGE_KEY,
-  loadPersistedFloorPlanViewport, loadPersistedFloorPlanBadges,
+  type PersistedFloorPlanViewport,
+  FLOORPLAN_VIEWPORT_STORAGE_KEY,
+  loadPersistedFloorPlanViewport,
 } from '../utils/floorplan';
 
 interface FloorPlanProps {
@@ -44,19 +43,6 @@ type SeatInspectorState = {
   seatNumber: number;
 };
 
-type SeatQuickActionState = {
-  tableId: string;
-  seatNumber: number;
-  x: number;
-  y: number;
-};
-
-type PendingWaitlistPlacementState = {
-  entryId: string;
-  guestName: string;
-  partySize: number;
-};
-
 // Types and constants are now imported from '../utils/floorplan'
 export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanProps) {
   const { state, dispatch } = useApp();
@@ -69,46 +55,14 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
   // Editor state provided by useFloorPlanEditor hook
   const [tableManagementId, setTableManagementId] = useState<string | null>(null);
   const [moveSelection, setMoveSelection] = useState<{ fromTableId: string } | null>(null);
-  const [showReservations, setShowReservations] = useState(false);
-  const [openReservationsInAddMode, setOpenReservationsInAddMode] = useState(false);
-  const [showReservationCreatePanel, setShowReservationCreatePanel] = useState(false);
-  const [showWaitlist, setShowWaitlist] = useState(false);
-  const [activeWaitlistCardId, setActiveWaitlistCardId] = useState<string | null>(null);
-  const [pendingWaitlistPlacement, setPendingWaitlistPlacement] = useState<PendingWaitlistPlacementState | null>(null);
-  const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [waitlistEntries, setWaitlistEntries] = useState<WaitlistEntry[]>([]);
+  // Guest panel state provided by useFloorPlanGuestPanel hook
   // Sidebar state provided by useFloorPlanSidebar hook
-  const [selectedReservationId, setSelectedReservationId] = useState<string | null>(null);
-  const [justAddedReservationId, setJustAddedReservationId] = useState<string | null>(null);
-  const [pressedReservationId, setPressedReservationId] = useState<string | null>(null);
-  const [highlightedTableId, setHighlightedTableId] = useState<string | null>(null);
-  const [guestProfileGuest, setGuestProfileGuest] = useState<Guest | null>(null);
-  const [guestProfileKey, setGuestProfileKey] = useState(0); // force re-render on guest update
-  const [showGuestProfileView, setShowGuestProfileView] = useState(false);
-  const previousReservationIdsRef = useRef<Set<string>>(new Set());
-  const reservationsInitializedRef = useRef(false);
-  const inspectorRestoredRef = useRef(false);
-  const [activeNoteTab, setActiveNoteTab] = useState<GuestNote['category']>('general');
-  const [showAddNote, setShowAddNote] = useState(false);
-  const [noteText, setNoteText] = useState('');
-  const [showSeatOverlay, setShowSeatOverlay] = useState(false);
-  const [seatOverlayTab, setSeatOverlayTab] = useState<'preassign' | 'seat'>('seat');
-  const [seatOverlayZone, setSeatOverlayZone] = useState<string>(activeZone);
-  const [showPartySizeOverlay, setShowPartySizeOverlay] = useState(false);
-  const [showDurationOverlay, setShowDurationOverlay] = useState(false);
-  const initialBadgeVisibilityRef = useRef<PersistedFloorPlanBadges>(loadPersistedFloorPlanBadges());
-  const [showFloorTimeBadges, setShowFloorTimeBadges] = useState(initialBadgeVisibilityRef.current.showTimeBadges);
-  const [showFloorMoneyBadges, setShowFloorMoneyBadges] = useState(initialBadgeVisibilityRef.current.showMoneyBadges);
-  const [showFloorStatusBadges, setShowFloorStatusBadges] = useState(initialBadgeVisibilityRef.current.showStatusBadges);
-  const [showFloorServerBadges, setShowFloorServerBadges] = useState(initialBadgeVisibilityRef.current.showServerBadges);
-  const [resDetailId, setResDetailId] = useState<string | null>(null);
   const [seatInspector, setSeatInspector] = useState<SeatInspectorState | null>(null);
   const [seatQuickAction, setSeatQuickAction] = useState<SeatQuickActionState | null>(null);
   const [seatGuestSearch, setSeatGuestSearch] = useState('');
   const [seatGuestName, setSeatGuestName] = useState('');
   const [seatGuestPhone, setSeatGuestPhone] = useState('');
   const sidebarWidth = 'min(78vw, 320px)';
-  const [, setMinuteTick] = useState(0);
   const isMobileViewport = typeof window !== 'undefined' && window.innerWidth < 768;
 
   const [scale, setScale] = useState(initialViewportRef.current.scale);
@@ -144,6 +98,14 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     saveStorage({ ...storage, tableCombinations: updatedTableCombinations });
   }, [dispatch, state.menu, state.restaurant, state.staff, state.tables, state.zones]);
 
+  const closeSeatInspector = useCallback(() => {
+    setSeatInspector(null);
+    setSeatQuickAction(null);
+    setSeatGuestSearch('');
+    setSeatGuestName('');
+    setSeatGuestPhone('');
+  }, []);
+
   const editor = useFloorPlanEditor({
     tables: state.tables,
     tableCombinations: state.tableCombinations,
@@ -152,11 +114,21 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     saveTableUpdate,
     saveCombinationUpdate: saveTableCombinationsUpdate,
   });
+  const guestPanel = useFloorPlanGuestPanel({
+    tables: state.tables,
+    activeZone,
+    setActiveZone,
+    tableManagementId,
+    setTableManagementId,
+    setMoveSelection,
+    closeSeatInspector,
+    setSeatQuickAction,
+  });
   const sidebar = useFloorPlanSidebar({
     tables: state.tables,
     sessions: state.sessions,
-    reservations,
-    waitlistEntries,
+    reservations: guestPanel.reservations,
+    waitlistEntries: guestPanel.waitlistEntries,
   });
 
   const {
@@ -192,6 +164,47 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     deleteCombination,
     zoneTables, zoneCombinations,
   } = editor;
+
+  const {
+    reservations, setReservations,
+    setWaitlistEntries,
+    syncReservations,
+    showReservations, setShowReservations,
+    openReservationsInAddMode, setOpenReservationsInAddMode,
+    showReservationCreatePanel, setShowReservationCreatePanel,
+    showWaitlist, setShowWaitlist,
+    activeWaitlistCardId, setActiveWaitlistCardId,
+    pendingWaitlistPlacement, setPendingWaitlistPlacement,
+    selectedReservationId, setSelectedReservationId,
+    justAddedReservationId,
+    pressedReservationId, setPressedReservationId,
+    highlightedTableId, setHighlightedTableId,
+    guestProfileGuest,
+    guestProfileKey,
+    showGuestProfileView, setShowGuestProfileView,
+    resDetailId, setResDetailId,
+    activeNoteTab, setActiveNoteTab,
+    showAddNote, setShowAddNote,
+    noteText, setNoteText,
+    showSeatOverlay, setShowSeatOverlay,
+    seatOverlayTab, setSeatOverlayTab,
+    seatOverlayZone, setSeatOverlayZone,
+    showPartySizeOverlay, setShowPartySizeOverlay,
+    showDurationOverlay, setShowDurationOverlay,
+    showFloorTimeBadges, setShowFloorTimeBadges,
+    showFloorMoneyBadges, setShowFloorMoneyBadges,
+    showFloorStatusBadges, setShowFloorStatusBadges,
+    showFloorServerBadges, setShowFloorServerBadges,
+    clearPersistedInspector,
+    openTableManagementInspector,
+    openReservationInspector,
+    openReservationCreateFromSidebar,
+    openWaitlistFromSidebar,
+    closeGuestPanel,
+    refreshGuest,
+    handleAddNote,
+    handleRemoveNote,
+  } = guestPanel;
 
   const {
     showSidebar, setShowSidebar,
@@ -280,49 +293,6 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     };
   }, [editMode, liveScaleFactor, liveTranslate.x, liveTranslate.y]);
 
-  const syncReservations = useCallback(() => {
-    const nextReservations = loadReservations();
-    setReservations(nextReservations);
-    reservationsInitializedRef.current = true;
-  }, []);
-
-  // Load reservations and keep inspector/sidebar in sync
-  useEffect(() => {
-    const handleVisibilitySync = () => {
-      if (document.visibilityState === 'visible') {
-        syncReservations();
-      }
-    };
-
-    syncReservations();
-    const interval = window.setInterval(syncReservations, 30000);
-    window.addEventListener('focus', syncReservations);
-    window.addEventListener('visibilitychange', handleVisibilitySync);
-
-    return () => {
-      window.clearInterval(interval);
-      window.removeEventListener('focus', syncReservations);
-      window.removeEventListener('visibilitychange', handleVisibilitySync);
-    };
-  }, [syncReservations]);
-
-  // Keep sidebar waitlist in sync even when the waitlist panel is closed
-  useEffect(() => {
-    const syncWaitlist = () => {
-      const wl = loadWaitlist();
-      setWaitlistEntries(wl);
-    };
-
-    syncWaitlist();
-    const interval = window.setInterval(syncWaitlist, 30000);
-    window.addEventListener('focus', syncWaitlist);
-
-    return () => {
-      window.clearInterval(interval);
-      window.removeEventListener('focus', syncWaitlist);
-    };
-  }, []);
-
   useEffect(() => {
     if (typeof window === 'undefined') return;
     window.localStorage.setItem(
@@ -330,24 +300,6 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
       JSON.stringify({ activeZone, scale: liveScaleFactor, translate: liveTranslate }),
     );
   }, [activeZone, liveScaleFactor, liveTranslate]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    window.localStorage.setItem(
-      FLOORPLAN_BADGE_VISIBILITY_STORAGE_KEY,
-      JSON.stringify({
-        showTimeBadges: showFloorTimeBadges,
-        showMoneyBadges: showFloorMoneyBadges,
-        showStatusBadges: showFloorStatusBadges,
-        showServerBadges: showFloorServerBadges,
-      }),
-    );
-  }, [showFloorMoneyBadges, showFloorServerBadges, showFloorStatusBadges, showFloorTimeBadges]);
-
-  useEffect(() => {
-    const timer = window.setInterval(() => setMinuteTick(tick => tick + 1), 60000);
-    return () => window.clearInterval(timer);
-  }, []);
 
   useEffect(() => {
     const element = canvasRef.current;
@@ -497,14 +449,6 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     dispatch({ type: 'UPDATE_CONFIG', restaurant: state.restaurant, zones: state.zones, tables: updatedTables, tableCombinations: state.tableCombinations, menu: state.menu, staff: state.staff });
   }, [activeZone]);
 
-  const closeSeatInspector = useCallback(() => {
-    setSeatInspector(null);
-    setSeatQuickAction(null);
-    setSeatGuestSearch('');
-    setSeatGuestName('');
-    setSeatGuestPhone('');
-  }, []);
-
   const formatCompactMinutes = useCallback((minutes: number) => {
     const sign = minutes < 0 ? '-' : '';
     const absoluteMinutes = Math.abs(minutes);
@@ -598,80 +542,6 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
       nextActionTone,
     };
   }, [activeReservationByTableId, formatDurationLabel, getDisplaySessionForTable, getElapsedSessionLabel, getReservationCountdownLabel, nextReservationMap]);
-
-  const persistInspectorState = useCallback((next: PersistedFloorPlanInspector | null) => {
-    if (typeof window === 'undefined') return;
-    if (!next) {
-      window.localStorage.removeItem(FLOORPLAN_INSPECTOR_STORAGE_KEY);
-      return;
-    }
-    window.localStorage.setItem(FLOORPLAN_INSPECTOR_STORAGE_KEY, JSON.stringify(next));
-  }, []);
-
-  const clearPersistedInspector = useCallback(() => {
-    persistInspectorState(null);
-  }, [persistInspectorState]);
-
-  const openTableManagementInspector = useCallback((tableId: string) => {
-    const table = state.tables.find(t => t.id === tableId);
-    if (table?.zone && table.zone !== activeZone) {
-      setActiveZone(table.zone);
-    }
-    setMoveSelection(null);
-    setSelectedReservationId(null);
-    setHighlightedTableId(null);
-    setGuestProfileGuest(null);
-    setShowGuestProfileView(false);
-    setShowAddNote(false);
-    setNoteText('');
-    setResDetailId(null);
-    closeSeatInspector();
-    setShowWaitlist(false);
-    setShowReservationCreatePanel(false);
-    setTableManagementId(tableId);
-    persistInspectorState({ type: 'table', id: tableId });
-  }, [activeZone, closeSeatInspector, persistInspectorState, state.tables]);
-
-  const openReservationInspector = useCallback((reservation: Reservation) => {
-    setMoveSelection(null);
-    setShowReservationCreatePanel(false);
-    setShowGuestProfileView(false);
-    setShowWaitlist(false);
-    setResDetailId(null);
-    setTableManagementId(null);
-    setSelectedReservationId(reservation.id);
-    setHighlightedTableId(reservation.tableId || null);
-
-    const nextZone = reservation.zone || (reservation.tableId ? state.tables.find(t => t.id === reservation.tableId)?.zone : null);
-    if (nextZone && nextZone !== activeZone) {
-      setActiveZone(nextZone);
-    }
-
-    const guests = loadGuests();
-    let guest = reservation.guestPhone ? guests.find(g => g.phone === reservation.guestPhone) : null;
-    if (!guest && reservation.guestName) {
-      guest = guests.find(g => g.name === reservation.guestName) || null;
-    }
-    if (!guest && reservation.guestName) {
-      const newGuest: Guest = {
-        id: 'g-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
-        name: reservation.guestName,
-        phone: reservation.guestPhone || '',
-        email: '',
-        tags: [],
-        notes: [],
-        visits: [],
-        totalVisits: 1,
-        totalSpend: 0,
-        lastVisit: reservation.date,
-        createdAt: Date.now(),
-      };
-      addGuest(newGuest);
-      guest = newGuest;
-    }
-    setGuestProfileGuest(guest || null);
-    persistInspectorState({ type: 'reservation', id: reservation.id });
-  }, [activeZone, persistInspectorState, state.tables]);
 
   const getOrderInfo = (tableId: string) => {
     const displaySession = getDisplaySessionForTable(tableId);
@@ -2014,76 +1884,6 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
   }, [seatGuestSearch]);
 
   useEffect(() => {
-    if (!reservationsInitializedRef.current) {
-      previousReservationIdsRef.current = new Set(reservations.map(r => r.id));
-      reservationsInitializedRef.current = true;
-      return;
-    }
-
-    const previousIds = previousReservationIdsRef.current;
-    const newlyAdded = reservations.find(r => !previousIds.has(r.id));
-
-    previousReservationIdsRef.current = new Set(reservations.map(r => r.id));
-
-    if (!newlyAdded) return;
-
-    setJustAddedReservationId(newlyAdded.id);
-    const timeout = window.setTimeout(() => {
-      setJustAddedReservationId(current => (current === newlyAdded.id ? null : current));
-    }, 2200);
-
-    return () => window.clearTimeout(timeout);
-  }, [reservations]);
-
-  useEffect(() => {
-    if (inspectorRestoredRef.current) return;
-    if (typeof window === 'undefined') return;
-    if (state.tables.length === 0) return;
-
-    const raw = window.localStorage.getItem(FLOORPLAN_INSPECTOR_STORAGE_KEY);
-    if (!raw) {
-      inspectorRestoredRef.current = true;
-      return;
-    }
-
-    try {
-      const persisted = JSON.parse(raw) as PersistedFloorPlanInspector;
-
-      if (persisted.type === 'table') {
-        const table = state.tables.find(t => t.id === persisted.id);
-        if (table) {
-          inspectorRestoredRef.current = true;
-          openTableManagementInspector(table.id);
-          return;
-        }
-        inspectorRestoredRef.current = true;
-      }
-
-      if (persisted.type === 'reservation') {
-        const reservation = reservations.find(r => r.id === persisted.id);
-        if (reservation) {
-          inspectorRestoredRef.current = true;
-          openReservationInspector(reservation);
-          return;
-        }
-
-        if (!reservationsInitializedRef.current) {
-          return;
-        }
-
-        inspectorRestoredRef.current = true;
-      }
-    } catch {
-      inspectorRestoredRef.current = true;
-      clearPersistedInspector();
-      return;
-    }
-
-    inspectorRestoredRef.current = true;
-    clearPersistedInspector();
-  }, [clearPersistedInspector, openReservationInspector, openTableManagementInspector, reservations, state.tables]);
-
-  useEffect(() => {
     if (!sidebarSortMenuOpen) return;
     const handleDocumentClick = () => setSidebarSortMenuOpen(null);
     document.addEventListener('click', handleDocumentClick);
@@ -2398,83 +2198,6 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
   { value: 'info', label: 'Gastdetails', icon: IconUser },
   { value: 'history', label: 'Verlauf', icon: IconClock },
 ];
-  const refreshGuest = () => {
-    if (!guestProfileGuest) return;
-    const guests = loadGuests();
-    const updated = guests.find(g => g.id === guestProfileGuest.id);
-    if (updated) { setGuestProfileGuest(updated); setGuestProfileKey(k => k + 1); }
-  };
-
-  const handleAddNote = () => {
-    if (!noteText.trim() || !guestProfileGuest) return;
-    const note: GuestNote = {
-      id: Math.random().toString(36).substring(2, 9) + Date.now().toString(36),
-      category: activeNoteTab,
-      text: noteText.trim(),
-      createdAt: Date.now(),
-    };
-    addGuestNote(guestProfileGuest.id, note);
-    setNoteText('');
-    setShowAddNote(false);
-    refreshGuest();
-  };
-
-  const handleRemoveNote = (noteId: string) => {
-    if (!guestProfileGuest) return;
-    removeGuestNote(guestProfileGuest.id, noteId);
-    refreshGuest();
-  };
-
-  const closeGuestPanel = () => {
-    setSelectedReservationId(null);
-    setHighlightedTableId(null);
-    setGuestProfileGuest(null);
-    setShowGuestProfileView(false);
-    setShowAddNote(false);
-    setNoteText('');
-    setSeatQuickAction(null);
-    closeSeatInspector();
-    clearPersistedInspector();
-  };
-
-  const openReservationCreateFromSidebar = useCallback(() => {
-    const isMobileViewport = typeof window !== 'undefined' && window.innerWidth < 768;
-    setPendingWaitlistPlacement(null);
-
-    if (isMobileViewport) {
-      closeGuestPanel();
-      setResDetailId(null);
-      setTableManagementId(null);
-      setShowWaitlist(false);
-    } else {
-      setShowWaitlist(false);
-      setSelectedReservationId(null);
-      setGuestProfileGuest(null);
-      clearPersistedInspector();
-    }
-
-    setShowReservationCreatePanel(true);
-  }, [clearPersistedInspector]);
-
-  const openWaitlistFromSidebar = useCallback(() => {
-    const isMobileViewport = typeof window !== 'undefined' && window.innerWidth < 768;
-    setPendingWaitlistPlacement(null);
-
-    if (isMobileViewport) {
-      closeGuestPanel();
-      setResDetailId(null);
-      setTableManagementId(null);
-      setShowReservationCreatePanel(false);
-    } else {
-      setShowReservationCreatePanel(false);
-      setSelectedReservationId(null);
-      setGuestProfileGuest(null);
-      clearPersistedInspector();
-    }
-
-    setShowWaitlist(true);
-  }, [clearPersistedInspector]);
-
   // OpenTable RIGHT PANEL - 1:1 OpenTable Design
   const [pacingExcluded, setPacingExcluded] = useState(false);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
