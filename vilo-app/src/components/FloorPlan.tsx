@@ -19,17 +19,16 @@ import {
   TABLE_VARIANTS, TABLE_VARIANT_MAP, EDITOR_TABLE_VARIANTS, DEFAULT_TABLE_VARIANT, BAR_SEAT_VARIANT,
   inferTableVariant, inferPlacementType, getTableVariantConfig,
   getTableLabelNumber, getTableKindLabel, getTableDisplayLabel,
-  EDITOR_GRID_SIZE, EDITOR_MIN_CANVAS_WIDTH, EDITOR_MIN_CANVAS_HEIGHT,
   ROTATION_HANDLE_OFFSET, ROTATION_HANDLE_SIZE,
   getTableSize, getTableCenter, snapRotation, getTableRotation,
   getRotatedWrapperBounds, setTableCenterAndRotation,
-  snapPointToGrid, snapCanvasSize, clampTableToBounds,
+  snapPointToGrid, clampTableToBounds,
   SERVICE_STATUS_SHORT, TABLE_STATUS_META,
   type PersistedFloorPlanInspector, type PersistedFloorPlanViewport,
-  type PersistedEditorCanvasSizes, type PersistedFloorPlanBadges,
+  type PersistedFloorPlanBadges,
   FLOORPLAN_INSPECTOR_STORAGE_KEY, FLOORPLAN_VIEWPORT_STORAGE_KEY,
-  FLOORPLAN_EDITOR_CANVAS_STORAGE_KEY, FLOORPLAN_BADGE_VISIBILITY_STORAGE_KEY,
-  loadPersistedFloorPlanViewport, loadPersistedEditorCanvasSizes, loadPersistedFloorPlanBadges,
+  FLOORPLAN_BADGE_VISIBILITY_STORAGE_KEY,
+  loadPersistedFloorPlanViewport, loadPersistedFloorPlanBadges,
 } from '../utils/floorplan';
 
 interface FloorPlanProps {
@@ -70,7 +69,6 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
   // Editor state provided by useFloorPlanEditor hook
   const [tableManagementId, setTableManagementId] = useState<string | null>(null);
   const [moveSelection, setMoveSelection] = useState<{ fromTableId: string } | null>(null);
-  const [newTableVariant, setNewTableVariant] = useState<TableVariant>(DEFAULT_TABLE_VARIANT);
   const [showReservations, setShowReservations] = useState(false);
   const [openReservationsInAddMode, setOpenReservationsInAddMode] = useState(false);
   const [showReservationCreatePanel, setShowReservationCreatePanel] = useState(false);
@@ -79,27 +77,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
   const [pendingWaitlistPlacement, setPendingWaitlistPlacement] = useState<PendingWaitlistPlacementState | null>(null);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [waitlistEntries, setWaitlistEntries] = useState<WaitlistEntry[]>([]);
-  const [showSidebar, setShowSidebar] = useState(true);
-  const [sidebarSearch] = useState<Record<SidebarSectionKey, string>>({
-    waitlist: '',
-    reservations: '',
-    seated: '',
-    finished: '',
-    removed: '',
-  });
-  const [sidebarSortBy, setSidebarSortBy] = useState<Record<SidebarSectionKey, SidebarSortKey>>({
-    waitlist: 'created_at',
-    reservations: 'reservation_time',
-    seated: 'reservation_time',
-    finished: 'reservation_time',
-    removed: 'reservation_time',
-  });
-  const [sidebarSortMenuOpen, setSidebarSortMenuOpen] = useState<SidebarSectionKey | null>(null);
-  const [sidebarResCollapsed, setSidebarResCollapsed] = useState(false);
-  const [sidebarWaitlistCollapsed, setSidebarWaitlistCollapsed] = useState(false);
-  const [sidebarSeatedCollapsed, setSidebarSeatedCollapsed] = useState(false);
-  const [sidebarFinishedCollapsed, setSidebarFinishedCollapsed] = useState(true);
-  const [sidebarRemovedCollapsed, setSidebarRemovedCollapsed] = useState(true);
+  // Sidebar state provided by useFloorPlanSidebar hook
   const [selectedReservationId, setSelectedReservationId] = useState<string | null>(null);
   const [justAddedReservationId, setJustAddedReservationId] = useState<string | null>(null);
   const [pressedReservationId, setPressedReservationId] = useState<string | null>(null);
@@ -138,27 +116,109 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
   const [liveScaleFactor, setLiveScaleFactor] = useState(() => Math.min(2.4, Math.max(1, initialViewportRef.current.scale || 1)));
   const [liveTranslate, setLiveTranslate] = useState(initialViewportRef.current.translate);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
-  const [editorCanvasSizeByZone, setEditorCanvasSizeByZone] = useState<PersistedEditorCanvasSizes>(
-    loadPersistedEditorCanvasSizes(),
-  );
   const canvasRef = useRef<HTMLDivElement>(null);
-  const editorFrameRef = useRef<HTMLDivElement>(null);
-  const editorStageRef = useRef<HTMLDivElement>(null);
   const pinchRef = useRef({ startDist: 0, startScale: 1, startX: 0, startY: 0, startTx: 0, startTy: 0, isPinching: false, isPanning: false });
   const dragRef = useRef<{ tableId: string; startX: number; startY: number; origX: number; origY: number; moved: boolean; snapshot: Table[] } | null>(null);
   const rotateRef = useRef<{ tableId: string; snapshot: Table[]; rotated: boolean } | null>(null);
   const canvasPanRef = useRef<{ startX: number; startY: number; startTranslate: { x: number; y: number } } | null>(null);
   const livePanRef = useRef<{ startX: number; startY: number; startTranslate: { x: number; y: number }; moved: boolean } | null>(null);
   const suppressLiveStageClickRef = useRef(false);
-  const resizeRef = useRef<{
-    zoneId: string;
-    startX: number;
-    startY: number;
-    startWidth: number;
-    startHeight: number;
-    minWidth: number;
-    minHeight: number;
-  } | null>(null);
+
+  const saveTableUpdate = useCallback((updatedTables: Table[]) => {
+    dispatch({ type: 'UPDATE_CONFIG', restaurant: state.restaurant, zones: state.zones, tables: updatedTables, tableCombinations: state.tableCombinations, menu: state.menu, staff: state.staff });
+    const storage = loadStorage();
+    saveStorage({ ...storage, tables: updatedTables });
+  }, [state, dispatch]);
+
+  const saveTableCombinationsUpdate = useCallback((updatedTableCombinations: TableCombination[]) => {
+    dispatch({
+      type: 'UPDATE_CONFIG',
+      restaurant: state.restaurant,
+      zones: state.zones,
+      tables: state.tables,
+      tableCombinations: updatedTableCombinations,
+      menu: state.menu,
+      staff: state.staff,
+    });
+    const storage = loadStorage();
+    saveStorage({ ...storage, tableCombinations: updatedTableCombinations });
+  }, [dispatch, state.menu, state.restaurant, state.staff, state.tables, state.zones]);
+
+  const editor = useFloorPlanEditor({
+    tables: state.tables,
+    tableCombinations: state.tableCombinations,
+    zones: state.zones,
+    activeZone,
+    saveTableUpdate,
+    saveCombinationUpdate: saveTableCombinationsUpdate,
+  });
+  const sidebar = useFloorPlanSidebar({
+    tables: state.tables,
+    sessions: state.sessions,
+    reservations,
+    waitlistEntries,
+  });
+
+  const {
+    editorMode, setEditorMode,
+    selectedTable, setSelectedTable,
+    editorTool, setEditorTool,
+    placementVariant, setPlacementVariant,
+    setDraggedVariant,
+    setNewTableVariant,
+    editorNameDraft, setEditorNameDraft,
+    selectedEditorTable,
+    layoutUndoStack, layoutRedoStack,
+    handleUndoLayout, handleRedoLayout,
+    commitLayoutUpdate,
+    updateTableField,
+    duplicateSelectedTable,
+    handleDeleteTable,
+    handleChangeVariant,
+    handleCommitEditorName,
+    editorFrameRef, editorStageRef,
+    editorCanvasSize,
+    handleEditorCanvasClick,
+    handleEditorCanvasDragOver,
+    handleEditorCanvasDrop,
+    startEditorResize,
+    comboDraftTableIds, setComboDraftTableIds,
+    focusedCombinationId, setFocusedCombinationId,
+    focusedCombinationTableId, setFocusedCombinationTableId,
+    comboError, setComboError,
+    comboSaveFeedback,
+    saveCombinationDraft,
+    updateCombinationField,
+    deleteCombination,
+    zoneTables, zoneCombinations,
+  } = editor;
+
+  const {
+    showSidebar, setShowSidebar,
+    sidebarSortBy, setSidebarSortBy,
+    sidebarSortMenuOpen, setSidebarSortMenuOpen,
+    sidebarResCollapsed, setSidebarResCollapsed,
+    sidebarWaitlistCollapsed, setSidebarWaitlistCollapsed,
+    sidebarSeatedCollapsed, setSidebarSeatedCollapsed,
+    sidebarFinishedCollapsed, setSidebarFinishedCollapsed,
+    sidebarRemovedCollapsed, setSidebarRemovedCollapsed,
+    resolvedSidebarResCollapsed,
+    resolvedSidebarSeatedCollapsed,
+    resolvedSidebarWaitlistCollapsed,
+    sidebarReservations,
+    sidebarSeated,
+    sidebarWaitlist,
+    sidebarFinished,
+    sidebarRemoved,
+    sidebarResParties, sidebarResCovers,
+    sidebarSeatedParties, sidebarSeatedCovers,
+    sidebarWaitlistParties, sidebarWaitlistCovers,
+    sidebarFinishedParties, sidebarFinishedCovers,
+    sidebarRemovedParties, sidebarRemovedCovers,
+    sidebarReservationsEmpty,
+    sidebarSeatedEmpty,
+    sidebarWaitlistEmpty,
+  } = sidebar;
 
   const switchZone = useCallback((zoneId: string) => {
     setActiveZone(zoneId);
@@ -274,14 +334,6 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
   useEffect(() => {
     if (typeof window === 'undefined') return;
     window.localStorage.setItem(
-      FLOORPLAN_EDITOR_CANVAS_STORAGE_KEY,
-      JSON.stringify(editorCanvasSizeByZone),
-    );
-  }, [editorCanvasSizeByZone]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    window.localStorage.setItem(
       FLOORPLAN_BADGE_VISIBILITY_STORAGE_KEY,
       JSON.stringify({
         showTimeBadges: showFloorTimeBadges,
@@ -387,12 +439,6 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     return map;
   }, [reservations]);
 
-  const zoneTables = state.tables.filter(t => t.zone === activeZone);
-  const zoneCombinations = useMemo(
-    () => state.tableCombinations.filter(combination => combination.zoneId === activeZone),
-    [activeZone, state.tableCombinations],
-  );
-
   const getCombinationByTableId = useCallback((tableId: string) => (
     state.tableCombinations.find(combination => combination.tableIds.includes(tableId)) || null
   ), [state.tableCombinations]);
@@ -450,78 +496,6 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     saveStorage({ ...storage, tables: updatedTables });
     dispatch({ type: 'UPDATE_CONFIG', restaurant: state.restaurant, zones: state.zones, tables: updatedTables, tableCombinations: state.tableCombinations, menu: state.menu, staff: state.staff });
   }, [activeZone]);
-
-  const saveTableUpdate = useCallback((updatedTables: Table[]) => {
-    dispatch({ type: 'UPDATE_CONFIG', restaurant: state.restaurant, zones: state.zones, tables: updatedTables, tableCombinations: state.tableCombinations, menu: state.menu, staff: state.staff });
-    const storage = loadStorage();
-    saveStorage({ ...storage, tables: updatedTables });
-  }, [state, dispatch]);
-
-  const saveTableCombinationsUpdate = useCallback((updatedTableCombinations: TableCombination[]) => {
-    dispatch({
-      type: 'UPDATE_CONFIG',
-      restaurant: state.restaurant,
-      zones: state.zones,
-      tables: state.tables,
-      tableCombinations: updatedTableCombinations,
-      menu: state.menu,
-      staff: state.staff,
-    });
-    const storage = loadStorage();
-    saveStorage({ ...storage, tableCombinations: updatedTableCombinations });
-  }, [dispatch, state.menu, state.restaurant, state.staff, state.tables, state.zones]);
-
-  const commitLayoutUpdate = useCallback((updatedTables: Table[], previousTables: Table[] = state.tables) => {
-    setLayoutUndoStack(prev => [...prev, previousTables]);
-    setLayoutRedoStack([]);
-    saveTableUpdate(updatedTables);
-  }, [saveTableUpdate, state.tables]);
-
-  const handleUndoLayout = useCallback(() => {
-    setLayoutUndoStack(prev => {
-      if (prev.length === 0) return prev;
-      const previous = prev[prev.length - 1];
-      setLayoutRedoStack(redoPrev => [...redoPrev, state.tables]);
-      saveTableUpdate(previous);
-      return prev.slice(0, -1);
-    });
-  }, [saveTableUpdate, state.tables]);
-
-  const handleRedoLayout = useCallback(() => {
-    setLayoutRedoStack(prev => {
-      if (prev.length === 0) return prev;
-      const next = prev[prev.length - 1];
-      setLayoutUndoStack(undoPrev => [...undoPrev, state.tables]);
-      saveTableUpdate(next);
-      return prev.slice(0, -1);
-    });
-  }, [saveTableUpdate, state.tables]);
-
-  const updateTableField = useCallback((tableId: string, field: keyof Table, value: Table[keyof Table]) => {
-    const previousTables = state.tables;
-    const updatedTables = state.tables.map(table => (
-      table.id === tableId ? { ...table, [field]: value } : table
-    ));
-    commitLayoutUpdate(updatedTables, previousTables);
-  }, [commitLayoutUpdate, state.tables]);
-
-  const duplicateSelectedTable = useCallback(() => {
-    if (!selectedTable) return;
-    const table = state.tables.find(entry => entry.id === selectedTable);
-    if (!table) return;
-    const duplicated: Table = {
-      ...table,
-      id: 'table-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
-      x: (table.x || 0) + 48,
-      y: (table.y || 0) + 48,
-      rotation: getTableRotation(table),
-      status: 'free',
-      sessionId: undefined,
-      name: `${table.name} Kopie`,
-    };
-    commitLayoutUpdate([...state.tables, duplicated], state.tables);
-    setSelectedTable(duplicated.id);
-  }, [commitLayoutUpdate, selectedTable, state.tables]);
 
   const closeSeatInspector = useCallback(() => {
     setSeatInspector(null);
@@ -819,42 +793,6 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     openTableManagementInspector(table.id);
   };
 
-  const editorMinimumCanvasSize = useMemo(() => {
-    const maxX = zoneTables.reduce((best, table) => {
-      const size = getTableSize(table);
-      return Math.max(best, (table.x || 0) + size.w + 120);
-    }, 0);
-    const maxY = zoneTables.reduce((best, table) => {
-      const size = getTableSize(table);
-      return Math.max(best, (table.y || 0) + size.h + 120);
-    }, 0);
-    return {
-      width: Math.max(EDITOR_MIN_CANVAS_WIDTH, Math.ceil(maxX / 80) * 80),
-      height: Math.max(EDITOR_MIN_CANVAS_HEIGHT, Math.ceil(maxY / 80) * 80),
-    };
-  }, [zoneTables]);
-
-  const clampEditorCanvasSize = useCallback((next: { width: number; height: number }) => ({
-    width: Math.max(editorMinimumCanvasSize.width, snapCanvasSize(next.width)),
-    height: Math.max(editorMinimumCanvasSize.height, snapCanvasSize(next.height)),
-  }), [editorMinimumCanvasSize.height, editorMinimumCanvasSize.width]);
-
-  const editorCanvasSize = useMemo(() => {
-    const saved = editorCanvasSizeByZone[activeZone];
-    return clampEditorCanvasSize(saved || editorMinimumCanvasSize);
-  }, [activeZone, clampEditorCanvasSize, editorCanvasSizeByZone, editorMinimumCanvasSize]);
-
-  useEffect(() => {
-    setEditorCanvasSizeByZone(prev => {
-      const current = prev[activeZone];
-      const next = clampEditorCanvasSize(current || editorMinimumCanvasSize);
-      if (current && current.width === next.width && current.height === next.height) {
-        return prev;
-      }
-      return { ...prev, [activeZone]: next };
-    });
-  }, [activeZone, clampEditorCanvasSize, editorMinimumCanvasSize]);
-
   const getEditorStagePointFromClient = useCallback((clientX: number, clientY: number) => {
     const rect = editorStageRef.current?.getBoundingClientRect();
     if (!rect) return null;
@@ -863,81 +801,6 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
       y: (clientY - rect.top) / scale,
     };
   }, [scale]);
-
-  const handleAddTable = (coords?: { x: number; y: number }, variantOverride?: TableVariant) => {
-    const zoneName = state.zones.find(z => z.id === activeZone)?.name || 'Tisch';
-    const existingNumbers = zoneTables.map(t => {
-      const match = t.name.match(/(\d+)$/);
-      return match ? parseInt(match[1]) : 0;
-    });
-    const nextNum = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
-    const variantId = variantOverride || placementVariant || newTableVariant;
-    const variant = TABLE_VARIANT_MAP[variantId] || TABLE_VARIANT_MAP[DEFAULT_TABLE_VARIANT];
-    const placementType = variant.id === BAR_SEAT_VARIANT ? 'bar_seat' : 'table';
-    const size = { w: variant.bodyBounds.width, h: variant.bodyBounds.height };
-    let px = typeof coords?.x === 'number' ? coords.x - size.w / 2 : EDITOR_GRID_SIZE * 2;
-    let py = typeof coords?.y === 'number' ? coords.y - size.h / 2 : EDITOR_GRID_SIZE * 2;
-    const occupied = zoneTables.map(t => {
-      const existingSize = getTableSize(t);
-      return { x: t.x || 0, y: t.y || 0, w: existingSize.w, h: existingSize.h };
-    });
-    if (!coords) {
-      let placed = false;
-      for (let row = 0; row < 18 && !placed; row++) {
-        for (let col = 0; col < 12 && !placed; col++) {
-          const cx = EDITOR_GRID_SIZE * 2 + col * (EDITOR_GRID_SIZE * 6);
-          const cy = EDITOR_GRID_SIZE * 2 + row * (EDITOR_GRID_SIZE * 6);
-          const overlaps = occupied.some(o => Math.abs(o.x - cx) < Math.max(o.w, size.w) && Math.abs(o.y - cy) < Math.max(o.h, size.h));
-          if (!overlaps) { px = cx; py = cy; placed = true; }
-        }
-      }
-    }
-    const snapped = snapPointToGrid(px, py);
-    const clamped = clampTableToBounds(snapped.x, snapped.y, variant, editorCanvasSize.width, editorCanvasSize.height);
-    const newTable: Table = {
-      id: 'table-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
-      name: placementType === 'bar_seat' ? `Barplatz ${nextNum}` : zoneName.charAt(0).toUpperCase() + ' ' + nextNum,
-      zone: activeZone,
-      status: 'free',
-      variant: variant.id,
-      shape: variant.shape,
-      seats: variant.seats,
-      minPartySize: variant.defaultMinPartySize,
-      maxPartySize: variant.defaultMaxPartySize,
-      placementType,
-      x: clamped.x,
-      y: clamped.y,
-      rotation: 0,
-    };
-    commitLayoutUpdate([...state.tables, newTable], state.tables);
-    setSelectedTable(newTable.id);
-  };
-
-  const handleDeleteTable = () => {
-    if (!selectedTable) return;
-    commitLayoutUpdate(state.tables.filter(t => t.id !== selectedTable), state.tables);
-    setSelectedTable(null);
-  };
-
-  const handleChangeVariant = (variantId: TableVariant) => {
-    const variant = TABLE_VARIANT_MAP[variantId] || TABLE_VARIANT_MAP[DEFAULT_TABLE_VARIANT];
-    if (selectedTable) {
-      const updatedTables = state.tables.map(t => t.id === selectedTable
-        ? {
-            ...t,
-            variant: variant.id,
-            shape: variant.shape,
-            seats: variant.seats,
-            minPartySize: Math.min(t.minPartySize || variant.defaultMinPartySize, variant.defaultMaxPartySize),
-            maxPartySize: Math.max(t.minPartySize || variant.defaultMinPartySize, variant.defaultMaxPartySize),
-            placementType: (variant.id === BAR_SEAT_VARIANT ? 'bar_seat' : 'table') as TablePlacementType,
-          }
-        : t);
-      commitLayoutUpdate(updatedTables, state.tables);
-    } else {
-      setNewTableVariant(variant.id);
-    }
-  };
 
   const handleMouseDown = (e: React.MouseEvent, tableId: string) => {
     if (editorMode !== 'combos') {
@@ -1014,11 +877,11 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
       if (dragRef.current) {
         const currentDrag = dragRef.current;
         if (currentDrag.moved) {
-          setLayoutUndoStack(prev => [...prev, currentDrag.snapshot]);
-          setLayoutRedoStack([]);
+          commitLayoutUpdate(state.tables, currentDrag.snapshot);
+        } else {
+          const storage = loadStorage();
+          saveStorage({ ...storage, tables: state.tables });
         }
-        const storage = loadStorage();
-        saveStorage({ ...storage, tables: state.tables });
         dragRef.current = null;
       }
     };
@@ -1042,11 +905,11 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
       if (dragRef.current) {
         const currentDrag = dragRef.current;
         if (currentDrag.moved) {
-          setLayoutUndoStack(prev => [...prev, currentDrag.snapshot]);
-          setLayoutRedoStack([]);
+          commitLayoutUpdate(state.tables, currentDrag.snapshot);
+        } else {
+          const storage = loadStorage();
+          saveStorage({ ...storage, tables: state.tables });
         }
-        const storage = loadStorage();
-        saveStorage({ ...storage, tables: state.tables });
         dragRef.current = null;
       }
     };
@@ -1060,7 +923,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
       window.removeEventListener('touchmove', handleTouchMoveDoc);
       window.removeEventListener('touchend', handleTouchEndDoc);
     };
-  }, [editMode, editorTool, state.tables, scale, dispatch, state.restaurant, state.zones, state.menu, state.staff, editorCanvasSize.width, editorCanvasSize.height]);
+  }, [editMode, editorTool, state.tables, scale, dispatch, state.restaurant, state.zones, state.menu, state.staff, editorCanvasSize.width, editorCanvasSize.height, commitLayoutUpdate]);
 
   useEffect(() => {
     if (!editMode) return;
@@ -1102,11 +965,11 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
       if (!rotateRef.current) return;
       const currentRotation = rotateRef.current;
       if (currentRotation.rotated) {
-        setLayoutUndoStack(prev => [...prev, currentRotation.snapshot]);
-        setLayoutRedoStack([]);
+        commitLayoutUpdate(state.tables, currentRotation.snapshot);
+      } else {
+        const storage = loadStorage();
+        saveStorage({ ...storage, tables: state.tables });
       }
-      const storage = loadStorage();
-      saveStorage({ ...storage, tables: state.tables });
       rotateRef.current = null;
     };
 
@@ -1130,178 +993,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', finishRotation);
     };
-  }, [dispatch, editMode, editorCanvasSize.height, editorCanvasSize.width, getEditorStagePointFromClient, state.menu, state.restaurant, state.staff, state.tableCombinations, state.tables, state.zones]);
-
-  const applySidebarControls = useCallback((items: SidebarPlacedItem[], sectionKey: SidebarSectionKey) => {
-    const q = sidebarSearch[sectionKey].trim().toLowerCase();
-    const activeSort = sidebarSortBy[sectionKey];
-    const paymentRank: Record<string, number> = { paid: 0, partial: 1, unpaid: 2 };
-
-    const filtered = items.filter(r => {
-      if (!q) return true;
-      const tableName = r.tableId ? (getTableDisplayLabel(state.tables.find(t => t.id === r.tableId) || { name: '' }) || '') : '';
-      return (
-        r.guestName.toLowerCase().includes(q) ||
-        r.time.toLowerCase().includes(q) ||
-        String(r.partySize).includes(q) ||
-        tableName.toLowerCase().includes(q)
-      );
-    });
-
-    return [...filtered].sort((a, b) => {
-      switch (activeSort) {
-        case 'name':
-          return a.guestName.localeCompare(b.guestName, 'de');
-        case 'party_size':
-          return b.partySize - a.partySize || a.time.localeCompare(b.time);
-        case 'table': {
-          const aTable = a.tableId ? (getTableDisplayLabel(state.tables.find(t => t.id === a.tableId) || { name: '' }) || '') : 'ZZZ';
-          const bTable = b.tableId ? (getTableDisplayLabel(state.tables.find(t => t.id === b.tableId) || { name: '' }) || '') : 'ZZZ';
-          return aTable.localeCompare(bTable, 'de') || a.time.localeCompare(b.time);
-        }
-        case 'created_at':
-          return (b.createdAt || 0) - (a.createdAt || 0);
-        case 'payment_status':
-          return (paymentRank[a.paymentStatus || 'unpaid'] ?? 9) - (paymentRank[b.paymentStatus || 'unpaid'] ?? 9) || a.time.localeCompare(b.time);
-        case 'arrival_time':
-        case 'reservation_time':
-        default:
-          return a.time.localeCompare(b.time);
-      }
-    });
-  }, [sidebarSearch, sidebarSortBy, state.tables]);
-
-  // OpenTable sidebar data
-  const sidebarReservations = useMemo(() => {
-    const today = new Date();
-    const todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
-    return applySidebarControls(
-      reservations.filter(r => r.date === todayStr && ['confirmed', 'running_late', 'partially_arrived'].includes(r.status)),
-      'reservations'
-    );
-  }, [applySidebarControls, reservations]);
-
-  const sidebarWaitlist = useMemo(() => {
-    return waitlistEntries
-      .filter(entry => entry.status === 'waiting' || entry.status === 'notified')
-      .slice()
-      .sort((a, b) => a.position - b.position || a.addedAt - b.addedAt);
-  }, [waitlistEntries]);
-
-  const sidebarSeated = useMemo(() => {
-    const today = new Date();
-    const todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
-    const seatedStatuses = ['seated', 'partially_seated', 'appetizer', 'entree', 'dessert', 'cleared', 'check_dropped', 'paid', 'bussing_needed'];
-    const seatedReservations = reservations.filter(
-      r => r.date === todayStr && seatedStatuses.includes(r.status),
-    );
-    const seatedReservationTableIds = new Set(
-      seatedReservations
-        .flatMap(r => [r.tableId, ...(r.tableIds || [])])
-        .filter((tableId): tableId is string => Boolean(tableId)),
-    );
-    const sessionsById = new Map(Object.values(state.sessions).map(session => [session.id, session]));
-    const seatedSessions = state.tables.reduce<SidebarPlacedItem[]>((items, table) => {
-      if (!['occupied', 'billing'].includes(table.status) && !table.sessionId) return items;
-      if (seatedReservationTableIds.has(table.id)) return items;
-
-      const session = state.sessions[table.id] || (table.sessionId ? sessionsById.get(table.sessionId) : undefined);
-      const hasEndedServiceStatus = !!(session?.serviceStatus && ['abgeraeumt', 'beendet'].includes(session.serviceStatus));
-      if (hasEndedServiceStatus) return items;
-
-      const hasPlacedStatus = ['occupied', 'billing'].includes(table.status) || Boolean(session?.serviceStatus);
-      if (!hasPlacedStatus) return items;
-
-      const guestCount = session?.guestCount || table.seats || 1;
-      if (guestCount <= 0) return items;
-
-      const startedAtValue = session?.startTime || Date.now();
-      const startedAt = new Date(startedAtValue);
-      const time = startedAt.getHours().toString().padStart(2, '0') + ':' + startedAt.getMinutes().toString().padStart(2, '0');
-      const duration = Math.max(1, Math.round((Date.now() - startedAtValue) / 60000));
-      const strippedTableName = getTableLabelNumber(table);
-      const source = session?.guestSource === 'phone' || session?.guestSource === 'online' ? session.guestSource : 'walk_in';
-      const fallbackGuestName = source === 'walk_in' ? 'Walk-In' : `${source === 'phone' ? 'Telefon' : 'Online'} ${strippedTableName}`;
-      const guestName = session?.guestName?.trim() || fallbackGuestName;
-
-      items.push({
-        id: `session:${session?.id || table.id}`,
-        guestName,
-        partySize: guestCount,
-        date: todayStr,
-        time,
-        duration,
-        tableId: table.id,
-        zone: table.zone,
-        status: 'seated',
-        source,
-        createdAt: startedAtValue,
-        __isSessionItem: true,
-        __sessionTableId: table.id,
-      });
-
-      return items;
-    }, []);
-
-    return applySidebarControls(
-      [...seatedReservations, ...seatedSessions],
-      'seated',
-    );
-  }, [applySidebarControls, reservations, state.sessions, state.tables]);
-
-  const sidebarFinished = useMemo(() => {
-    const today = new Date();
-    const todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
-    return applySidebarControls(
-      reservations.filter(r => r.date === todayStr && r.status === 'finished'),
-      'finished'
-    );
-  }, [applySidebarControls, reservations]);
-
-  const sidebarRemoved = useMemo(() => {
-    const today = new Date();
-    const todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
-    return applySidebarControls(
-      reservations.filter(r => r.date === todayStr && ['cancelled', 'no_show'].includes(r.status)),
-      'removed'
-    );
-  }, [applySidebarControls, reservations]);
-
-  const sidebarResParties = sidebarReservations.length;
-  const sidebarResCovers = sidebarReservations.reduce((s, r) => s + r.partySize, 0);
-  const sidebarWaitlistParties = sidebarWaitlist.length;
-  const sidebarWaitlistCovers = sidebarWaitlist.reduce((s, e) => s + e.partySize, 0);
-  const sidebarSeatedParties = sidebarSeated.length;
-  const sidebarSeatedCovers = sidebarSeated.reduce((s, r) => s + r.partySize, 0);
-  const sidebarFinishedParties = sidebarFinished.length;
-  const sidebarFinishedCovers = sidebarFinished.reduce((s, r) => s + r.partySize, 0);
-  const sidebarRemovedParties = sidebarRemoved.length;
-  const sidebarRemovedCovers = sidebarRemoved.reduce((s, r) => s + r.partySize, 0);
-  const sidebarReservationsEmpty = sidebarReservations.length === 0;
-  const sidebarSeatedEmpty = sidebarSeated.length === 0;
-  const sidebarWaitlistEmpty = sidebarWaitlist.length === 0;
-  const resolvedSidebarResCollapsed = sidebarReservationsEmpty || sidebarResCollapsed;
-  const resolvedSidebarSeatedCollapsed = sidebarSeatedEmpty || sidebarSeatedCollapsed;
-  const resolvedSidebarWaitlistCollapsed = sidebarWaitlistEmpty || sidebarWaitlistCollapsed;
-
-  useEffect(() => {
-    if (sidebarReservationsEmpty && !sidebarResCollapsed) {
-      setSidebarResCollapsed(true);
-    }
-    if (sidebarSeatedEmpty && !sidebarSeatedCollapsed) {
-      setSidebarSeatedCollapsed(true);
-    }
-    if (sidebarWaitlistEmpty && !sidebarWaitlistCollapsed) {
-      setSidebarWaitlistCollapsed(true);
-    }
-  }, [
-    sidebarReservationsEmpty,
-    sidebarResCollapsed,
-    sidebarSeatedEmpty,
-    sidebarSeatedCollapsed,
-    sidebarWaitlistEmpty,
-    sidebarWaitlistCollapsed,
-  ]);
+  }, [commitLayoutUpdate, dispatch, editMode, editorCanvasSize.height, editorCanvasSize.width, getEditorStagePointFromClient, state.menu, state.restaurant, state.staff, state.tableCombinations, state.tables, state.zones]);
 
   // buildTableSvg and renderRectSvg imported from ./floorplan/tableSvgRendering
 
@@ -2079,89 +1771,6 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
 
   const currentZone = state.zones.find(z => z.id === activeZone);
   const currentZoneIdx = state.zones.findIndex(z => z.id === activeZone);
-  const selectedEditorTable = selectedTable ? state.tables.find(table => table.id === selectedTable) || null : null;
-  const comboSaveFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (comboSaveFeedbackTimeoutRef.current) {
-        clearTimeout(comboSaveFeedbackTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    setEditorNameDraft(selectedEditorTable?.name || '');
-  }, [selectedEditorTable?.id, selectedEditorTable?.name]);
-
-  useEffect(() => {
-    setComboSaveFeedback('idle');
-  }, [comboDraftTableIds, comboError]);
-
-  const handleCommitEditorName = useCallback(() => {
-    if (!selectedEditorTable) return;
-    const nextName = editorNameDraft.trim();
-    if (!nextName || nextName === selectedEditorTable.name) {
-      setEditorNameDraft(selectedEditorTable.name);
-      return;
-    }
-    updateTableField(selectedEditorTable.id, 'name', nextName);
-  }, [editorNameDraft, selectedEditorTable, updateTableField]);
-
-  const saveCombinationDraft = useCallback(() => {
-    setComboError('');
-    setComboSaveFeedback('idle');
-    if (comboDraftTableIds.length < 2) return;
-    const selectedTables = zoneTables.filter(table => comboDraftTableIds.includes(table.id));
-    const conflict = state.tableCombinations.find(combination =>
-      combination.zoneId === activeZone &&
-      combination.tableIds.some(id => comboDraftTableIds.includes(id))
-    );
-    if (conflict) {
-      setComboError('Mindestens ein Tisch ist bereits in einer Kombination.');
-      return;
-    }
-    const nextCombination: TableCombination = {
-      id: `combo-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      zoneId: activeZone,
-      name: selectedTables
-        .map(table => getTableLabelNumber(table))
-        .sort((a, b) => Number(a) - Number(b))
-        .join('/'),
-      tableIds: comboDraftTableIds,
-      minPartySize: selectedTables.reduce((sum, table) => sum + (table.minPartySize || 1), 0),
-      maxPartySize: selectedTables.reduce((sum, table) => sum + (table.maxPartySize || table.seats || 1), 0),
-      active: true,
-    };
-    const updated = [...state.tableCombinations, nextCombination];
-    saveTableCombinationsUpdate(updated);
-    setFocusedCombinationId(nextCombination.id);
-    setFocusedCombinationTableId(null);
-    setComboDraftTableIds(nextCombination.tableIds);
-    setComboSaveFeedback('saved');
-    if (comboSaveFeedbackTimeoutRef.current) {
-      clearTimeout(comboSaveFeedbackTimeoutRef.current);
-    }
-    comboSaveFeedbackTimeoutRef.current = setTimeout(() => {
-      setComboSaveFeedback('idle');
-    }, 1600);
-  }, [activeZone, comboDraftTableIds, saveTableCombinationsUpdate, state.tableCombinations, zoneTables]);
-
-  const deleteCombination = useCallback((combinationId: string) => {
-    const updated = state.tableCombinations.filter(combination => combination.id !== combinationId);
-    saveTableCombinationsUpdate(updated);
-    setFocusedCombinationId(current => (current === combinationId ? null : current));
-  }, [saveTableCombinationsUpdate, state.tableCombinations]);
-
-  const updateCombinationField = useCallback((combinationId: string, field: 'minPartySize' | 'maxPartySize', value: number) => {
-    const updated = state.tableCombinations.map(combination => (
-      combination.id === combinationId
-        ? { ...combination, [field]: value }
-        : combination
-    ));
-    saveTableCombinationsUpdate(updated);
-  }, [saveTableCombinationsUpdate, state.tableCombinations]);
-
   const handleCanvasViewportMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!editMode || editorMode === 'combos' || editorTool !== 'move' || e.target !== e.currentTarget) return;
     canvasPanRef.current = {
@@ -2170,18 +1779,6 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
       startTranslate: translate,
     };
   }, [editMode, editorMode, editorTool, translate]);
-
-  const startEditorResize = useCallback((clientX: number, clientY: number) => {
-    resizeRef.current = {
-      zoneId: activeZone,
-      startX: clientX,
-      startY: clientY,
-      startWidth: editorCanvasSize.width,
-      startHeight: editorCanvasSize.height,
-      minWidth: editorMinimumCanvasSize.width,
-      minHeight: editorMinimumCanvasSize.height,
-    };
-  }, [activeZone, editorCanvasSize.height, editorCanvasSize.width, editorMinimumCanvasSize.height, editorMinimumCanvasSize.width]);
 
   useEffect(() => {
     if (!editMode || editorMode === 'combos' || editorTool !== 'move') return;
@@ -2204,98 +1801,6 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
       window.removeEventListener('mouseup', handleMouseUp);
     };
   }, [editMode, editorMode, editorTool]);
-
-  useEffect(() => {
-    if (!editMode) return;
-
-    const applyResize = (clientX: number, clientY: number) => {
-      const currentResize = resizeRef.current;
-      if (!currentResize) return;
-      const nextWidth = Math.max(currentResize.minWidth, currentResize.startWidth + (clientX - currentResize.startX));
-      const nextHeight = Math.max(currentResize.minHeight, currentResize.startHeight + (clientY - currentResize.startY));
-      const clamped = {
-        width: Math.max(currentResize.minWidth, snapCanvasSize(nextWidth)),
-        height: Math.max(currentResize.minHeight, snapCanvasSize(nextHeight)),
-      };
-      setEditorCanvasSizeByZone(prev => {
-        const existing = prev[currentResize.zoneId];
-        if (existing && existing.width === clamped.width && existing.height === clamped.height) {
-          return prev;
-        }
-        return { ...prev, [currentResize.zoneId]: clamped };
-      });
-    };
-
-    const handleMouseMove = (event: MouseEvent) => {
-      if (!resizeRef.current) return;
-      applyResize(event.clientX, event.clientY);
-    };
-    const handleMouseUp = () => {
-      resizeRef.current = null;
-    };
-    const handleTouchMove = (event: TouchEvent) => {
-      if (!resizeRef.current) return;
-      event.preventDefault();
-      const touch = event.touches[0];
-      if (!touch) return;
-      applyResize(touch.clientX, touch.clientY);
-    };
-    const handleTouchEnd = () => {
-      resizeRef.current = null;
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-    window.addEventListener('touchmove', handleTouchMove, { passive: false });
-    window.addEventListener('touchend', handleTouchEnd);
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('touchend', handleTouchEnd);
-    };
-  }, [editMode]);
-
-  const handleEditorCanvasClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!editMode || e.target !== e.currentTarget) return;
-    if (editorMode === 'combos') {
-      setFocusedCombinationId(null);
-      setFocusedCombinationTableId(null);
-      setComboDraftTableIds([]);
-      return;
-    }
-    if (placementVariant) {
-      const snapped = getEditorStagePointFromClient(e.clientX, e.clientY);
-      if (!snapped) return;
-      handleAddTable(snapped, placementVariant);
-      return;
-    }
-    setSelectedTable(null);
-  }, [editMode, editorMode, getEditorStagePointFromClient, handleAddTable, placementVariant]);
-
-  const placeVariantAtClientPoint = useCallback((clientX: number, clientY: number, variantId: TableVariant) => {
-    const snapped = getEditorStagePointFromClient(clientX, clientY);
-    if (!snapped) return;
-    handleAddTable(snapped, variantId);
-  }, [getEditorStagePointFromClient, handleAddTable]);
-
-  const handleEditorCanvasDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    if (!editMode) return;
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'copy';
-  }, [editMode]);
-
-  const handleEditorCanvasDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    if (!editMode) return;
-    e.preventDefault();
-    e.stopPropagation();
-    const variantId = e.dataTransfer.getData('application/x-vilo-table-variant') as TableVariant || draggedVariant;
-    if (!variantId) return;
-    placeVariantAtClientPoint(e.clientX, e.clientY, variantId);
-    setDraggedVariant(null);
-    setPlacementVariant(variantId);
-  }, [draggedVariant, editMode, placeVariantAtClientPoint]);
 
   // Notify parent of initial zone on mount
   useEffect(() => {
