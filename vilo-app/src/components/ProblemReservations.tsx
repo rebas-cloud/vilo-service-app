@@ -3,6 +3,7 @@ import { IconAlertTriangle, IconCalendarX, IconChevronDown, IconChevronUp, IconC
 
 import { Reservation, Table } from '../types';
 import { loadReservations, loadStorage } from '../utils/storage';
+import { getTodayStr } from '../utils/common';
 
 interface ProblemReservationsProps {
   onSelectTable?: (tableId: string) => void;
@@ -16,11 +17,6 @@ interface Problem {
   reservation: Reservation;
   relatedReservation?: Reservation;
   message: string;
-}
-
-function getTodayStr(): string {
-  const d = new Date();
-  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
 
 const PROBLEM_CONFIG: Record<ProblemType, { label: string; color: string; Icon: typeof IconAlertTriangle }> = {

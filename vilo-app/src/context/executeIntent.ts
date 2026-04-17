@@ -1,10 +1,7 @@
 import type { Intent, OrderItem, UndoableAction } from '../types';
 import type { AppState, AppAction } from './AppContext';
 import { feedbackOrderAdded, feedbackOrderSent, feedbackError } from '../utils/feedback';
-
-function generateId(): string {
-  return Math.random().toString(36).substring(2, 9);
-}
+import { generateId } from '../utils/common';
 
 export function createIntentExecutor(
   state: AppState,

@@ -3,6 +3,7 @@ import { IconAlertCircle, IconArmchair, IconChartBar, IconCalendar, IconCheck, I
 
 import { Reservation, ReservationStatus, Guest, SeatLabel, OccasionLabel } from '../types';
 import { loadReservations, addReservation, updateReservation, deleteReservation, findGuestByPhone, addGuest, loadGuests } from '../utils/storage';
+import { generateId, getTodayStr, formatDateDisplay, formatDuration, maskPhoneValue } from '../utils/common';
 
 import { useApp } from '../context/AppContext';
 import { GuestProfile, GuestList } from './GuestProfile';
@@ -13,38 +14,6 @@ interface ReservationPanelProps {
   onReservationsChange?: (reservations: Reservation[]) => void;
   initialShowForm?: boolean;
   embedded?: boolean;
-}
-
-function generateId(): string {
-  return Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
-}
-
-function getTodayStr(): string {
-  const d = new Date();
-  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-}
-
-function formatDateDisplay(dateStr: string): string {
-  const [y, m, d] = dateStr.split('-').map(Number);
-  const dt = new Date(y, m - 1, d);
-  const days = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
-  const months = ['Jan', 'Feb', 'März', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
-  return days[dt.getDay()] + '. ' + d + '. ' + months[dt.getMonth()];
-}
-
-function formatDuration(minutes: number): string {
-  if (minutes >= 60) {
-    const h = Math.floor(minutes / 60);
-    const m = minutes % 60;
-    return m > 0 ? `${h}h ${m}m` : `${h}h`;
-  }
-  return `${minutes}m`;
-}
-
-function maskPhoneValue(phone: string): string {
-  const compact = phone.replace(/\s+/g, '');
-  if (compact.length <= 4) return compact;
-  return `${compact.slice(0, 2)}${'*'.repeat(Math.max(4, compact.length - 4))}${compact.slice(-2)}`;
 }
 
 const SOURCE_ICONS = {

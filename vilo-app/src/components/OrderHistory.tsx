@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { IconAlertTriangle, IconCash, IconCheck, IconChevronDown, IconChevronUp, IconClock, IconCreditCard, IconCurrencyEuro, IconFileDownload, IconCoins, IconReceipt, IconRotate, IconArrowsShuffle, IconTrendingUp, IconUsers } from '@tabler/icons-react';
 
 import { useApp } from '../context/AppContext';
+import { formatTime, formatDurationMs } from '../utils/common';
 
 interface OrderHistoryProps {
   onSelectTable: (tableId: string) => void;
@@ -44,20 +45,6 @@ export function OrderHistory({ onSelectTable: _onSelectTable }: OrderHistoryProp
 
   // Avg per table
   const avgPerTable = closedTables.length > 0 ? totalClosedRevenue / closedTables.length : 0;
-
-  const formatTime = (ts: number) => {
-    const d = new Date(ts);
-    return d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-  };
-
-  const formatDuration = (start: number, end: number) => {
-    const diff = end - start;
-    const mins = Math.floor(diff / 60000);
-    if (mins < 60) return `${mins} Min`;
-    const h = Math.floor(mins / 60);
-    const m = mins % 60;
-    return `${h}h ${m}m`;
-  };
 
   const paymentIcon = (method: 'card' | 'cash' | 'mixed') => {
     if (method === 'card') return <IconCreditCard className="w-3.5 h-3.5 text-blue-400" />;
@@ -315,7 +302,7 @@ export function OrderHistory({ onSelectTable: _onSelectTable }: OrderHistoryProp
                       <div className="text-left">
                         <p className="text-white text-sm font-medium">{table.tableName}</p>
                         <p className="text-vilo-text-muted text-xs">
-                          {formatTime(table.startTime)} - {formatTime(table.closedTime)} &middot; {formatDuration(table.startTime, table.closedTime)}
+                          {formatTime(table.startTime)} - {formatTime(table.closedTime)} &middot; {formatDurationMs(table.startTime, table.closedTime)}
                         </p>
                       </div>
                     </div>

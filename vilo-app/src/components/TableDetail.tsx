@@ -4,6 +4,7 @@ import { IconAlertTriangle, IconArrowLeft, IconChefHat, IconChevronDown, IconChe
 import { useApp } from '../context/AppContext';
 
 import { feedbackOrderAdded, feedbackOrderSent, feedbackItemDeleted } from '../utils/feedback';
+import { formatTime } from '../utils/common';
 import { TableServiceStatus } from '../types';
 
 const SERVICE_STATUS_OPTIONS: { key: TableServiceStatus; label: string; group: string; color: string }[] = [
@@ -214,11 +215,6 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
       case 'dessert': return 'Dessert';
       default: return null;
     }
-  };
-
-  const formatTime = (ts: number) => {
-    const d = new Date(ts);
-    return d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
   };
 
   const categoryIcons: Record<string, React.ReactNode> = {

@@ -4,6 +4,7 @@ import { IconAlertTriangle, IconBell, IconCheck, IconChevronDown, IconChevronUp,
 import { WaitlistEntry, Table } from '../types';
 import { loadWaitlist, saveWaitlist, addWaitlistEntry, updateWaitlistEntry, removeWaitlistEntry } from '../utils/storage';
 import { ActionButton } from './ui';
+import { generateId } from '../utils/common';
 
 interface WaitlistPanelProps {
   onClose: () => void;
@@ -11,10 +12,6 @@ interface WaitlistPanelProps {
   tables: Table[];
   embedded?: boolean;
   initialShowAddForm?: boolean;
-}
-
-function generateId(): string {
-  return Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
 }
 
 function getElapsed(timestamp: number): string {

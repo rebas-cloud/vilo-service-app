@@ -1,11 +1,8 @@
 import type { Table, OrderItem, TableSession, TableCombination, SeatAssignment, ShiftHistoryRecord } from '../../types';
 import type { AppState, AppAction, ClosedTableRecord, TipRecord } from '../AppContext';
+import { generateId } from '../../utils/common';
 
 // --- Helpers ---
-
-function generateId(): string {
-  return Math.random().toString(36).substring(2, 9);
-}
 
 function getCombinationByTableId(combinations: TableCombination[], tableId: string): TableCombination | null {
   return combinations.find(combination => combination.tableIds.includes(tableId)) || null;

@@ -7,10 +7,7 @@ import {
   toggleGuestTag, addGuestNote, removeGuestNote, loadReservations
 } from '../utils/storage';
 import { SurfaceCard, StatGrid, ActionButton } from './ui';
-
-function generateId(): string {
-  return Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
-}
+import { generateId } from '../utils/common';
 
 const ALL_TAGS: { value: GuestTag; label: string; color: string }[] = [
   { value: 'vip', label: 'VIP', color: '#eab308' },

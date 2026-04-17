@@ -5,6 +5,7 @@ import { Table, Reservation, Guest } from '../types';
 import { useApp } from '../context/AppContext';
 import { loadReservations, addReservation, findGuestByPhone, addGuest, loadGuests } from '../utils/storage';
 import { ActionButton, StatGrid, SurfaceCard } from './ui';
+import { generateId, getTodayStr, formatDurationShort } from '../utils/common';
 
 const isBarSeat = (table: Pick<Table, 'placementType' | 'variant' | 'shape'>): boolean =>
   table.placementType === 'bar_seat' || table.variant === 'barstool-1' || table.shape === 'barstool';
@@ -58,15 +59,6 @@ interface TableManagementProps {
 
 type SubView = 'main' | 'walkin_count' | 'move_picker' | 'reserve_confirm' | 'reserve_wizard';
 type ReserveStep = 'guests' | 'guest_info';
-
-function generateId(): string {
-  return Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
-}
-
-function getTodayStr(): string {
-  const d = new Date();
-  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-}
 
 export function TableManagement({
   table,
@@ -292,14 +284,6 @@ export function TableManagement({
     if (mins < 1) return '< 1Min.';
     if (mins < 60) return mins + 'Min.';
     return Math.floor(mins / 60) + 'Std. ' + (mins % 60) + 'Min.';
-  };
-
-  const formatDurationShort = (minutes: number) => {
-    const safeMinutes = Math.max(15, minutes || 0);
-    const hours = Math.floor(safeMinutes / 60);
-    const mins = safeMinutes % 60;
-    if (hours > 0) return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
-    return `${safeMinutes}m`;
   };
 
   // Current hour for timeline

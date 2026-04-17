@@ -5,14 +5,10 @@ import { useApp } from '../context/AppContext';
 import { ReservationDetail } from './ReservationDetail';
 import { Reservation } from '../types';
 import { loadReservations } from '../utils/storage';
+import { getTodayStr } from '../utils/common';
 
 interface ReservationListProps {
   onSelectTable?: (tableId: string) => void;
-}
-
-function getTodayStr(): string {
-  const d = new Date();
-  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
 
 // Figma source colors

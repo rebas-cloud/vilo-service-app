@@ -6,6 +6,7 @@ import { useApp } from '../context/AppContext';
 import { Reservation, Table } from '../types';
 import { updateReservation, deleteReservation, loadReservations } from '../utils/storage';
 import { SurfaceCard, InfoRow, ActionButton, IconActionPair } from './ui';
+import { formatDurationShort } from '../utils/common';
 
 interface ReservationDetailProps {
   reservation: Reservation;
@@ -92,12 +93,6 @@ export function ReservationDetail({ reservation, allTables, onClose, onUpdated, 
 
   const paymentStatus = r.paymentStatus || 'open';
   const guestInitial = (r.guestName || '?').trim().charAt(0).toUpperCase() || '?';
-
-  const formatDurationShort = (mins: number) => {
-    const h = Math.floor(mins / 60);
-    const m = mins % 60;
-    return h > 0 ? `${h}h ${m}m` : `${m}m`;
-  };
 
   const sectionLabelClass = 'mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8f97b3]';
   const textInputClass = 'w-full bg-vilo-card px-4 py-3 text-[13px] text-white outline-none placeholder:text-vilo-text-muted';
