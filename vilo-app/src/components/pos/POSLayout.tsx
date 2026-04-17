@@ -6,16 +6,16 @@ import { parseIntent } from '../../utils/intentParser';
 import { parseIntentLLM, isLLMAvailable } from '../../utils/llmParser';
 import { initAudioContext } from '../../utils/feedback';
 import { LoginPage } from '../LoginPage';
-import { FloorPlan } from '../FloorPlan';
-import { TableDetail } from '../TableDetail';
 import { VoiceIndicator } from '../VoiceIndicator';
-import { BillingModal } from '../BillingModal';
 import { POSHeader } from './POSHeader';
 import { BottomNav, type SubTab } from './BottomNav';
 import { DrawerMenu } from './DrawerMenu';
 
 // Lazy-loaded components
 const Dashboard = lazy(() => import('../Dashboard').then(m => ({ default: m.Dashboard })));
+const FloorPlan = lazy(() => import('../FloorPlan').then(m => ({ default: m.FloorPlan })));
+const TableDetail = lazy(() => import('../TableDetail').then(m => ({ default: m.TableDetail })));
+const BillingModal = lazy(() => import('../BillingModal').then(m => ({ default: m.BillingModal })));
 const KitchenBarDisplay = lazy(() => import('../KitchenBarDisplay').then(m => ({ default: m.KitchenBarDisplay })));
 const ManagerSettings = lazy(() => import('../ManagerSettings').then(m => ({ default: m.ManagerSettings })));
 const ReservationList = lazy(() => import('../ReservationList').then(m => ({ default: m.ReservationList })));
@@ -154,25 +154,31 @@ export function POSLayout({ onLogout }: { onLogout: () => void }) {
           onShiftChange={setSelectedShift}
         />
         <div className="flex-1 overflow-hidden">
-          <TableDetail
-            onBack={() => dispatch({ type: 'CLEAR_ACTIVE_TABLE' })}
-            voiceIndicator={
-              <VoiceIndicator
-                mode={voice.mode}
-                transcript={voice.transcript}
-                lastCommand={state.lastCommand}
-                lastConfirmation={state.lastConfirmation}
-                isSupported={voice.isSupported}
-                isWakeMode={voice.isWakeMode}
-                onTapSpeak={voice.startDirectCommand}
-                onToggleWake={voice.startListening}
-                onStop={voice.stopListening}
-                onUndo={handleUndo}
-              />
-            }
-          />
+          <Suspense fallback={lazyFallback}>
+            <TableDetail
+              onBack={() => dispatch({ type: 'CLEAR_ACTIVE_TABLE' })}
+              voiceIndicator={
+                <VoiceIndicator
+                  mode={voice.mode}
+                  transcript={voice.transcript}
+                  lastCommand={state.lastCommand}
+                  lastConfirmation={state.lastConfirmation}
+                  isSupported={voice.isSupported}
+                  isWakeMode={voice.isWakeMode}
+                  onTapSpeak={voice.startDirectCommand}
+                  onToggleWake={voice.startListening}
+                  onStop={voice.stopListening}
+                  onUndo={handleUndo}
+                />
+              }
+            />
+          </Suspense>
         </div>
-        {state.showBilling && <BillingModal />}
+        {state.showBilling && (
+          <Suspense fallback={null}>
+            <BillingModal />
+          </Suspense>
+        )}
       </div>
     );
   }
@@ -187,9 +193,17 @@ export function POSLayout({ onLogout }: { onLogout: () => void }) {
         case 'liste':
           return <ReservationList onSelectTable={handleSelectTable} />;
         case 'raumplan':
-          return <FloorPlan onZoneChange={handleZoneChange} />;
+          return (
+            <Suspense fallback={lazyFallback}>
+              <FloorPlan onZoneChange={handleZoneChange} />
+            </Suspense>
+          );
         case 'bearbeiten':
-          return <FloorPlan onZoneChange={handleZoneChange} initialEditMode={true} />;
+          return (
+            <Suspense fallback={lazyFallback}>
+              <FloorPlan onZoneChange={handleZoneChange} initialEditMode={true} />
+            </Suspense>
+          );
         case 'timeline':
           return <Timeline onSelectTable={handleSelectTable} />;
         case 'probleme':
