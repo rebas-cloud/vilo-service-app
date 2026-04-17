@@ -7,6 +7,7 @@ import { parseIntentLLM, isLLMAvailable } from '../../utils/llmParser';
 import { initAudioContext } from '../../utils/feedback';
 import { LoginPage } from '../LoginPage';
 import { VoiceIndicator } from '../VoiceIndicator';
+import { ErrorBoundary } from '../ErrorBoundary';
 import { POSHeader } from './POSHeader';
 import { BottomNav, type SubTab } from './BottomNav';
 import { DrawerMenu } from './DrawerMenu';
@@ -25,6 +26,18 @@ const ProblemReservations = lazy(() => import('../ProblemReservations').then(m =
 const lazyFallback = (
   <div className="flex-1 flex items-center justify-center">
     <div className="w-6 h-6 border-2 border-[#7bb7ef] border-t-transparent rounded-full animate-spin" />
+  </div>
+);
+
+const lazyErrorFallback = (
+  <div className="flex-1 flex flex-col items-center justify-center gap-3 text-vilo-text-muted">
+    <p className="text-sm">Fehler beim Laden.</p>
+    <button
+      onClick={() => window.location.reload()}
+      className="text-xs text-[#7bb7ef] underline"
+    >
+      Seite neu laden
+    </button>
   </div>
 );
 
@@ -154,30 +167,34 @@ export function POSLayout({ onLogout }: { onLogout: () => void }) {
           onShiftChange={setSelectedShift}
         />
         <div className="flex-1 overflow-hidden">
-          <Suspense fallback={lazyFallback}>
-            <TableDetail
-              onBack={() => dispatch({ type: 'CLEAR_ACTIVE_TABLE' })}
-              voiceIndicator={
-                <VoiceIndicator
-                  mode={voice.mode}
-                  transcript={voice.transcript}
-                  lastCommand={state.lastCommand}
-                  lastConfirmation={state.lastConfirmation}
-                  isSupported={voice.isSupported}
-                  isWakeMode={voice.isWakeMode}
-                  onTapSpeak={voice.startDirectCommand}
-                  onToggleWake={voice.startListening}
-                  onStop={voice.stopListening}
-                  onUndo={handleUndo}
-                />
-              }
-            />
-          </Suspense>
+          <ErrorBoundary fallback={lazyErrorFallback}>
+            <Suspense fallback={lazyFallback}>
+              <TableDetail
+                onBack={() => dispatch({ type: 'CLEAR_ACTIVE_TABLE' })}
+                voiceIndicator={
+                  <VoiceIndicator
+                    mode={voice.mode}
+                    transcript={voice.transcript}
+                    lastCommand={state.lastCommand}
+                    lastConfirmation={state.lastConfirmation}
+                    isSupported={voice.isSupported}
+                    isWakeMode={voice.isWakeMode}
+                    onTapSpeak={voice.startDirectCommand}
+                    onToggleWake={voice.startListening}
+                    onStop={voice.stopListening}
+                    onUndo={handleUndo}
+                  />
+                }
+              />
+            </Suspense>
+          </ErrorBoundary>
         </div>
         {state.showBilling && (
-          <Suspense fallback={null}>
-            <BillingModal />
-          </Suspense>
+          <ErrorBoundary fallback={null}>
+            <Suspense fallback={null}>
+              <BillingModal />
+            </Suspense>
+          </ErrorBoundary>
         )}
       </div>
     );
@@ -194,15 +211,19 @@ export function POSLayout({ onLogout }: { onLogout: () => void }) {
           return <ReservationList onSelectTable={handleSelectTable} />;
         case 'raumplan':
           return (
-            <Suspense fallback={lazyFallback}>
-              <FloorPlan onZoneChange={handleZoneChange} />
-            </Suspense>
+            <ErrorBoundary fallback={lazyErrorFallback}>
+              <Suspense fallback={lazyFallback}>
+                <FloorPlan onZoneChange={handleZoneChange} />
+              </Suspense>
+            </ErrorBoundary>
           );
         case 'bearbeiten':
           return (
-            <Suspense fallback={lazyFallback}>
-              <FloorPlan onZoneChange={handleZoneChange} initialEditMode={true} />
-            </Suspense>
+            <ErrorBoundary fallback={lazyErrorFallback}>
+              <Suspense fallback={lazyFallback}>
+                <FloorPlan onZoneChange={handleZoneChange} initialEditMode={true} />
+              </Suspense>
+            </ErrorBoundary>
           );
         case 'timeline':
           return <Timeline onSelectTable={handleSelectTable} />;
@@ -214,7 +235,11 @@ export function POSLayout({ onLogout }: { onLogout: () => void }) {
           return null;
       }
     })();
-    return <Suspense fallback={lazyFallback}>{content}</Suspense>;
+    return (
+      <ErrorBoundary fallback={lazyErrorFallback}>
+        <Suspense fallback={lazyFallback}>{content}</Suspense>
+      </ErrorBoundary>
+    );
   };
 
   return (
@@ -291,31 +316,35 @@ export function POSLayout({ onLogout }: { onLogout: () => void }) {
       {/* Kitchen/Bar Display overlay */}
       {showKitchenBar && (
         <div className="fixed inset-0 z-50">
-          <Suspense fallback={lazyFallback}>
-            <KitchenBarDisplay onBack={() => setShowKitchenBar(false)} />
-          </Suspense>
+          <ErrorBoundary fallback={lazyErrorFallback}>
+            <Suspense fallback={lazyFallback}>
+              <KitchenBarDisplay onBack={() => setShowKitchenBar(false)} />
+            </Suspense>
+          </ErrorBoundary>
         </div>
       )}
 
       {/* Settings overlay */}
       {showSettings && (
         <div className="fixed inset-0 z-50">
-          <Suspense fallback={lazyFallback}>
-            <ManagerSettings
-              onBack={() => setShowSettings(false)}
-              onDataChanged={(data) => {
-                dispatch({
-                  type: 'UPDATE_CONFIG',
-                  restaurant: data.restaurant,
-                  zones: data.zones,
-                  tables: data.tables,
-                  tableCombinations: state.tableCombinations,
-                  menu: data.menu,
-                  staff: data.staff,
-                });
-              }}
-            />
-          </Suspense>
+          <ErrorBoundary fallback={lazyErrorFallback}>
+            <Suspense fallback={lazyFallback}>
+              <ManagerSettings
+                onBack={() => setShowSettings(false)}
+                onDataChanged={(data) => {
+                  dispatch({
+                    type: 'UPDATE_CONFIG',
+                    restaurant: data.restaurant,
+                    zones: data.zones,
+                    tables: data.tables,
+                    tableCombinations: state.tableCombinations,
+                    menu: data.menu,
+                    staff: data.staff,
+                  });
+                }}
+              />
+            </Suspense>
+          </ErrorBoundary>
         </div>
       )}
 
