@@ -1,7 +1,7 @@
 #!/bin/bash
-# Pre-commit hook: Runs eslint before `git commit` commands.
+# Pre-commit hook: Runs eslint + vitest before `git commit` commands.
 # Claude Code sends tool input as JSON on stdin.
-# We filter for git commit commands and block if lint fails.
+# We filter for git commit commands and block if lint or tests fail.
 
 set -euo pipefail
 
@@ -36,6 +36,19 @@ if ! npm run lint >&2; then
   echo "💡 Run 'npm run lint' locally to see all issues." >&2
   exit 2
 fi
-
 echo "✅ Linter passed!" >&2
+
+# Only run tests if a test script is configured — keeps hook compatible with
+# older branches that don't have Vitest yet.
+if npm run | grep -qE '^\s*test$'; then
+  echo "🧪 Running test suite before commit..." >&2
+  if ! npm test --silent >&2; then
+    echo "" >&2
+    echo "❌ Tests failed. Fix failing tests above before committing." >&2
+    echo "💡 Run 'npm test' locally to see all failures." >&2
+    exit 2
+  fi
+  echo "✅ Tests passed!" >&2
+fi
+
 exit 0
