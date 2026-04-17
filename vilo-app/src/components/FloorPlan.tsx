@@ -242,7 +242,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     setLiveTranslate({ x: 0, y: 0 });
     const zone = state.zones.find(z => z.id === zoneId);
     if (onZoneChange && zone) onZoneChange(zoneId, zone.name);
-  }, [state.zones, onZoneChange]);
+  }, [state.zones, onZoneChange, setSelectedTable]);
 
   useEffect(() => {
     const el = canvasRef.current;
@@ -291,7 +291,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
       el.removeEventListener('touchmove', handleTouchMove);
       el.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [editMode, liveScaleFactor, liveTranslate.x, liveTranslate.y]);
+  }, [editMode, liveScaleFactor, liveTranslate.x, liveTranslate.y, scale]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -447,7 +447,8 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     const storage = loadStorage();
     saveStorage({ ...storage, tables: updatedTables });
     dispatch({ type: 'UPDATE_CONFIG', restaurant: state.restaurant, zones: state.zones, tables: updatedTables, tableCombinations: state.tableCombinations, menu: state.menu, staff: state.staff });
-  }, [activeZone]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeZone]); // intentionally runs only on zone switch — adding state.* deps would cause an infinite loop because the effect itself dispatches UPDATE_CONFIG
 
   const formatCompactMinutes = useCallback((minutes: number) => {
     const sign = minutes < 0 ? '-' : '';
@@ -543,7 +544,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     };
   }, [activeReservationByTableId, formatDurationLabel, getDisplaySessionForTable, getElapsedSessionLabel, getReservationCountdownLabel, nextReservationMap]);
 
-  const getOrderInfo = (tableId: string) => {
+  const getOrderInfo = useCallback((tableId: string) => {
     const displaySession = getDisplaySessionForTable(tableId);
     const session = displaySession?.session;
     if (!session) return { count: 0, total: 0, hasReady: false, startTime: 0 };
@@ -551,7 +552,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     const total = session.orders.reduce((s, o) => s + o.price * o.quantity, 0);
     const hasReady = session.orders.some(o => o.state === 'ready');
     return { count, total, hasReady, startTime: session.startTime };
-  };
+  }, [getDisplaySessionForTable]);
 
   const getSeatDisplayStateForTable = useCallback((tableId: string, localSeatNumber: number) => {
     const displaySession = getDisplaySessionForTable(tableId);
@@ -670,7 +671,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
       x: (clientX - rect.left) / scale,
       y: (clientY - rect.top) / scale,
     };
-  }, [scale]);
+  }, [scale, editorStageRef]);
 
   const handleMouseDown = (e: React.MouseEvent, tableId: string) => {
     if (editorMode !== 'combos') {
@@ -724,7 +725,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
       snapshot: state.tables,
       rotated: false,
     };
-  }, [state.tables]);
+  }, [state.tables, setSelectedTable]);
 
   useEffect(() => {
     if (!editMode) return;
@@ -793,7 +794,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
       window.removeEventListener('touchmove', handleTouchMoveDoc);
       window.removeEventListener('touchend', handleTouchEndDoc);
     };
-  }, [editMode, editorTool, state.tables, scale, dispatch, state.restaurant, state.zones, state.menu, state.staff, editorCanvasSize.width, editorCanvasSize.height, commitLayoutUpdate]);
+  }, [editMode, editorTool, state.tables, scale, dispatch, state.restaurant, state.zones, state.menu, state.staff, state.tableCombinations, editorCanvasSize.width, editorCanvasSize.height, commitLayoutUpdate]);
 
   useEffect(() => {
     if (!editMode) return;
@@ -1782,7 +1783,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     setSeatGuestSearch('');
     setSeatGuestName('');
     setSeatGuestPhone('');
-  }, []);
+  }, [setResDetailId, setSelectedReservationId, setShowGuestProfileView, setShowReservationCreatePanel, setShowWaitlist]);
 
   const handleSeatCircleClick = useCallback((tableId: string, seatNumber: number, hasAssignment: boolean, position: { x: number; y: number }) => {
     if (hasAssignment) {
@@ -1888,7 +1889,7 @@ export function FloorPlan({ onZoneChange, initialEditMode = false }: FloorPlanPr
     const handleDocumentClick = () => setSidebarSortMenuOpen(null);
     document.addEventListener('click', handleDocumentClick);
     return () => document.removeEventListener('click', handleDocumentClick);
-  }, [sidebarSortMenuOpen]);
+  }, [sidebarSortMenuOpen, setSidebarSortMenuOpen]);
 
   // OpenTable sidebar render - 1:1 match with Reservations card design
   const renderSidebarCard = (r: SidebarPlacedItem, _showDuration: boolean) => {

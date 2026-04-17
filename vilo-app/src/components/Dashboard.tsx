@@ -198,6 +198,8 @@ const OCCASION_COLORS: Record<string, string> = {
   gratis_extra: '#2dd4bf',
 };
 
+const SEATED_STATUSES = ['seated', 'partially_seated', 'appetizer', 'entree', 'dessert', 'cleared', 'check_dropped', 'paid', 'bussing_needed'];
+
 function UebersichtTab(_props: {
   occupiedTables: unknown[];
   freeTables: unknown[];
@@ -236,8 +238,7 @@ function UebersichtTab(_props: {
   // Stats
   const totalGroups = todayReservations.length;
   const totalGuests = useMemo(() => todayReservations.reduce((sum, r) => sum + r.partySize, 0), [todayReservations]);
-  const seatedStatuses = ['seated', 'partially_seated', 'appetizer', 'entree', 'dessert', 'cleared', 'check_dropped', 'paid', 'bussing_needed'];
-  const seatedCount = useMemo(() => todayReservations.filter(r => seatedStatuses.includes(r.status)).length, [todayReservations]);
+  const seatedCount = useMemo(() => todayReservations.filter(r => SEATED_STATUSES.includes(r.status)).length, [todayReservations]);
   const walkInCount = useMemo(() => todayReservations.filter(r => r.source === 'walk_in').length, [todayReservations]);
 
   // Source breakdown
@@ -629,7 +630,7 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
 
   const hourlyData = useMemo(() => {
     const hours: Record<number, number> = {};
-    const currentHour = new Date().getHours();
+    const currentHour = new Date(now).getHours();
     state.closedTables.forEach(t => {
       const h = new Date(t.startTime).getHours();
       hours[h] = (hours[h] || 0) + t.guestCount;
@@ -769,7 +770,8 @@ export function Dashboard({ onSelectTable: _onSelectTable, initialTab }: Dashboa
   const waitlistAvgWait = waitlistWaiting > 0 ? Math.round(waitlistEntries.filter(e => e.status === 'waiting' || e.status === 'notified').reduce((s, e) => s + e.estimatedWaitMinutes, 0) / waitlistWaiting) : 0;
 
   // OpenTable-style reservation stats
-  const allReservations = useMemo(() => loadReservations(), [now]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const allReservations = useMemo(() => loadReservations(), [now]); // now triggers periodic refresh
   const todayStr = new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0') + '-' + String(new Date().getDate()).padStart(2, '0');
   const todayReservationsAll = useMemo(() => allReservations.filter(r => r.date === todayStr), [allReservations, todayStr]);
   const cancelledCovers = useMemo(() => todayReservationsAll.filter(r => r.status === 'cancelled').reduce((s, r) => s + r.partySize, 0), [todayReservationsAll]);

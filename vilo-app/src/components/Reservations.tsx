@@ -123,12 +123,14 @@ export function ReservationPanel({ onClose, onSeatReservation, onReservationsCha
     setReservations(nextReservations);
     onReservationsChange?.(nextReservations);
     setGuests(loadGuests());
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // intentional mount-only load; onReservationsChange excluded to avoid reload on parent re-render
 
   useEffect(() => {
     if (!initialShowForm) return;
     handleOpenForm();
-  }, [initialShowForm]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialShowForm]); // handleOpenForm excluded: only needs to run once when initialShowForm is true
 
   // Update seated duration every 60s
   useEffect(() => {

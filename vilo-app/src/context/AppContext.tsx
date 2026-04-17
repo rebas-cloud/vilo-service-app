@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, useRef } from 'react';
 import { Table, TableCombination, OrderItem, TableSession, Intent, VoiceState, CommandHistoryItem, UndoableAction, Staff, MenuItem, Zone, Restaurant, GuestSource, ShiftHistoryRecord, TableServiceStatus } from '../types';
 import { appReducer, loadShiftHistory } from './reducers/appReducer';
 import { createIntentExecutor } from './executeIntent';
@@ -150,11 +150,14 @@ export function AppProvider({ children, config }: AppProviderProps) {
   const [state, dispatch] = useReducer(appReducer, config, (c) => createInitialState(c));
   const restaurantId = config?.restaurant?.id || state.restaurant?.id || '';
 
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
   const executeIntent = useCallback(
     (intent: Intent, command: string): string => {
-      return createIntentExecutor(state, dispatch)(intent, command);
+      return createIntentExecutor(stateRef.current, dispatch)(intent, command);
     },
-    [state.tables, state.activeTableId]
+    [] // stateRef.current is always fresh; dispatch is stable
   );
 
   return (
