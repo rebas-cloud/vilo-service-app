@@ -52,3 +52,11 @@ Alle JSON-Felder enden mit `_json` Suffix.
 Alle VITE_-prefixed. Siehe `.env.example` fuer vollstaendige Liste.
 Pflicht: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
 Optional: `VITE_OPENAI_API_KEY`, `VITE_OPENTABLE_*`, `VITE_ORDERBIRD_*`
+
+## Modellwahl (Token-Optimierung)
+Zu Beginn jedes neuen Tasks schlage das passende Modell vor, falls das aktuell aktive Modell ueberdimensioniert ist. Faustregel:
+- **Haiku 4.5** – einfache Q&A, kurze Edits, Lookups, Datei-Reads
+- **Sonnet 4.6** – Standard-Entwicklung, Refactoring, mehrstufige Aufgaben
+- **Opus 4.7** – komplexe Architektur-Entscheidungen, grosse Refactorings, kritische Planungen
+
+Wenn Opus 4.7 aktiv ist und der Task nicht Opus-wuerdig erscheint, explizit hinweisen (z. B. "Tipp: fuer diesen Task reicht Sonnet/Haiku").
