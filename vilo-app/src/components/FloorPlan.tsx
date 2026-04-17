@@ -13,7 +13,7 @@ import { WaitlistPanel } from './Waitlist';
 import { GuestProfile } from './GuestProfile';
 import { ReservationDetail } from './ReservationDetail';
 import { ActionButton, SurfaceCard } from './ui';
-import { buildTableSvg, renderRectSvg } from './floorplan/tableSvgRendering';
+import { buildTableSvg, renderRectSvg } from './floorplan/tableSvgUtils';
 
 import {
   type TableVariantDefinition,

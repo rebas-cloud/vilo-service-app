@@ -44,6 +44,8 @@ const SEAT_PREFERENCES = [
   { value: 'ruhig', label: 'Ruhiger Tisch' },
 ];
 
+const DELETE_THRESHOLD = -80;
+
 function SeatedWaitlistRow({
   entry,
   tableLabel,
@@ -60,7 +62,6 @@ function SeatedWaitlistRow({
   const isDraggingRef = useRef(false);
   const [offsetX, setOffsetX] = useState(0);
   const [isRemoving, setIsRemoving] = useState(false);
-  const DELETE_THRESHOLD = -80;
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     startXRef.current = e.touches[0].clientX;

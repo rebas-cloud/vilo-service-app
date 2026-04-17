@@ -842,6 +842,8 @@ interface OrderRowProps {
   dimmed?: boolean;
 }
 
+const DELETE_THRESHOLD = -80;
+
 function OrderRow({ order, getStateIcon, getStateLabel, getCourseLabel, formatTime, onAction, actionLabel, onDelete, dimmed }: OrderRowProps) {
   const rowRef = useRef<HTMLDivElement>(null);
   const startXRef = useRef(0);
@@ -849,8 +851,6 @@ function OrderRow({ order, getStateIcon, getStateLabel, getCourseLabel, formatTi
   const isDraggingRef = useRef(false);
   const [offsetX, setOffsetX] = useState(0);
   const [isRemoving, setIsRemoving] = useState(false);
-
-  const DELETE_THRESHOLD = -80;
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     startXRef.current = e.touches[0].clientX;
