@@ -4,7 +4,7 @@ import { IconAlertTriangle, IconBell, IconCheck, IconChevronDown, IconChevronUp,
 import { WaitlistEntry, Table } from '../types';
 import { loadWaitlist, saveWaitlist, addWaitlistEntry, updateWaitlistEntry, removeWaitlistEntry } from '../utils/storage';
 import { ActionButton } from './ui';
-import { generateId } from '../utils/common';
+import { generateId, getElapsedTime } from '../utils/common';
 
 interface WaitlistPanelProps {
   onClose: () => void;
@@ -14,14 +14,6 @@ interface WaitlistPanelProps {
   initialShowAddForm?: boolean;
 }
 
-function getElapsed(timestamp: number): string {
-  const mins = Math.floor((Date.now() - timestamp) / 60000);
-  if (mins < 1) return 'Gerade eben';
-  if (mins < 60) return `${mins} Min.`;
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  return `${h}h ${m}m`;
-}
 
 function getWaitColor(minutes: number): string {
   if (minutes <= 10) return '#c4b5fd';
@@ -591,7 +583,7 @@ export function WaitlistPanel({ onClose, onSeatGuest, tables, embedded = false, 
 
                       {/* Wait time */}
                       <div className="text-right shrink-0">
-                        <p className="text-[15px] font-bold" style={{ color: waitColor }}>{getElapsed(entry.addedAt)}</p>
+                        <p className="text-[15px] font-bold" style={{ color: waitColor }}>{getElapsedTime(entry.addedAt)}</p>
                         <p className="text-[11px] text-vilo-text-secondary">~{entry.estimatedWaitMinutes} Min.</p>
                       </div>
                     </button>
@@ -673,7 +665,7 @@ export function WaitlistPanel({ onClose, onSeatGuest, tables, embedded = false, 
                         key={entry.id}
                         entry={entry}
                         tableLabel={table?.name || 'Tisch'}
-                        elapsedLabel={entry.seatedAt ? getElapsed(entry.seatedAt) : ''}
+                        elapsedLabel={entry.seatedAt ? getElapsedTime(entry.seatedAt) : ''}
                         onDelete={() => handleRemove(entry.id)}
                       />
                     );

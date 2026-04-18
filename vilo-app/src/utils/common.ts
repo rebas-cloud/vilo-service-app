@@ -51,3 +51,12 @@ export function maskPhoneValue(phone: string): string {
   if (compact.length <= 4) return compact;
   return `${compact.slice(0, 2)}${'*'.repeat(Math.max(4, compact.length - 4))}${compact.slice(-2)}`;
 }
+
+export function getElapsedTime(timestamp: number): string {
+  const mins = Math.floor((Date.now() - timestamp) / 60000);
+  if (mins < 1) return 'Gerade eben';
+  if (mins < 60) return `${mins} Min.`;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return `${h}h ${m}m`;
+}

@@ -7,7 +7,7 @@ import {
   toggleGuestTag, addGuestNote, removeGuestNote, loadReservations
 } from '../utils/storage';
 import { SurfaceCard, StatGrid, ActionButton } from './ui';
-import { generateId } from '../utils/common';
+import { generateId, maskPhoneValue } from '../utils/common';
 
 const ALL_TAGS: { value: GuestTag; label: string; color: string }[] = [
   { value: 'vip', label: 'VIP', color: '#eab308' },
@@ -90,13 +90,6 @@ export function GuestProfile({ guest, onClose, onUpdated, onReserve }: GuestProf
     return d + '.' + m + '.' + y;
   };
 
-  const maskPhone = (phone?: string) => {
-    if (!phone) return '';
-    const compact = phone.replace(/\s+/g, '');
-    if (compact.length <= 4) return compact;
-    return `${compact.slice(0, 2)}${'*'.repeat(Math.max(4, compact.length - 4))}${compact.slice(-2)}`;
-  };
-
   return (
     <div className="vilo-no-motion absolute inset-0 z-30 flex flex-col" style={{ background: '#1a1a2e' }}>
       {/* Header */}
@@ -121,7 +114,7 @@ export function GuestProfile({ guest, onClose, onUpdated, onReserve }: GuestProf
                 <div className="mt-1 min-w-0">
                   <a href={'tel:' + guest.phone} className="flex min-w-0 items-center gap-1.5 text-[#d8c7ff] text-[10px]">
                     <IconPhone className="w-3 h-3 shrink-0" />
-                    <span className="truncate">{maskPhone(guest.phone)}</span>
+                    <span className="truncate">{maskPhoneValue(guest.phone || '')}</span>
                   </a>
                 </div>
               )}
