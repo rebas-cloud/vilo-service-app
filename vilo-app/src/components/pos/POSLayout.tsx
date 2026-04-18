@@ -50,12 +50,25 @@ export function POSLayout({ onLogout }: { onLogout: () => void }) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedShift, setSelectedShift] = useState<'Mittag' | 'Abend'>('Abend');
   const [voiceToastVisible, setVoiceToastVisible] = useState(false);
+  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
   const voiceToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isHomeSection = ['statistiken', 'uebersicht', 'probleme'].includes(subTab);
   const isFloorPlanSection = ['raumplan', 'bearbeiten'].includes(subTab);
 
   // Real-time sync
   useSync();
+
+  // Monitor online/offline status
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const stateRef = useRef(state);
   stateRef.current = state;
@@ -244,6 +257,13 @@ export function POSLayout({ onLogout }: { onLogout: () => void }) {
 
   return (
     <div className="flex flex-col h-screen-safe bg-[#1a1a2e]">
+      {/* Offline indicator */}
+      {!isOnline && (
+        <div className="bg-amber-600/20 border-b border-amber-600/40 px-4 py-2 text-center text-xs text-amber-300">
+          Offline – Änderungen werden synchronisiert
+        </div>
+      )}
+
       {/* Header */}
       {subTab !== 'reservierungen' && !isFloorPlanSection && (
         <POSHeader

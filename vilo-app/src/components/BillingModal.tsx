@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { IconArrowLeft, IconCash, IconCheck, IconChevronRight, IconCreditCard, IconDivide, IconUserCheck, IconUsers, IconX } from '@tabler/icons-react';
 
 import { useApp } from '../context/AppContext';
@@ -28,6 +28,15 @@ interface TipScreen {
 export function BillingModal() {
   const { state, dispatch } = useApp();
   const [billingMode, setBillingMode] = useState<SplitMode>(state.billingMode === 'split' ? 'split' : 'combined');
+
+  useEffect(() => {
+    if (state.showBilling) {
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = '';
+      };
+    }
+  }, [state.showBilling]);
   const [paymentComplete, setPaymentComplete] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'cash' | null>(null);
   const [paidGuests, setPaidGuests] = useState<Record<string, PaidGuest>>({});
@@ -434,7 +443,7 @@ export function BillingModal() {
         <div className="bg-vilo-surface rounded-t-2xl sm:rounded-2xl border border-vilo-border-subtle w-full max-w-md max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-between p-4 border-b border-vilo-border-subtle">
             <h2 className="text-white font-semibold">Items zuweisen</h2>
-            <button onClick={() => setAssigningItems(false)} className="p-2 rounded-lg border border-vilo-border-subtle bg-vilo-card text-vilo-text-soft hover:bg-[#332d4e] transition-colors">
+            <button onClick={() => setAssigningItems(false)} className="p-3 rounded-lg border border-vilo-border-subtle bg-vilo-card text-vilo-text-soft hover:bg-[#332d4e] transition-colors">
               <IconX className="w-5 h-5" />
             </button>
           </div>
@@ -748,14 +757,14 @@ export function BillingModal() {
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleEqualPayment(i, 'card')}
-                              className="flex items-center gap-1 rounded-lg border border-[#9b7cff] bg-[#8b5cf6] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#7c3aed] transition-colors"
+                              className="flex items-center gap-1 rounded-lg border border-[#9b7cff] bg-[#8b5cf6] px-3 py-2.5 text-xs font-medium text-white hover:bg-[#7c3aed] transition-colors"
                             >
                               <IconCreditCard className="w-3 h-3" />
                               Karte
                             </button>
                             <button
                               onClick={() => handleEqualPayment(i, 'cash')}
-                              className="flex items-center gap-1 rounded-lg border border-[#7f67c9] bg-[#5b4d91] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#6959a6] transition-colors"
+                              className="flex items-center gap-1 rounded-lg border border-[#7f67c9] bg-[#5b4d91] px-3 py-2.5 text-xs font-medium text-white hover:bg-[#6959a6] transition-colors"
                             >
                               <IconCash className="w-3 h-3" />
                               Bar
