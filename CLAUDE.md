@@ -88,3 +88,19 @@ Projekt-spezifische Subagenten fuer wiederkehrende Workflows. Delegiere proaktiv
 ## Hooks (`.claude/hooks/`)
 - `session-start.sh` – Installiert npm-Dependencies bei Web-Session-Start
 - `pre-commit.sh` – Laeuft `npm run lint` vor jedem `git commit`, blockiert bei Fehlern
+
+## Branch-Naming Convention
+**Standard Git-Flow:**
+- `main` – Produktions-Ready Code (geschützt, nur nach Merge-Request)
+- `develop` – Aktive Entwicklung, neuester kombinierter Stand
+- `feature/*` – Neue Features (z.B. `feature/floor-plan-redesign`)
+- `fix/*` – Bugfixes (z.B. `fix/button-nesting-issue`)
+- `refactor/*` – Code-Umstrukturierungen (z.B. `refactor/component-split`)
+- `docs/*` – Dokumentation (z.B. `docs/api-guide`)
+
+**Workflow:**
+1. Neuer Task → `git checkout -b feature/task-name develop`
+2. Development → Commits auf dem Feature-Branch
+3. Fertig → Merge zu `develop` (oder PR für Review)
+4. Release → Merge von `develop` zu `main` + Tag (z.B. `v1.2.0`)
+5. Cleanup → Alte Feature-Branches löschen nach Merge
