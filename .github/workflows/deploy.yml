@@ -27,7 +27,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: vilo-app
-        run: npm install --omit=optional
+        run: npm install
 
       - name: Build
         working-directory: vilo-app
