@@ -134,6 +134,23 @@ export function createIntentExecutor(
         dispatch({ type: 'UNDO' });
         return 'Letzte Aktion rückgängig gemacht.';
 
+      case 'SET_TABLE_STATUS': {
+        const statusTable = state.tables.find(t => t.id === intent.tableId);
+        if (!statusTable) return `Tisch "${intent.tableId}" nicht gefunden.`;
+        dispatch({ type: 'SET_TABLE_STATUS', tableId: intent.tableId, status: intent.status });
+        const statusLabel = intent.status === 'free' ? 'frei' : 'bei Rechnung';
+        return `${statusTable.name} ist jetzt ${statusLabel}.`;
+      }
+
+      case 'MAKE_RESERVATION': {
+        // Reservation creation via voice — currently navigates to reservation tab
+        // and stores a pending intent in lastConfirmation for the UI to pick up.
+        // A full deep-link into the reservation form requires the UI layer; we
+        // return a guidance string here so speech synthesis reads it aloud.
+        const guestPart = intent.guestName ? ` für ${intent.guestName}` : '';
+        return `Reservierung${guestPart}: ${intent.partySize} Personen um ${intent.time} Uhr. Bitte im Reservierungsformular bestätigen.`;
+      }
+
       case 'UNKNOWN':
         feedbackError();
         return `Befehl nicht erkannt: "${intent.text}"`;

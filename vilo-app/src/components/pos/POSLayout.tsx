@@ -173,7 +173,7 @@ export function POSLayout({ onLogout }: { onLogout: () => void }) {
     return (
       <div className="flex flex-col h-screen-safe bg-[#1a1a2e]">
         <POSHeader
-          showLogo={false}
+          showLogo={true}
           selectedDate={selectedDate}
           onDateChange={setSelectedDate}
           selectedShift={selectedShift}

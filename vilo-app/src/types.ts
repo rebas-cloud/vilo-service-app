@@ -281,4 +281,8 @@ export type Intent =
   | { type: 'PAY_CARD' }
   | { type: 'PAY_CASH' }
   | { type: 'UNDO' }
+  // Mark table as free or paid (e.g. "Tisch 5 frei", "Tisch 7 bezahlt")
+  | { type: 'SET_TABLE_STATUS'; tableId: string; status: 'free' | 'billing' }
+  // Create a reservation (e.g. "Reservierung für 4 Personen um 19 Uhr")
+  | { type: 'MAKE_RESERVATION'; partySize: number; time: string; guestName?: string; notes?: string }
   | { type: 'UNKNOWN'; text: string };

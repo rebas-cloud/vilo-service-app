@@ -1,6 +1,4 @@
-
-
-import { IconLoader2, IconMicrophone, IconRadio, IconArrowBack } from '@tabler/icons-react';
+import { IconLoader2, IconMicrophone, IconMicrophoneOff, IconRadio, IconArrowBack } from '@tabler/icons-react';
 
 interface VoiceIndicatorProps {
   mode: string;
@@ -29,9 +27,12 @@ export function VoiceIndicator({
 }: VoiceIndicatorProps) {
   if (!isSupported) {
     return (
-      <div className="bg-red-900/50 border-t border-red-800 px-4 py-3">
-        <p className="text-red-300 text-sm text-center">
-          Spracherkennung wird von diesem Browser nicht unterstützt.
+      <div className="bg-red-900/50 border-t border-red-800 px-4 py-3 flex items-center gap-3" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
+        <div className="p-2.5 rounded-full bg-red-800/60 text-red-300 flex-shrink-0">
+          <IconMicrophoneOff className="w-5 h-5" />
+        </div>
+        <p className="text-red-300 text-sm">
+          Spracherkennung nicht verfügbar. Safari 14.5+ oder Chrome empfohlen.
         </p>
       </div>
     );
@@ -79,7 +80,9 @@ export function VoiceIndicator({
               </p>
             )}
             {lastConfirmation && (
-              <p className="text-[#b1d9ff] text-xs truncate mt-0.5">{lastConfirmation}</p>
+              <p className={`text-xs truncate mt-0.5 ${lastConfirmation.startsWith('Befehl nicht erkannt') ? 'text-red-400' : 'text-[#b1d9ff]'}`}>
+                {lastConfirmation}
+              </p>
             )}
           </div>
           <button
@@ -112,10 +115,9 @@ export function VoiceIndicator({
           )}
           {mode === 'processing' ? (
             <IconLoader2 className="w-5 h-5 animate-spin relative z-10" />
-          ) : mode === 'idle' ? (
-            <IconMicrophone className="w-5 h-5 relative z-10" />
           ) : mode === 'listening_wake' ? (
-            <IconMicrophone className="w-5 h-5 relative z-10" />
+            /* Radio icon signals passive "listening for wake word" mode */
+            <IconRadio className="w-5 h-5 relative z-10" />
           ) : (
             <IconMicrophone className="w-5 h-5 relative z-10" />
           )}

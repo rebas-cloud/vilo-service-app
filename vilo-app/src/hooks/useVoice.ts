@@ -1,5 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+// iOS Safari (WebKit) does not support continuous=true reliably — it either errors
+// immediately or stops after the first result. We detect iOS and use non-continuous
+// mode with fast auto-restart instead, which achieves the same effect.
+const IS_IOS = typeof navigator !== 'undefined' &&
+  /iPad|iPhone|iPod/.test(navigator.userAgent) &&
+  !(window as { MSStream?: unknown }).MSStream;
+
+// Waiter speech pause before finalising command.
+// 1800ms is more tolerant for slower or hesitant speakers than the old 1200ms.
+const COMMAND_COMMIT_DELAY_MS = 1800;
+
 type VoiceMode = 'idle' | 'listening_wake' | 'listening_command' | 'processing';
 
 // Comprehensive wake phrases - covers all common speech recognition misinterpretations
@@ -137,7 +148,8 @@ export function useVoice(onCommand: (command: string) => void): UseVoiceReturn {
     const recognition = getSpeechRecognition();
     if (!recognition) return;
 
-    recognition.continuous = !forCommand;
+    // iOS does not support continuous=true — use single-shot with auto-restart instead
+    recognition.continuous = IS_IOS ? false : !forCommand;
     recognition.interimResults = true;
     recognition.lang = 'de-DE';
     commandBufferRef.current = '';
@@ -197,7 +209,7 @@ export function useVoice(onCommand: (command: string) => void): UseVoiceReturn {
                 }
               }, 1500);
             }
-          }, 1200);
+          }, COMMAND_COMMIT_DELAY_MS);
         }
       }
     };

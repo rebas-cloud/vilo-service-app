@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { IconAlertTriangle, IconArrowLeft, IconChefHat, IconChevronDown, IconChevronRight, IconClock, IconCoffee, IconCreditCard, IconGlass, IconSearch, IconTrash, IconUsers, IconToolsKitchen } from '@tabler/icons-react';
+import { IconAlertTriangle, IconArrowLeft, IconChevronDown, IconChevronRight, IconClock, IconCoffee, IconCreditCard, IconGlass, IconSearch, IconTrash, IconUsers, IconToolsKitchen } from '@tabler/icons-react';
 
 import { useApp } from '../context/AppContext';
 
@@ -62,19 +62,14 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
   // sessionOrders is safe to use before the early return (needed by hooks below)
   const sessionOrders = session?.orders ?? [];
 
-  const ordersByState = !session ? { ordered: [], sent: [], problem: [], ready: [], served: [] } : {
-    ordered: session.orders.filter(o => o.state === 'ordered'),
-    sent: session.orders.filter(o => o.state === 'sent_to_kitchen' || o.state === 'sent_to_bar'),
-    problem: session.orders.filter(o => o.state === 'problem'),
-    ready: session.orders.filter(o => o.state === 'ready'),
-    served: session.orders.filter(o => o.state === 'served'),
-  };
-
   const total = sessionOrders.reduce((sum, o) => sum + o.price * o.quantity, 0);
 
-  const handleSendOrders = () => {
-    dispatch({ type: 'SEND_ORDERS' });
-    feedbackOrderSent();
+  const handleBack = () => {
+    if (session && session.orders.some(o => o.state === 'ordered')) {
+      dispatch({ type: 'SEND_ORDERS' });
+      feedbackOrderSent();
+    }
+    onBack();
   };
 
   const handleOpenCheckout = () => {
@@ -404,7 +399,7 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
           <div className={`px-4 py-3 border-r border-vilo-border-subtle ${showMenu ? 'w-full lg:basis-[28%] lg:max-w-[28%]' : 'flex-1'}`}>
             <div className="flex items-center justify-between gap-3">
               <button
-                onClick={onBack}
+                onClick={handleBack}
                 className="p-1.5 rounded-lg border border-vilo-border-subtle bg-[#312e4f] text-[#d8c7ff] hover:bg-[#3a365c] transition-colors"
               >
                 <IconArrowLeft className="w-5 h-5" />
@@ -667,19 +662,10 @@ export function TableDetail({ onBack, voiceIndicator }: TableDetailProps) {
                   {activePositionCount} offen
                 </span>
               </div>
-              <div className={ordersByState.ordered.length > 0 ? 'grid min-h-[44px] grid-cols-[minmax(0,1fr)_156px] gap-2' : ''}>
-                {ordersByState.ordered.length > 0 && (
-                  <button
-                    onClick={handleSendOrders}
-                    className="flex h-full min-h-[44px] w-full min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-[#b66cff]/35 bg-[#a855f7] px-3 py-2.5 text-[12px] font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-colors hover:bg-[#9333ea]"
-                  >
-                    <IconChefHat className="h-4 w-4" />
-                    Senden
-                  </button>
-                )}
+              <div>
                 <button
                   onClick={handleOpenCheckout}
-                  className={`${ordersByState.ordered.length > 0 ? 'w-[156px]' : 'w-full'} min-h-[44px] min-w-0 rounded-lg border border-vilo-border-strong bg-[#302c4b] px-3 py-2 text-left text-white shadow-[0_10px_24px_rgba(0,0,0,0.22),inset_0_1px_0_rgba(255,255,255,0.04)] transition-colors hover:bg-[#353154]`}
+                  className="w-full min-h-[44px] min-w-0 rounded-lg border border-vilo-border-strong bg-[#302c4b] px-3 py-2 text-left text-white shadow-[0_10px_24px_rgba(0,0,0,0.22),inset_0_1px_0_rgba(255,255,255,0.04)] transition-colors hover:bg-[#353154]"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0">

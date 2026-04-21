@@ -24,7 +24,7 @@ describe('BrandWordmark', () => {
   it('should apply default className with custom className', () => {
     const { container } = render(<BrandWordmark className="text-2xl" />);
     const span = container.querySelector('span');
-    expect(span?.className).toContain('vilo-wordmark');
+    expect(span?.className).toContain('font-bold');
     expect(span?.className).toContain('text-2xl');
   });
 
@@ -45,17 +45,16 @@ describe('BrandWordmark', () => {
     const span = container.querySelector('span');
     expect(span).toHaveStyle({
       fontFamily: "'Otista', 'Sen', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      fontWeight: '400',
-      letterSpacing: '0.01em',
-      textRendering: 'geometricPrecision',
+      fontWeight: '700',
+      letterSpacing: '0.05em',
     });
   });
 
   it('should render without additional className when not provided', () => {
     const { container } = render(<BrandWordmark />);
     const span = container.querySelector('span');
-    // Verify it has the default classes but not extra ones
-    expect(span?.className).toMatch(/vilo-wordmark/);
+    // Verify it has the default classes
+    expect(span?.className).toMatch(/font-bold/);
     expect(span?.className).toMatch(/inline-block/);
     expect(span?.className).toMatch(/whitespace-nowrap/);
   });

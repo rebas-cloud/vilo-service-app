@@ -682,3 +682,263 @@ describe('parseIntent - Numeric Input', () => {
     }
   });
 });
+
+describe('parseIntent - Colloquial German ("nen", "nem", etc.)', () => {
+  it('handles "nen Rotwein" (colloquial "einen")', () => {
+    const menuWithWine: typeof mockMenuItems = [
+      ...mockMenuItems,
+      { id: 'rotwein-1', name: 'Rotwein', price: 6.5, category: 'drinks', routing: 'bar', aliases: [] },
+    ];
+    const intent = parseIntent('nen Rotwein', menuWithWine);
+    expect(intent.type).toBe('ADD_ORDER');
+    if (intent.type === 'ADD_ORDER') {
+      expect(intent.items[0].menuItemId).toBe('rotwein-1');
+      expect(intent.items[0].quantity).toBe(1);
+    }
+  });
+
+  it('handles "gib mir ne Cola" → ADD_ORDER', () => {
+    const intent = parseIntent('gib mir ne Cola', mockMenuItems);
+    expect(intent.type).toBe('ADD_ORDER');
+    if (intent.type === 'ADD_ORDER') {
+      expect(intent.items[0].menuItemId).toBe('cola-1');
+    }
+  });
+
+  it('handles "noch mal zwei Bier" → ADD_ORDER qty 2', () => {
+    const intent = parseIntent('noch mal zwei Bier', mockMenuItems);
+    expect(intent.type).toBe('ADD_ORDER');
+    if (intent.type === 'ADD_ORDER') {
+      expect(intent.items[0].quantity).toBe(2);
+    }
+  });
+
+  it('handles "hätte gerne ein Bier" → ADD_ORDER', () => {
+    const intent = parseIntent('hätte gerne ein Bier', mockMenuItems);
+    expect(intent.type).toBe('ADD_ORDER');
+    if (intent.type === 'ADD_ORDER') {
+      expect(intent.items[0].menuItemId).toBe('beer-1');
+    }
+  });
+
+  it('handles "der Herr hätte gern eine Cola" → ADD_ORDER', () => {
+    const intent = parseIntent('der Herr hätte gern eine Cola', mockMenuItems);
+    expect(intent.type).toBe('ADD_ORDER');
+    if (intent.type === 'ADD_ORDER') {
+      expect(intent.items[0].menuItemId).toBe('cola-1');
+    }
+  });
+});
+
+describe('parseIntent - Table Navigation Variants', () => {
+  it('handles "gehe zu Tisch 5"', () => {
+    const intent = parseIntent('gehe zu Tisch 5', mockMenuItems);
+    expect(intent.type).toBe('SET_TABLE');
+    if (intent.type === 'SET_TABLE') {
+      expect(intent.tableId).toBe('tisch-5');
+    }
+  });
+
+  it('handles "geh zu Tisch 9"', () => {
+    const intent = parseIntent('geh zu Tisch 9', mockMenuItems);
+    expect(intent.type).toBe('SET_TABLE');
+    if (intent.type === 'SET_TABLE') {
+      expect(intent.tableId).toBe('tisch-9');
+    }
+  });
+
+  it('handles "navigiere zu Tisch 3"', () => {
+    const intent = parseIntent('navigiere zu Tisch 3', mockMenuItems);
+    expect(intent.type).toBe('SET_TABLE');
+    if (intent.type === 'SET_TABLE') {
+      expect(intent.tableId).toBe('tisch-3');
+    }
+  });
+
+  it('handles "zeig mir Tisch 7"', () => {
+    const intent = parseIntent('zeig mir Tisch 7', mockMenuItems);
+    expect(intent.type).toBe('SET_TABLE');
+    if (intent.type === 'SET_TABLE') {
+      expect(intent.tableId).toBe('tisch-7');
+    }
+  });
+
+  it('handles "öffne Tisch 2"', () => {
+    const intent = parseIntent('öffne Tisch 2', mockMenuItems);
+    expect(intent.type).toBe('SET_TABLE');
+    if (intent.type === 'SET_TABLE') {
+      expect(intent.tableId).toBe('tisch-2');
+    }
+  });
+});
+
+describe('parseIntent - Table Status (SET_TABLE_STATUS)', () => {
+  it('returns SET_TABLE_STATUS free for "Tisch 5 frei"', () => {
+    const intent = parseIntent('Tisch 5 frei', mockMenuItems);
+    expect(intent.type).toBe('SET_TABLE_STATUS');
+    if (intent.type === 'SET_TABLE_STATUS') {
+      expect(intent.tableId).toBe('tisch-5');
+      expect(intent.status).toBe('free');
+    }
+  });
+
+  it('returns SET_TABLE_STATUS free for "Tisch 3 ist frei"', () => {
+    const intent = parseIntent('Tisch 3 ist frei', mockMenuItems);
+    expect(intent.type).toBe('SET_TABLE_STATUS');
+    if (intent.type === 'SET_TABLE_STATUS') {
+      expect(intent.tableId).toBe('tisch-3');
+      expect(intent.status).toBe('free');
+    }
+  });
+
+  it('returns SET_TABLE_STATUS billing for "Tisch 7 bezahlt"', () => {
+    const intent = parseIntent('Tisch 7 bezahlt', mockMenuItems);
+    expect(intent.type).toBe('SET_TABLE_STATUS');
+    if (intent.type === 'SET_TABLE_STATUS') {
+      expect(intent.tableId).toBe('tisch-7');
+      expect(intent.status).toBe('billing');
+    }
+  });
+
+  it('returns SET_TABLE_STATUS free for "Tisch 2 freigeben"', () => {
+    const intent = parseIntent('Tisch 2 freigeben', mockMenuItems);
+    expect(intent.type).toBe('SET_TABLE_STATUS');
+    if (intent.type === 'SET_TABLE_STATUS') {
+      expect(intent.tableId).toBe('tisch-2');
+      expect(intent.status).toBe('free');
+    }
+  });
+
+  it('returns SET_TABLE_STATUS free for "Terrasse 1 leer"', () => {
+    const intent = parseIntent('Terrasse 1 leer', mockMenuItems);
+    expect(intent.type).toBe('SET_TABLE_STATUS');
+    if (intent.type === 'SET_TABLE_STATUS') {
+      expect(intent.tableId).toBe('terrasse-1');
+      expect(intent.status).toBe('free');
+    }
+  });
+});
+
+describe('parseIntent - Reservation (MAKE_RESERVATION)', () => {
+  it('returns MAKE_RESERVATION for "Reservierung für 4 um 19 Uhr"', () => {
+    const intent = parseIntent('Reservierung für 4 um 19 Uhr', mockMenuItems);
+    expect(intent.type).toBe('MAKE_RESERVATION');
+    if (intent.type === 'MAKE_RESERVATION') {
+      expect(intent.partySize).toBe(4);
+      expect(intent.time).toBe('19:00');
+    }
+  });
+
+  it('returns MAKE_RESERVATION for "Reservierung für 2 Personen um 20 Uhr"', () => {
+    const intent = parseIntent('Reservierung für 2 Personen um 20 Uhr', mockMenuItems);
+    expect(intent.type).toBe('MAKE_RESERVATION');
+    if (intent.type === 'MAKE_RESERVATION') {
+      expect(intent.partySize).toBe(2);
+      expect(intent.time).toBe('20:00');
+    }
+  });
+
+  it('returns MAKE_RESERVATION with guestName for "Reservierung Müller 4 Personen 19 Uhr"', () => {
+    const intent = parseIntent('Reservierung auf den Namen Müller 4 Personen 19 Uhr', mockMenuItems);
+    expect(intent.type).toBe('MAKE_RESERVATION');
+    if (intent.type === 'MAKE_RESERVATION') {
+      expect(intent.guestName).toBe('Müller');
+    }
+  });
+
+  it('returns MAKE_RESERVATION for "Buchung 6 Personen halb 8"', () => {
+    const intent = parseIntent('Buchung 6 Personen halb 8', mockMenuItems);
+    expect(intent.type).toBe('MAKE_RESERVATION');
+    if (intent.type === 'MAKE_RESERVATION') {
+      expect(intent.partySize).toBe(6);
+      expect(intent.time).toBe('07:30');
+    }
+  });
+
+  it('returns MAKE_RESERVATION for "reservier einen Tisch für 3"', () => {
+    const intent = parseIntent('reservier einen Tisch für 3', mockMenuItems);
+    expect(intent.type).toBe('MAKE_RESERVATION');
+  });
+});
+
+describe('parseIntent - Send to station expanded', () => {
+  it('returns SEND_TO_STATION kitchen for "Bestellung abschließen"', () => {
+    const intent = parseIntent('Bestellung abschließen', mockMenuItems);
+    expect(intent.type).toBe('SEND_TO_STATION');
+    if (intent.type === 'SEND_TO_STATION') {
+      expect(intent.station).toBe('kitchen');
+    }
+  });
+
+  it('returns SEND_TO_STATION kitchen for "fertig"', () => {
+    const intent = parseIntent('fertig', mockMenuItems);
+    expect(intent.type).toBe('SEND_TO_STATION');
+    if (intent.type === 'SEND_TO_STATION') {
+      expect(intent.station).toBe('kitchen');
+    }
+  });
+
+  it('returns SEND_TO_STATION kitchen for "los"', () => {
+    const intent = parseIntent('los', mockMenuItems);
+    expect(intent.type).toBe('SEND_TO_STATION');
+    if (intent.type === 'SEND_TO_STATION') {
+      expect(intent.station).toBe('kitchen');
+    }
+  });
+});
+
+describe('parseIntent - Billing expanded', () => {
+  it('returns SHOW_BILL for standalone "zahlen"', () => {
+    const intent = parseIntent('zahlen', mockMenuItems);
+    expect(intent.type).toBe('SHOW_BILL');
+  });
+
+  it('returns SHOW_BILL for standalone "bezahlen"', () => {
+    const intent = parseIntent('bezahlen', mockMenuItems);
+    expect(intent.type).toBe('SHOW_BILL');
+  });
+
+  it('returns PAY_CARD for "EC-Karte"', () => {
+    const intent = parseIntent('EC-Karte', mockMenuItems);
+    expect(intent.type).toBe('PAY_CARD');
+  });
+
+  it('returns UNDO for "das war falsch"', () => {
+    const intent = parseIntent('das war falsch', mockMenuItems);
+    expect(intent.type).toBe('UNDO');
+  });
+});
+
+describe('parseIntent - Notes expanded', () => {
+  it('returns ADD_NOTE for "laktose"', () => {
+    const intent = parseIntent('laktose', mockMenuItems);
+    expect(intent.type).toBe('ADD_NOTE');
+    if (intent.type === 'ADD_NOTE') {
+      expect(intent.note).toBe('Laktoseintoleranz');
+    }
+  });
+
+  it('returns ADD_NOTE for "vegetarisch"', () => {
+    const intent = parseIntent('vegetarisch', mockMenuItems);
+    expect(intent.type).toBe('ADD_NOTE');
+    if (intent.type === 'ADD_NOTE') {
+      expect(intent.note).toBe('Vegetarisch');
+    }
+  });
+
+  it('returns ADD_NOTE for "vegan"', () => {
+    const intent = parseIntent('vegan', mockMenuItems);
+    expect(intent.type).toBe('ADD_NOTE');
+    if (intent.type === 'ADD_NOTE') {
+      expect(intent.note).toBe('Vegan');
+    }
+  });
+
+  it('returns ADD_NOTE for "anmerkung kein Alkohol"', () => {
+    const intent = parseIntent('anmerkung kein Alkohol', mockMenuItems);
+    expect(intent.type).toBe('ADD_NOTE');
+    if (intent.type === 'ADD_NOTE') {
+      expect(intent.note).toBe('kein Alkohol');
+    }
+  });
+});

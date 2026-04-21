@@ -24,7 +24,7 @@ describe('VoiceIndicator', () => {
         isSupported={false}
       />
     );
-    expect(screen.getByText(/Spracherkennung wird von diesem Browser nicht unterstützt/)).toBeInTheDocument();
+    expect(screen.getByText(/Spracherkennung nicht verfügbar/)).toBeInTheDocument();
   });
 
   it('should render "Tippe zum Sprechen" in idle mode', () => {
